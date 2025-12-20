@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Python",
+  "languages": [
+    "python"
+  ],
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "requirements.txt",
+        "setup.py",
+        "pyproject.toml",
+        "Pipfile"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "cli_entry_points": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "description": "Command-line entry points (main functions, click commands, argparse)",
+        "signatures": [
+          "*.main",
+          "click.command",
+          "click.group",
+          "argparse.ArgumentParser",
+          "argparse.ArgumentParser.parse_args"
+        ]
+      }
+    },
+    "database": {
+      "sql_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "sqlite3.Connection.execute",
+          "sqlite3.Connection.executemany",
+          "sqlite3.Connection.executescript",
+          "sqlite3.Cursor.execute",
+          "sqlite3.Cursor.executemany",
+          "sqlite3.Cursor.executescript",
+          "psycopg2.connect",
+          "psycopg2.extensions.cursor.execute",
+          "psycopg2.extensions.cursor.executemany",
+          "pymysql.connect",
+          "pymysql.cursors.Cursor.execute",
+          "pymysql.cursors.Cursor.executemany",
+          "mysql.connector.connect",
+          "mysql.connector.cursor.MySQLCursor.execute",
+          "mysql.connector.cursor.MySQLCursor.executemany"
+        ]
+      },
+      "orm_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "sqlalchemy.orm.Session.query",
+          "sqlalchemy.orm.Session.execute",
+          "sqlalchemy.orm.Session.add",
+          "sqlalchemy.orm.Session.delete",
+          "sqlalchemy.orm.Session.commit",
+          "django.db.models.QuerySet.filter",
+          "django.db.models.QuerySet.get",
+          "django.db.models.QuerySet.create",
+          "django.db.models.QuerySet.update",
+          "django.db.models.QuerySet.delete",
+          "django.db.models.Model.save",
+          "django.db.models.Model.delete"
+        ]
+      }
+    },
+    "execution": {
+      "native": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "os.system",
+          "os.popen",
+          "os.execl",
+          "os.execle",
+          "os.execlp",
+          "os.execlpe",
+          "os.execv",
+          "os.execve",
+          "os.execvp",
+          "os.execvpe",
+          "os.spawnl",
+          "os.spawnle",
+          "os.spawnlp",
+          "os.spawnlpe",
+          "os.spawnv",
+          "os.spawnve",
+          "os.spawnvp",
+          "os.spawnvpe",
+          "subprocess.run",
+          "subprocess.call",
+          "subprocess.check_call",
+          "subprocess.check_output",
+          "subprocess.Popen",
+          "subprocess.getoutput",
+          "subprocess.getstatusoutput"
+        ]
+      },
+      "expression": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "eval",
+          "exec",
+          "compile",
+          "__import__"
+        ]
+      },
+      "reflection": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "getattr",
+          "setattr",
+          "hasattr",
+          "delattr",
+          "vars",
+          "dir",
+          "type",
+          "isinstance",
+          "issubclass"
+        ]
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "pickle.dumps",
+          "pickle.dump",
+          "pickle.loads",
+          "pickle.load",
+          "json.dumps",
+          "json.dump",
+          "json.loads",
+          "json.load",
+          "yaml.dump",
+          "yaml.safe_dump",
+          "yaml.load",
+          "yaml.safe_load",
+          "marshal.dumps",
+          "marshal.dump",
+          "marshal.loads",
+          "marshal.load"
+        ]
+      },
+      "file_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "open",
+          "io.open",
+          "pathlib.Path.open",
+          "pathlib.Path.read_text",
+          "pathlib.Path.write_text",
+          "pathlib.Path.read_bytes",
+          "pathlib.Path.write_bytes",
+          "os.open",
+          "os.read",
+          "os.write"
+        ]
+      }
+    },
+    "integration": {
+      "xpath_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "lxml.etree._Element.xpath",
+          "lxml.etree._ElementTree.xpath",
+          "xml.etree.ElementTree.Element.find",
+          "xml.etree.ElementTree.Element.findall",
+          "xml.etree.ElementTree.Element.findtext"
+        ]
+      },
+      "ldap_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "ldap.initialize",
+          "ldap.ldapobject.SimpleLDAPObject.search",
+          "ldap.ldapobject.SimpleLDAPObject.search_s",
+          "ldap.ldapobject.SimpleLDAPObject.search_st",
+          "ldap3.Connection.search"
+        ]
+      },
+      "http_clients": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "requests.get",
+          "requests.post",
+          "requests.put",
+          "requests.delete",
+          "requests.patch",
+          "requests.request",
+          "urllib.request.urlopen",
+          "urllib.request.urlretrieve",
+          "urllib.request.Request",
+          "httpx.get",
+          "httpx.post",
+          "httpx.Client.get",
+          "httpx.Client.post",
+          "aiohttp.ClientSession.get",
+          "aiohttp.ClientSession.post"
+        ]
+      }
+    },
+    "communication": {
+      "http_server": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "flask.Flask.route",
+          "flask.Flask.add_url_rule",
+          "fastapi.FastAPI.get",
+          "fastapi.FastAPI.post",
+          "fastapi.FastAPI.put",
+          "fastapi.FastAPI.delete",
+          "django.urls.path",
+          "django.urls.re_path",
+          "http.server.BaseHTTPRequestHandler.do_GET",
+          "http.server.BaseHTTPRequestHandler.do_POST"
+        ]
+      }
+    },
+    "logging": {
+      "logging_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "logging.debug",
+          "logging.info",
+          "logging.warning",
+          "logging.error",
+          "logging.critical",
+          "logging.log",
+          "logging.Logger.debug",
+          "logging.Logger.info",
+          "logging.Logger.warning",
+          "logging.Logger.error",
+          "logging.Logger.critical"
+        ]
+      }
+    },
+    "security": {
+      "authentication": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "jwt.encode",
+          "jwt.decode",
+          "jose.jwt.encode",
+          "jose.jwt.decode",
+          "cryptography.fernet.Fernet.encrypt",
+          "cryptography.fernet.Fernet.decrypt",
+          "hashlib.md5",
+          "hashlib.sha1",
+          "hashlib.sha256",
+          "hashlib.sha512",
+          "bcrypt.hashpw",
+          "bcrypt.checkpw",
+          "passlib.hash.bcrypt.hash",
+          "passlib.hash.bcrypt.verify"
+        ]
+      },
+      "authorization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "flask_login.login_required",
+          "django.contrib.auth.decorators.login_required",
+          "django.contrib.auth.decorators.permission_required",
+          "fastapi.Depends"
+        ]
+      }
+    }
+  }
+}

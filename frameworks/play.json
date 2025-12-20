@@ -1,0 +1,119 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Play",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "conf/application.conf",
+        "conf/routes"
+      ]
+    },
+    "dependencies": {
+      "build.sbt": [
+        {
+          "pattern": "com.typesafe.play",
+          "library": "Play Framework"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "play.api.mvc.*",
+        "play.core.parsers.*",
+        "play.data.*",
+        "play.mvc.*",
+        "play.utils.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "play.data.Form.bindFromRequest(java.lang.String[])",
+          "play.data.Form.bindFromRequest(play.mvc.Http$Request,java.lang.String[])",
+          "play.data.Form.bindFromRequest(java.util.Map,java.lang.String[])",
+          "play.data.Form.bind(com.fasterxml.jackson.databind.JsonNode,java.lang.String[])",
+          "play.data.Form.bind(java.util.Map,java.lang.String[])",
+          "play.mvc.Http$RequestHeader.queryString()",
+          "play.mvc.Http$RequestHeader.getQueryString(java.lang.String)",
+          "play.mvc.Http$RequestHeader.headers()",
+          "play.mvc.Http$RequestHeader.getHeader(java.lang.String)",
+          "play.mvc.Http$RequestHeader.cookies()",
+          "play.mvc.Http$RequestHeader.cookie(java.lang.String)",
+          "play.mvc.Http$RequestBody.asText()",
+          "play.mvc.Http$RequestBody.asXml()",
+          "play.mvc.Http$RequestBody.asJson()",
+          "play.mvc.Http$RequestBody.asRaw()",
+          "play.mvc.Http$RequestBody.asFormUrlEncoded()",
+          "play.mvc.Http$RequestBody.asMultipartFormData()",
+          "play.mvc.Http$MultipartFormData$FilePart.getContentType()",
+          "play.mvc.Http$MultipartFormData$FilePart.getFile()",
+          "play.mvc.Http$MultipartFormData$FilePart.getFileName()",
+          "play.mvc.Http$MultipartFormData$FilePart.getKey()",
+          "play.mvc.Http$RequestBody.as(java.lang.Class)",
+          "play.mvc.Http$Request.path()",
+          "play.mvc.Http$Request.uri()",
+          "play.api.mvc.Request.body()",
+          "play.api.mvc.RequestHeader.queryString()",
+          "play.api.mvc.RequestHeader.getQueryString(java.lang.String)",
+          "play.api.mvc.RequestHeader.rawQueryString()",
+          "play.api.mvc.RequestHeader.uri()",
+          "play.api.mvc.RequestHeader.path()",
+          "play.api.mvc.RequestHeader.headers()",
+          "play.api.mvc.MultipartFormData$FilePart.contentType()",
+          "play.api.mvc.MultipartFormData$FilePart.ref()",
+          "play.api.mvc.MultipartFormData$FilePart.fileName()",
+          "play.api.mvc.MultipartFormData$FilePart.key()",
+          "play.core.parsers.Multipart$FileInfo.partName()",
+          "play.core.parsers.Multipart$FileInfo.fileName()",
+          "play.api.mvc.RequestHeader.cookies()"
+        ]
+      },
+      "propagators": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "play.utils.UriEncoding$.decodePath(java.lang.String,java.lang.String)",
+          "play.utils.UriEncoding$.decodePathSegment(java.lang.String,java.lang.String)"
+        ]
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "play.utils.UriEncoding$.encodePathSegment(java.lang.String,java.lang.String)"
+      },
+      "cookie_security": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "play.mvc.Http$Cookie.<init>:void(java.lang.String,java.lang.String,java.lang.Integer,java.lang.String,java.lang.String,boolean,boolean)",
+          "play.mvc.Http$Cookie.<init>:void(java.lang.String,java.lang.String,java.lang.Integer,java.lang.String,java.lang.String,boolean,boolean,play.mvc.Http$Cookie$SameSite)"
+        ]
+      }
+    }
+  }
+}

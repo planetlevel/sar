@@ -1,0 +1,347 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Framework",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "pom.xml",
+        "build.gradle",
+        "build.gradle.kts"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-boot-starter",
+          "library": "Spring Boot"
+        },
+        {
+          "artifact": "spring-boot-starter-web",
+          "library": "Spring Boot Web"
+        },
+        {
+          "artifact": "spring-webmvc",
+          "library": "Spring Web MVC"
+        },
+        {
+          "artifact": "spring-web",
+          "library": "Spring Web"
+        },
+        {
+          "artifact": "spring-context",
+          "library": "Spring Context"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.springframework.boot",
+          "library": "Spring Boot"
+        },
+        {
+          "pattern": "org.springframework:spring",
+          "library": "Spring Framework"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "RequestMapping",
+            "GetMapping",
+            "PostMapping",
+            "PutMapping",
+            "DeleteMapping",
+            "PatchMapping"
+          ]
+        },
+        "http_methods": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": {
+            "get": "GetMapping",
+            "post": "PostMapping",
+            "put": "PutMapping",
+            "delete": "DeleteMapping",
+            "patch": "PatchMapping",
+            "generic": "RequestMapping"
+          }
+        }
+      },
+      "parameters": {
+        "path_variable": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "pattern": "PathVariable"
+        },
+        "query_param": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "pattern": "RequestParam"
+        },
+        "request_body": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "pattern": "RequestBody"
+        },
+        "form_binding": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "pattern": "ModelAttribute|Valid|Validated"
+        }
+      },
+      "handler_classes": {
+        "class_patterns": {
+          "type": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Controller",
+          "exclude_pattern": ".*Abstract.*|.*Base.*"
+        },
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Controller",
+            "RestController"
+          ]
+        }
+      },
+      "component_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Component",
+            "Service",
+            "Repository",
+            "Configuration",
+            "Bean",
+            "SpringBootApplication"
+          ]
+        }
+      },
+      "dependency_injection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Autowired",
+            "Inject",
+            "Resource",
+            "Value",
+            "Qualifier"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.expression.spel.standard.SpelExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String)",
+          "org.springframework.expression.spel.standard.SpelExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String,org.springframework.expression.ParserContext)",
+          "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String)",
+          "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String,org.springframework.expression.ParserContext)",
+          "org.springframework.expression.Expression.getValue:java.lang.Object()",
+          "org.springframework.expression.Expression.getValue:java.lang.Object(java.lang.Object)"
+        ]
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.web.context.request.RequestContextHolder.getRequestAttributes:org.springframework.web.context.request.RequestAttributes()",
+          "org.springframework.web.context.request.ServletRequestAttributes.getRequest:javax.servlet.http.HttpServletRequest()",
+          "org.springframework.web.context.request.ServletRequestAttributes.getResponse:javax.servlet.http.HttpServletResponse()",
+          "org.springframework.web.multipart.MultipartFile.getBytes:byte[]()",
+          "org.springframework.web.multipart.MultipartFile.getInputStream:java.io.InputStream()",
+          "org.springframework.web.multipart.MultipartFile.transferTo:void(java.io.File)",
+          "org.springframework.web.multipart.MultipartFile.getOriginalFilename:java.lang.String()",
+          "org.springframework.web.multipart.MultipartFile.getName:java.lang.String()",
+          "org.springframework.web.multipart.MultipartFile.getResource:org.springframework.core.io.Resource()"
+        ]
+      }
+    },
+    "communication": {
+      "http": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.web.client.RestTemplate.getForObject:java.lang.Object(java.lang.String,java.lang.Class,java.lang.Object[])",
+          "org.springframework.web.client.RestTemplate.getForEntity:org.springframework.http.ResponseEntity(java.lang.String,java.lang.Class,java.lang.Object[])",
+          "org.springframework.web.client.RestTemplate.postForObject:java.lang.Object(java.lang.String,java.lang.Object,java.lang.Class,java.lang.Object[])",
+          "org.springframework.web.client.RestTemplate.postForEntity:org.springframework.http.ResponseEntity(java.lang.String,java.lang.Object,java.lang.Class,java.lang.Object[])",
+          "org.springframework.web.client.RestTemplate.exchange:org.springframework.http.ResponseEntity(java.lang.String,org.springframework.http.HttpMethod,org.springframework.http.HttpEntity,java.lang.Class,java.lang.Object[])",
+          "org.springframework.web.client.RestTemplate.execute:java.lang.Object(java.lang.String,org.springframework.http.HttpMethod,org.springframework.web.client.RequestCallback,org.springframework.web.client.ResponseExtractor,java.lang.Object[])",
+          "org.springframework.web.reactive.function.client.WebClient.create:org.springframework.web.reactive.function.client.WebClient(java.lang.String)",
+          "org.springframework.web.reactive.function.client.WebClient$RequestHeadersUriSpec.uri:org.springframework.web.reactive.function.client.WebClient$RequestHeadersSpec(java.lang.String,java.lang.Object[])",
+          "org.springframework.web.reactive.function.client.WebClient.get:org.springframework.web.reactive.function.client.WebClient$RequestHeadersUriSpec()",
+          "org.springframework.web.reactive.function.client.WebClient.post:org.springframework.web.reactive.function.client.WebClient$RequestBodyUriSpec()",
+          "org.springframework.web.reactive.function.client.WebClient.put:org.springframework.web.reactive.function.client.WebClient$RequestBodyUriSpec()",
+          "org.springframework.web.reactive.function.client.WebClient.delete:org.springframework.web.reactive.function.client.WebClient$RequestHeadersUriSpec()",
+          "org.springframework.web.reactive.function.client.WebClient.patch:org.springframework.web.reactive.function.client.WebClient$RequestBodyUriSpec()"
+        ]
+      }
+    },
+    "database": {
+      "sql_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.jdbc.core.JdbcTemplate.execute:void(java.lang.String)",
+          "org.springframework.jdbc.core.JdbcTemplate.query:java.util.List(java.lang.String,org.springframework.jdbc.core.RowMapper)",
+          "org.springframework.jdbc.core.JdbcTemplate.queryForObject:java.lang.Object(java.lang.String,java.lang.Class)",
+          "org.springframework.jdbc.core.JdbcTemplate.update:int(java.lang.String)"
+        ]
+      },
+      "transactions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Transactional",
+            "EnableTransactionManagement"
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "redirects": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.web.servlet.view.RedirectView.<init>:void(java.lang.String)",
+          "org.springframework.web.servlet.view.RedirectView.setUrl:void(java.lang.String)"
+        ]
+      }
+    },
+    "integration": {
+      "email": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.mail.SimpleMailMessage.setFrom:void(java.lang.String)",
+          "org.springframework.mail.SimpleMailMessage.setTo:void(java.lang.String)",
+          "org.springframework.mail.SimpleMailMessage.setTo:void(java.lang.String[])",
+          "org.springframework.mail.SimpleMailMessage.setCc:void(java.lang.String)",
+          "org.springframework.mail.SimpleMailMessage.setCc:void(java.lang.String[])",
+          "org.springframework.mail.SimpleMailMessage.setSubject:void(java.lang.String)",
+          "org.springframework.mail.SimpleMailMessage.setText:void(java.lang.String)"
+        ]
+      }
+    },
+    "exposure_locations": {
+      "endpoints": {
+        "description": "Methods with HTTP routing annotations (controllers)",
+        "type": "joern",
+        "search_type": "annotation_name",
+        "patterns": [
+          "RequestMapping",
+          "GetMapping",
+          "PostMapping",
+          "PutMapping",
+          "DeleteMapping",
+          "PatchMapping"
+        ]
+      },
+      "service_methods": {
+        "description": "Public methods in service classes",
+        "type": "joern",
+        "search_type": "annotation_name",
+        "patterns": [
+          "Service",
+          "Component"
+        ]
+      },
+      "repository_methods": {
+        "description": "Data access methods",
+        "type": "joern",
+        "search_type": "annotation_name",
+        "patterns": [
+          "Repository"
+        ]
+      }
+    },
+    "security": {
+      "authentication": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.security.core.context.SecurityContextHolder.getContext:org.springframework.security.core.context.SecurityContext()",
+          "org.springframework.security.authentication.AuthenticationManager.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "org.springframework.security.core.context.SecurityContext.getAuthentication:org.springframework.security.core.Authentication()",
+          "org.springframework.security.oauth2.jwt.JwtDecoder.decode:org.springframework.security.oauth2.jwt.Jwt(java.lang.String)",
+          "org.springframework.security.oauth2.jwt.JwtEncoder.encode:org.springframework.security.oauth2.jwt.Jwt(org.springframework.security.oauth2.jwt.JwtEncoderParameters)",
+          "org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri:org.springframework.security.oauth2.jwt.NimbusJwtDecoder$JwkSetUriJwtDecoderBuilder(java.lang.String)",
+          "org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withPublicKey:org.springframework.security.oauth2.jwt.NimbusJwtDecoder$PublicKeyJwtDecoderBuilder(java.security.interfaces.RSAPublicKey)",
+          "org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withSecretKey:org.springframework.security.oauth2.jwt.NimbusJwtDecoder$SecretKeyBuilder(javax.crypto.SecretKey)",
+          "org.springframework.security.oauth2.jwt.NimbusJwtEncoder.<init>:void(com.nimbusds.jose.jwk.source.JWKSource)",
+          "org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter.convert:org.springframework.security.core.Authentication(org.springframework.security.oauth2.jwt.Jwt)",
+          "org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)"
+        ]
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "PreAuthorize",
+            "PostAuthorize",
+            "PreFilter",
+            "PostFilter",
+            "Secured",
+            "RolesAllowed"
+          ]
+        }
+      },
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.validation.Validator.validate:void(java.lang.Object,org.springframework.validation.Errors)",
+          "org.springframework.validation.DataBinder.validate:void()",
+          "org.springframework.web.bind.WebDataBinder.validate:void(java.lang.Object[])"
+        ]
+      },
+      "input_validation": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.validation.Validator.validate:void(java.lang.Object,org.springframework.validation.Errors)",
+          "org.springframework.validation.Validator.supports:boolean(java.lang.Class)",
+          "org.springframework.validation.ValidationUtils.rejectIfEmpty:void(org.springframework.validation.Errors,java.lang.String,java.lang.String)",
+          "org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace:void(org.springframework.validation.Errors,java.lang.String,java.lang.String)"
+        ]
+      },
+      "output_encoding": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.web.util.HtmlUtils.htmlEscape:java.lang.String(java.lang.String)",
+          "org.springframework.web.util.HtmlUtils.htmlEscapeDecimal:java.lang.String(java.lang.String)",
+          "org.springframework.web.util.HtmlUtils.htmlEscapeHex:java.lang.String(java.lang.String)",
+          "org.springframework.web.util.JavaScriptUtils.javaScriptEscape:java.lang.String(java.lang.String)",
+          "org.springframework.web.util.UriUtils.encode:java.lang.String(java.lang.String,java.lang.String)",
+          "org.springframework.web.util.UriUtils.encodeFragment:java.lang.String(java.lang.String,java.lang.String)",
+          "org.springframework.web.util.UriUtils.encodePath:java.lang.String(java.lang.String,java.lang.String)",
+          "org.springframework.web.util.UriUtils.encodePathSegment:java.lang.String(java.lang.String,java.lang.String)",
+          "org.springframework.web.util.UriUtils.encodeQuery:java.lang.String(java.lang.String,java.lang.String)",
+          "org.springframework.web.util.UriUtils.encodeQueryParam:java.lang.String(java.lang.String,java.lang.String)"
+        ]
+      }
+    }
+  }
+}

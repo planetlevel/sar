@@ -1,0 +1,151 @@
+{
+  "name": "Apache Commons Exec",
+  "languages": [
+    "java",
+    "shell"
+  ],
+  "repository": {
+    "url": "https://github.com/apache/commons-exec",
+    "branch": "master",
+    "commit": "be5e50f8ad439addfddedaa9f9cc68104cc541f6",
+    "date": "2025-10-11"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "apache-commons-exec.*\\.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "commons-parent",
+          "library": "Apache Commons Exec"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "java.io.*",
+        "java.util.*",
+        "org.apache.commons.exec.*",
+        "java.nio.file.*",
+        "java.util.concurrent.*",
+        "java.time.*",
+        "org.apache.commons.exec.util.*",
+        "java.util.function.*",
+        "java.nio.charset.*",
+        "org.apache.commons.exec.environment.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "java.util",
+          "java.io",
+          "org.apache",
+          "java.nio",
+          "java.time"
+        ],
+        "depth_3": [
+          "org.apache.commons",
+          "java.io.IOException",
+          "java.util.Map",
+          "java.io.File",
+          "java.util.concurrent",
+          "java.nio.file",
+          "java.util.Objects",
+          "java.io.OutputStream",
+          "java.util.ArrayList",
+          "java.util.List",
+          "java.time.Duration",
+          "java.util.function",
+          "java.io.InputStream",
+          "java.util.HashMap",
+          "java.util.StringTokenizer",
+          "java.time.Instant",
+          "java.nio.charset",
+          "java.io.Closeable",
+          "java.io.ByteArrayOutputStream",
+          "java.util.Locale"
+        ],
+        "depth_4": [
+          "org.apache.commons.exec",
+          "java.nio.file.Path",
+          "java.util.concurrent.ThreadFactory",
+          "java.util.concurrent.Executors",
+          "java.util.function.Supplier",
+          "java.nio.file.Files",
+          "java.nio.charset.Charset",
+          "java.nio.file.Paths",
+          "java.util.concurrent.atomic",
+          "java.util.function.Consumer",
+          "java.util.Map.Entry"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "execution": {
+      "native": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.apache.commons.exec.DefaultExecutor.execute:int(org.apache.commons.exec.CommandLine)",
+            "description": "Executes a native system command and returns the exit code"
+          },
+          {
+            "signature": "org.apache.commons.exec.DefaultExecutor.execute:void(org.apache.commons.exec.CommandLine,org.apache.commons.exec.ExecuteResultHandler)",
+            "description": "Executes a native system command asynchronously with a result handler"
+          },
+          {
+            "signature": "org.apache.commons.exec.DefaultExecutor.execute:int(org.apache.commons.exec.CommandLine,java.util.Map)",
+            "description": "Executes a native system command with environment variables and returns exit code"
+          },
+          {
+            "signature": "org.apache.commons.exec.DefaultExecutor.execute:void(org.apache.commons.exec.CommandLine,java.util.Map,org.apache.commons.exec.ExecuteResultHandler)",
+            "description": "Executes a native system command asynchronously with environment variables and result handler"
+          },
+          {
+            "signature": "org.apache.commons.exec.Executor.execute:int(org.apache.commons.exec.CommandLine)",
+            "description": "Interface method for executing a native system command and returning exit code"
+          },
+          {
+            "signature": "org.apache.commons.exec.Executor.execute:void(org.apache.commons.exec.CommandLine,org.apache.commons.exec.ExecuteResultHandler)",
+            "description": "Interface method for asynchronous native command execution with result handler"
+          },
+          {
+            "signature": "org.apache.commons.exec.Executor.execute:int(org.apache.commons.exec.CommandLine,java.util.Map)",
+            "description": "Interface method for executing native command with environment variables"
+          },
+          {
+            "signature": "org.apache.commons.exec.Executor.execute:void(org.apache.commons.exec.CommandLine,java.util.Map,org.apache.commons.exec.ExecuteResultHandler)",
+            "description": "Interface method for asynchronous native command execution with environment and handler"
+          }
+        ]
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.apache.commons.exec.launcher.CommandLauncher.exec:java.lang.Process(org.apache.commons.exec.CommandLine,java.util.Map,java.io.File)",
+            "description": "Launches a command with specified working directory and environment variables"
+          },
+          {
+            "signature": "org.apache.commons.exec.launcher.CommandLauncher.exec:java.lang.Process(org.apache.commons.exec.CommandLine,java.util.Map,java.nio.file.Path)",
+            "description": "Launches a command using Path API for working directory specification"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Bean Validation",
+  "languages": [
+    "java",
+    "shell"
+  ],
+  "repository": {
+    "url": "https://github.com/jakartaee/validation",
+    "branch": "main",
+    "commit": "1b7362d5de04a14c973bcd56cc7a90918bdcebfd",
+    "date": "2025-11-12"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "validation.xml",
+        "project*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "project",
+          "library": "Bean Validation"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "jakarta.validation.constraints.*",
+        "jakarta.validation.metadata.*",
+        "jakarta.validation.valueextraction.*",
+        "jakarta.validation.executable.*",
+        "jakarta.validation.groups.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "jakarta.validation"
+        ],
+        "depth_3": [
+          "jakarta.validation.constraints",
+          "jakarta.validation.metadata",
+          "jakarta.validation.valueextraction",
+          "jakarta.validation.executable",
+          "jakarta.validation.groups",
+          "jakarta.validation.spi",
+          "jakarta.validation.bootstrap",
+          "jakarta.validation.constraintvalidation",
+          "jakarta.validation.BootstrapConfiguration",
+          "jakarta.validation.ClockProvider",
+          "jakarta.validation.Configuration",
+          "jakarta.validation.Constraint",
+          "jakarta.validation.ConstraintDeclarationException",
+          "jakarta.validation.ConstraintDefinitionException",
+          "jakarta.validation.ConstraintTarget",
+          "jakarta.validation.ConstraintValidator",
+          "jakarta.validation.ConstraintValidatorContext$ConstraintViolationBuilder$LeafNodeBuilderDefinedContext",
+          "jakarta.validation.ConstraintValidatorContext$ConstraintViolationBuilder$LeafNodeBuilderCustomizableContext",
+          "jakarta.validation.ConstraintValidatorContext$ConstraintViolationBuilder$LeafNodeContextBuilder",
+          "jakarta.validation.ConstraintValidatorContext$ConstraintViolationBuilder$NodeBuilderDefinedContext"
+        ],
+        "depth_4": [
+          "jakarta.validation.constraints.List",
+          "jakarta.validation.bootstrap.GenericBootstrap",
+          "jakarta.validation.bootstrap.ProviderSpecificBootstrap",
+          "jakarta.validation.constraints.AssertFalse",
+          "jakarta.validation.constraints.AssertTrue",
+          "jakarta.validation.constraints.DecimalMax",
+          "jakarta.validation.constraints.DecimalMin",
+          "jakarta.validation.constraints.Digits",
+          "jakarta.validation.constraints.Email",
+          "jakarta.validation.constraints.Future",
+          "jakarta.validation.constraints.FutureOrPresent",
+          "jakarta.validation.constraints.Max",
+          "jakarta.validation.constraints.Min",
+          "jakarta.validation.constraints.Negative",
+          "jakarta.validation.constraints.NegativeOrZero",
+          "jakarta.validation.constraints.NotBlank",
+          "jakarta.validation.constraints.NotEmpty",
+          "jakarta.validation.constraints.NotNull",
+          "jakarta.validation.constraints.Null",
+          "jakarta.validation.constraints.Past"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "jakarta.validation.Validator.validate:java.util.Set(java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.Class[])",
+            "jakarta.validation.Validator.validateProperty:java.util.Set(java.lang.Object,java.lang.String,java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.String,java.lang.Class[])",
+            "jakarta.validation.Validator.validateValue:java.util.Set(java.lang.Class,java.lang.String,java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.Class,java.lang.String,java.lang.Object,java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateParameters:java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object[],java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object[],java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateReturnValue:java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object,java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateConstructorParameters:java.util.Set(java.lang.reflect.Constructor,java.lang.Object[],java.lang.Class[]):java.util.Set(java.lang.reflect.Constructor,java.lang.Object[],java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateConstructorReturnValue:java.util.Set(java.lang.reflect.Constructor,java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.reflect.Constructor,java.lang.Object,java.lang.Class[])",
+            "Valid",
+            "AssertFalse",
+            "AssertTrue",
+            "DecimalMax",
+            "DecimalMin",
+            "Digits",
+            "Email",
+            "Future",
+            "FutureOrPresent",
+            "Max",
+            "Min",
+            "Negative",
+            "NegativeOrZero",
+            "NotBlank",
+            "NotEmpty",
+            "NotNull",
+            "Null",
+            "Past",
+            "PastOrPresent",
+            "Pattern",
+            "Positive",
+            "PositiveOrZero",
+            "Size"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "jakarta.validation.executable.ExecutableValidator.validateParameters:java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object[],java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object[],java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateReturnValue:java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.Object,java.lang.reflect.Method,java.lang.Object,java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateConstructorParameters:java.util.Set(java.lang.reflect.Constructor,java.lang.Object[],java.lang.Class[]):java.util.Set(java.lang.reflect.Constructor,java.lang.Object[],java.lang.Class[])",
+            "jakarta.validation.executable.ExecutableValidator.validateConstructorReturnValue:java.util.Set(java.lang.reflect.Constructor,java.lang.Object,java.lang.Class[]):java.util.Set(java.lang.reflect.Constructor,java.lang.Object,java.lang.Class[])"
+          ]
+        }
+      }
+    }
+  }
+}

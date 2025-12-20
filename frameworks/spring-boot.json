@@ -1,0 +1,442 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Boot",
+  "languages": [
+    "shell",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-boot",
+    "branch": "main",
+    "commit": "00bd0efc56700942803158ce5e33041808c5e747",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "gradle.properties",
+        "spring-devtools.properties",
+        "additional-spring-configuration-metadata.json",
+        "spring-devtools.properties",
+        "mime-mappings.properties",
+        "log4j2.xml",
+        "log4j2-file.xml",
+        "logging.properties",
+        "logging-file.properties",
+        "structured-console-appender.xml",
+        "Shibboleth Releases*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-boot-starter",
+          "library": "Spring Boot"
+        },
+        {
+          "artifact": "spring-boot-starter-parent",
+          "library": "Spring Boot"
+        },
+        {
+          "artifact": "spring-boot-starter-web",
+          "library": "Spring Boot"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.springframework.boot",
+          "library": "Spring Boot"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "smoketest.data.*",
+        "smoketest.websocket.*",
+        "smoketest.actuator.*",
+        "smoketest.tomcat.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "smoketest.data",
+          "smoketest.actuator",
+          "smoketest.websocket",
+          "smoketest.tomcat",
+          "smoketest.jetty",
+          "smoketest.web",
+          "smoketest.bootstrapregistry",
+          "smoketest.jackson2",
+          "smoketest.oauth2",
+          "smoketest.jpa",
+          "smoketest.integration",
+          "smoketest.profile",
+          "smoketest.session",
+          "smoketest.structuredlogging",
+          "smoketest.activemq",
+          "smoketest.graphql",
+          "smoketest.parent",
+          "smoketest.groovytemplates",
+          "smoketest.cache"
+        ],
+        "depth_3": [
+          "org.springframework.boot",
+          "smoketest.data.jpa",
+          "smoketest.websocket.jetty",
+          "smoketest.websocket.tomcat",
+          "smoketest.data.r2dbc",
+          "smoketest.jackson2.mixed",
+          "smoketest.actuator.extension",
+          "smoketest.actuator.customsecurity",
+          "smoketest.bootstrapregistry.external",
+          "smoketest.data.rest",
+          "smoketest.web.thymeleaf",
+          "smoketest.data.couchbase",
+          "smoketest.data.mongodb",
+          "smoketest.security.method",
+          "smoketest.web.secure",
+          "smoketest.data.cassandra",
+          "smoketest.data.jdbc",
+          "smoketest.data.redis",
+          "smoketest.jpa.repository",
+          "smoketest.jetty.jsp"
+        ],
+        "depth_4": [
+          "org.springframework.boot.actuate",
+          "org.springframework.boot.docs",
+          "org.springframework.boot.context",
+          "org.springframework.boot.autoconfigure",
+          "org.springframework.boot.build",
+          "org.springframework.boot.micrometer",
+          "org.springframework.boot.buildpack",
+          "org.springframework.boot.loader",
+          "org.springframework.boot.data",
+          "org.springframework.boot.web",
+          "org.springframework.boot.security",
+          "org.springframework.boot.jdbc",
+          "org.springframework.boot.devtools",
+          "org.springframework.boot.logging",
+          "org.springframework.boot.http",
+          "org.springframework.boot.health",
+          "org.springframework.boot.webmvc",
+          "org.springframework.boot.r2dbc",
+          "org.springframework.boot.docker",
+          "org.springframework.boot.webflux"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "execution": {
+      "native": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.loader.tools.RunProcess.run:int(boolean,java.lang.String[])",
+            "org.springframework.boot.loader.tools.RunProcess.run:int(boolean,java.util.Collection,java.util.Map)"
+          ]
+        }
+      },
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.buildpack.platform.json.MappedObject$MappedInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.boot.configurationprocessor.fieldvalues.javac.Tree$TreeVisitorInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])"
+          ]
+        }
+      },
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.context.properties.ConfigurationPropertiesCharSequenceToObjectConverter.convert:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor,org.springframework.core.convert.TypeDescriptor)"
+          ]
+        }
+      }
+    },
+    "communication": {
+      "http": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.resttestclient.TestRestTemplate.execute:java.lang.Object(java.lang.String,org.springframework.http.HttpMethod,org.springframework.web.client.RequestCallback,org.springframework.web.client.ResponseExtractor,java.lang.Object[])",
+            "org.springframework.boot.resttestclient.TestRestTemplate.execute:java.lang.Object(java.lang.String,org.springframework.http.HttpMethod,org.springframework.web.client.RequestCallback,org.springframework.web.client.ResponseExtractor,java.util.Map)",
+            "org.springframework.boot.resttestclient.TestRestTemplate.execute:java.lang.Object(java.net.URI,org.springframework.http.HttpMethod,org.springframework.web.client.RequestCallback,org.springframework.web.client.ResponseExtractor)",
+            "org.springframework.boot.actuate.web.exchanges.HttpExchange.getRequest:org.springframework.boot.actuate.web.exchanges.HttpExchange$Request():org.springframework.boot.actuate.web.exchanges.HttpExchange$Request()",
+            "org.springframework.boot.actuate.web.exchanges.HttpExchange.getResponse:org.springframework.boot.actuate.web.exchanges.HttpExchange$Response():org.springframework.boot.actuate.web.exchanges.HttpExchange$Response()",
+            "org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.withCustomizer:org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder(java.util.function.Consumer)",
+            "org.springframework.boot.http.client.HttpClientSettings.withConnectTimeout:org.springframework.boot.http.client.HttpClientSettings(java.time.Duration)",
+            "org.springframework.boot.http.client.HttpClientSettings.withReadTimeout:org.springframework.boot.http.client.HttpClientSettings(java.time.Duration)"
+          ]
+        }
+      }
+    },
+    "database": {
+      "ldap_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.ldap.health.LdapHealthIndicator$VersionContextExecutor.executeWithContext:java.lang.String(javax.naming.directory.DirContext)"
+          ]
+        }
+      },
+      "orm_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "smoketest.web.thymeleaf.MessageRepository.findMessage:smoketest.web.thymeleaf.Message(java.lang.Long)",
+            "smoketest.data.jpa.service.ReviewRepository.save:smoketest.data.jpa.domain.Review(smoketest.data.jpa.domain.Review)",
+            "smoketest.groovytemplates.MessageRepository.save:smoketest.groovytemplates.Message(smoketest.groovytemplates.Message)",
+            "smoketest.web.thymeleaf.MessageRepository.save:smoketest.web.thymeleaf.Message(smoketest.web.thymeleaf.Message)",
+            "smoketest.web.thymeleaf.MessageRepository.deleteMessage:void(java.lang.Long)",
+            "QuartzTransactionManager",
+            "DependsOnDatabaseInitialization"
+          ]
+        }
+      },
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "smoketest.web.thymeleaf.MessageRepository.findMessage:smoketest.web.thymeleaf.Message(java.lang.Long)",
+            "smoketest.data.jpa.service.ReviewRepository.save:smoketest.data.jpa.domain.Review(smoketest.data.jpa.domain.Review)",
+            "smoketest.groovytemplates.MessageRepository.save:smoketest.groovytemplates.Message(smoketest.groovytemplates.Message)",
+            "smoketest.web.thymeleaf.MessageRepository.save:smoketest.web.thymeleaf.Message(smoketest.web.thymeleaf.Message)",
+            "smoketest.web.thymeleaf.MessageRepository.deleteMessage:void(java.lang.Long)",
+            "org.springframework.boot.r2dbc.ConnectionFactoryBuilder.build:io.r2dbc.spi.ConnectionFactory()"
+          ]
+        }
+      },
+      "jpa_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.jdbc.init.PlatformPlaceholderDatabaseDriverResolver.withDriverPlatform:org.springframework.boot.jdbc.init.PlatformPlaceholderDatabaseDriverResolver(org.springframework.boot.jdbc.DatabaseDriver,java.lang.String)"
+          ]
+        }
+      },
+      "nosql_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.r2dbc.ConnectionFactoryBuilder.withUrl:org.springframework.boot.r2dbc.ConnectionFactoryBuilder(java.lang.String)"
+          ]
+        }
+      },
+      "sql_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "QuartzDataSource",
+            "ConditionalOnSqlInitialization"
+          ]
+        }
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.devtools.filewatch.FileSystemWatcher$Watcher.run:void()",
+            "ResourceContent",
+            "ResourcePath",
+            "ResourcesRoot",
+            "WithResourceDirectories",
+            "WithResourceDirectory"
+          ]
+        }
+      },
+      "http_clients": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.buildpack.platform.docker.transport.HttpClientTransport.delete:org.springframework.boot.buildpack.platform.docker.transport.HttpTransport$Response(java.net.URI)",
+            "org.springframework.boot.resttestclient.TestRestTemplate.delete:void(java.lang.String,java.lang.Object[])",
+            "org.springframework.boot.resttestclient.TestRestTemplate.put:void(java.lang.String,java.lang.Object,java.lang.Object[])",
+            "org.springframework.boot.resttestclient.TestRestTemplate.put:void(java.lang.String,java.lang.Object,java.util.Map)",
+            "org.springframework.boot.resttestclient.TestRestTemplate.put:void(java.net.URI,java.lang.Object)",
+            "org.springframework.boot.resttestclient.TestRestTemplate.patchForObject:java.lang.Object(java.lang.String,java.lang.Object,java.lang.Class,java.lang.Object[])",
+            "org.springframework.boot.resttestclient.TestRestTemplate.patchForObject:java.lang.Object(java.lang.String,java.lang.Object,java.lang.Class,java.util.Map)",
+            "org.springframework.boot.resttestclient.TestRestTemplate.patchForObject:java.lang.Object(java.net.URI,java.lang.Object,java.lang.Class)",
+            "org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder.build:java.lang.Object()",
+            "org.springframework.boot.restclient.RestTemplateBuilder.build:org.springframework.web.client.RestTemplate()",
+            "org.springframework.boot.http.client.ReactorClientHttpConnectorBuilder.withHttpClientFactory:org.springframework.boot.http.client.reactive.ReactorClientHttpConnectorBuilder(java.util.function.Supplier)",
+            "org.springframework.boot.http.client.JettyClientHttpConnectorBuilder.withHttpClientCustomizer:org.springframework.boot.http.client.reactive.JettyClientHttpConnectorBuilder(java.util.function.Consumer)",
+            "AutoConfigureRestTestClient",
+            "AutoConfigureTestRestTemplate",
+            "AutoConfigureWebTestClient"
+          ]
+        }
+      }
+    },
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "description": "Spring Boot does not define its own routing annotations - routing patterns are inherited from spring-web.json",
+          "patterns": []
+        }
+      }
+    },
+    "defense": {
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "smoketest.secure.SampleService.authorized:java.lang.String()",
+            "org.springframework.boot.security.autoconfigure.actuate.web.reactive.EndpointRequest$EndpointServerWebExchangeMatcher.withHttpMethod:org.springframework.boot.security.autoconfigure.actuate.web.reactive.EndpointRequest$EndpointServerWebExchangeMatcher(org.springframework.http.HttpMethod)",
+            "org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest$EndpointRequestMatcher.withHttpMethod:org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest$EndpointRequestMatcher(org.springframework.http.HttpMethod)",
+            "ConditionalOnIssuerLocationJwtDecoder",
+            "ConditionalOnPublicKeyJwtDecoder",
+            "ConditionalOnDefaultWebSecurity"
+          ]
+        }
+      },
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.couchbase.autoconfigure.CouchbaseProperties.getAuthentication:org.springframework.boot.couchbase.autoconfigure.CouchbaseProperties$Authentication():org.springframework.boot.couchbase.autoconfigure.CouchbaseProperties$Authentication()",
+            "org.springframework.boot.pulsar.autoconfigure.PulsarProperties$Client.getAuthentication:org.springframework.boot.pulsar.autoconfigure.PulsarProperties$Authentication():org.springframework.boot.pulsar.autoconfigure.PulsarProperties$Authentication()",
+            "org.springframework.boot.resttestclient.TestRestTemplate.withBasicAuth:org.springframework.boot.resttestclient.TestRestTemplate(java.lang.String,java.lang.String)",
+            "ConditionalOnOAuth2ClientRegistrationProperties"
+          ]
+        }
+      },
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "smoketest.groovytemplates.mvc.MessageController.create:org.springframework.web.servlet.ModelAndView(smoketest.groovytemplates.Message,org.springframework.validation.BindingResult,org.springframework.web.servlet.mvc.support.RedirectAttributes)",
+            "smoketest.web.thymeleaf.mvc.MessageController.create:org.springframework.web.servlet.ModelAndView(smoketest.web.thymeleaf.Message,org.springframework.validation.BindingResult,org.springframework.web.servlet.mvc.support.RedirectAttributes)"
+          ]
+        }
+      },
+      "crypto": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.kafka.autoconfigure.SslBundleSslEngineFactory.createClientSslEngine:javax.net.ssl.SSLEngine(java.lang.String,int,java.lang.String)",
+            "org.springframework.boot.kafka.autoconfigure.SslBundleSslEngineFactory.createServerSslEngine:javax.net.ssl.SSLEngine(java.lang.String,int)",
+            "MockPkcs11Security"
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "file_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.loader.nio.file.NestedFileSystemProvider.delete:void(java.nio.file.Path)",
+            "org.springframework.boot.loader.jar.NestedJarFile.getInputStream:java.io.InputStream(java.util.zip.ZipEntry):java.io.InputStream(java.util.zip.ZipEntry)",
+            "org.springframework.boot.actuate.management.HeapDumpWebEndpoint$TemporaryFileSystemResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+            "org.springframework.boot.loader.tools.FileUtils.removeDuplicatesFromOutputDirectory:void(java.io.File,java.io.File)"
+          ]
+        }
+      },
+      "input_sources": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.origin.OriginTrackedResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+            "org.springframework.boot.web.context.reactive.FilteredReactiveWebContextResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+            "org.springframework.boot.loader.zip.DataBlock.asInputStream:java.io.InputStream()",
+            "org.springframework.boot.jetty.servlet.LoaderHidingResource.newInputStream:java.io.InputStream()"
+          ]
+        }
+      },
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.json.WritableJson.toOutputStream:void(java.io.OutputStream)",
+            "org.springframework.boot.json.WritableJson.toOutputStream:void(java.io.OutputStream,java.nio.charset.Charset)",
+            "org.springframework.boot.jackson.JacksonMixinModuleEntries.create:org.springframework.boot.jackson.JacksonMixinModuleEntries(java.util.function.Consumer)",
+            "org.springframework.boot.jackson2.JsonMixinModuleEntries.create:org.springframework.boot.jackson2.JsonMixinModuleEntries(java.util.function.Consumer)"
+          ]
+        }
+      },
+      "xml_parsing": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.json.BasicJsonParser.parseMap:java.util.Map(java.lang.String)",
+            "org.springframework.boot.json.BasicJsonParser.parseList:java.util.List(java.lang.String)",
+            "org.springframework.boot.json.GsonJsonParser.parseMap:java.util.Map(java.lang.String)",
+            "org.springframework.boot.json.GsonJsonParser.parseList:java.util.List(java.lang.String)",
+            "org.springframework.boot.json.JacksonJsonParser.parseMap:java.util.Map(java.lang.String)",
+            "org.springframework.boot.json.JacksonJsonParser.parseList:java.util.List(java.lang.String)",
+            "org.springframework.boot.json.JsonParser.parseMap:java.util.Map(java.lang.String)",
+            "org.springframework.boot.json.JsonParser.parseList:java.util.List(java.lang.String)"
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "headers": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.tomcat.autoconfigure.TomcatServerProperties.getMaxHttpResponseHeaderSize:org.springframework.util.unit.DataSize():org.springframework.util.unit.DataSize()",
+            "org.springframework.boot.web.server.autoconfigure.ServerProperties.getMaxHttpRequestHeaderSize:org.springframework.util.unit.DataSize():org.springframework.util.unit.DataSize()"
+          ]
+        }
+      },
+      "redirects": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.http.client.HttpClientSettings.withRedirects:org.springframework.boot.http.client.HttpClientSettings(org.springframework.boot.http.client.HttpRedirects)"
+          ]
+        }
+      }
+    },
+    "logging": {
+      "operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.boot.logging.log4j2.StructuredLogLayout$Builder.build:org.springframework.boot.logging.log4j2.StructuredLogLayout()",
+            "ConfigureClasspathToPreferLog4j2"
+          ]
+        }
+      }
+    }
+  }
+}

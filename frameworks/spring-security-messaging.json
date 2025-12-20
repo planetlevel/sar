@@ -1,0 +1,159 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-messaging",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-messaging*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager$Builder$Constraint.authenticated:org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager$Builder():org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager$Builder()",
+              "description": "Configures authentication requirement for message authorization"
+            },
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.springframework.messaging.Message):org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.springframework.messaging.Message)",
+              "description": "Performs authorization check for a message against configured security rules"
+            }
+          ]
+        }
+      },
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.expression.MessageAuthorizationContextSecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(org.springframework.security.core.Authentication,org.springframework.security.messaging.access.intercept.MessageAuthorizationContext):org.springframework.expression.EvaluationContext(org.springframework.security.core.Authentication,org.springframework.security.messaging.access.intercept.MessageAuthorizationContext)",
+              "description": "Creates security evaluation context with authentication information"
+            },
+            {
+              "signature": "org.springframework.security.messaging.access.expression.MessageAuthorizationContextSecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(java.util.function.Supplier,org.springframework.security.messaging.access.intercept.MessageAuthorizationContext):org.springframework.expression.EvaluationContext(java.util.function.Supplier,org.springframework.security.messaging.access.intercept.MessageAuthorizationContext)",
+              "description": "Creates security evaluation context with supplied authentication"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.expression.EvaluationContextPostProcessor.postProcess:org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,java.lang.Object):org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,java.lang.Object)",
+              "description": "Post-processes security expression evaluation context"
+            },
+            {
+              "signature": "org.springframework.security.messaging.access.expression.MessageExpressionConfigAttribute.postProcess:org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,org.springframework.messaging.Message):org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,org.springframework.messaging.Message)",
+              "description": "Post-processes message security expression evaluation context"
+            },
+            {
+              "signature": "org.springframework.security.messaging.access.expression.DefaultMessageSecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(java.util.function.Supplier,org.springframework.messaging.Message):org.springframework.expression.EvaluationContext(java.util.function.Supplier,org.springframework.messaging.Message)",
+              "description": "Creates security expression evaluation context for message authorization"
+            }
+          ]
+        }
+      }
+    },
+    "integration": {
+      "messaging": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.ChannelSecurityInterceptor.postSend:void(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel,boolean):void(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel,boolean)",
+              "description": "Handles message security after sending through channel"
+            },
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.ChannelSecurityInterceptor.postReceive:org.springframework.messaging.Message(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel):org.springframework.messaging.Message(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel)",
+              "description": "Handles message security after receiving from channel"
+            },
+            {
+              "signature": "org.springframework.security.messaging.context.SecurityContextPropagationChannelInterceptor.postReceive:org.springframework.messaging.Message(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel):org.springframework.messaging.Message(org.springframework.messaging.Message,org.springframework.messaging.MessageChannel)",
+              "description": "Propagates security context after receiving message from channel"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

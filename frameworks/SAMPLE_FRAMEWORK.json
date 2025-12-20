@@ -1,0 +1,376 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Sample Framework",
+  "extends": "java",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "detection": {
+    "binaries": {
+      "type": "filename",
+      "patterns": [
+        "sample-framework.jar",
+        "sample-*.jar"
+      ]
+    },
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "sample-config.xml",
+        "application.properties"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "type": "filecontent",
+          "search_type": "xml_element",
+          "pattern": "artifactId",
+          "value": "sample-framework-core",
+          "library": "Sample Framework"
+        }
+      ],
+      "build.gradle": [
+        {
+          "type": "filecontent",
+          "search_type": "regex",
+          "pattern": "com\\.example\\.sample",
+          "library": "Sample Framework"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.example.sample.*",
+        "com.example.sample.annotations.*"
+      ]
+    },
+    "annotations": {
+      "type": "joern",
+      "search_type": "annotation_name",
+      "patterns": [
+        "com.example.sample.Controller",
+        "com.example.sample.Service"
+      ]
+    },
+    "code_patterns": {
+      "type": "joern",
+      "search_type": "class_name_regex",
+      "patterns": [
+        ".*SampleController",
+        ".*SampleService"
+      ]
+    }
+  },
+  "metadata": {
+    "project_name": {
+      "type": "filecontent",
+      "search_type": "xml_element",
+      "files": [
+        "pom.xml"
+      ],
+      "pattern": "name"
+    },
+    "project_version": {
+      "type": "filecontent",
+      "search_type": "xml_element",
+      "files": [
+        "pom.xml"
+      ],
+      "pattern": "version"
+    },
+    "contacts": {
+      "type": "filecontent",
+      "search_type": "regex",
+      "files": [
+        "README.md",
+        "MAINTAINERS.md",
+        "pom.xml"
+      ],
+      "pattern": "([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})"
+    },
+    "repo_url": {
+      "type": "filecontent",
+      "search_type": "xml_element",
+      "files": [
+        "pom.xml"
+      ],
+      "pattern": "url"
+    },
+    "license": {
+      "type": "filecontent",
+      "search_type": "xml_element",
+      "files": [
+        "pom.xml"
+      ],
+      "pattern": "license/name"
+    },
+    "organization": {
+      "type": "filecontent",
+      "search_type": "xml_element",
+      "files": [
+        "pom.xml"
+      ],
+      "pattern": "organization/name"
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*|.*DataAccess.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|insert|update|find.*|select.*|delete.*|remove.*"
+      },
+      "sql_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.sql.Statement.execute:boolean(java.lang.String)",
+          "java.sql.Statement.executeQuery:java.sql.ResultSet(java.lang.String)",
+          "java.sql.PreparedStatement.executeQuery:java.sql.ResultSet()",
+          "java.sql.Connection.prepareStatement:java.sql.PreparedStatement(java.lang.String)",
+          "java.sql.Connection.createStatement:java.sql.Statement()"
+        ]
+      },
+      "xpath_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.xml.xpath.XPath.compile:javax.xml.xpath.XPathExpression(java.lang.String)",
+          "javax.xml.xpath.XPath.evaluate:java.lang.String(java.lang.String,java.lang.Object)"
+        ]
+      },
+      "ldap_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.naming.directory.DirContext.search:javax.naming.NamingEnumeration(java.lang.String,java.lang.String,javax.naming.directory.SearchControls)"
+        ]
+      }
+    },
+    "processing": {
+      "process_execution": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.lang.Runtime.exec:java.lang.Process(java.lang.String)",
+          "java.lang.ProcessBuilder.start:java.lang.Process()",
+          "com.example.sample.Shell.execute:java.lang.String(java.lang.String)"
+        ]
+      },
+      "reflection": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.lang.Class.forName:java.lang.Class(java.lang.String)",
+          "java.lang.reflect.Method.invoke:java.lang.Object(java.lang.Object,java.lang.Object[])"
+        ]
+      },
+      "expression_evaluation": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.example.sample.Expression.evaluate:java.lang.Object(java.lang.String,java.util.Map)",
+          "com.example.sample.Expression.parse:java.lang.Object(java.lang.String)"
+        ]
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.io.ObjectInputStream.readObject:java.lang.Object()",
+          "com.example.sample.Serializer.deserialize:java.lang.Object(byte[])"
+        ]
+      },
+      "xml_parsing": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.xml.parsers.DocumentBuilder.parse:org.w3c.dom.Document(java.io.InputStream)",
+          "javax.xml.parsers.SAXParser.parse:void(java.io.InputStream,org.xml.sax.helpers.DefaultHandler)"
+        ]
+      },
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.servlet.http.HttpServletRequest.getParameter:java.lang.String(java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getHeader:java.lang.String(java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getCookies:javax.servlet.http.Cookie[]()",
+          "com.example.sample.Context.getUserInput:java.lang.String()"
+        ]
+      },
+      "propagators": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.example.sample.Transformer.transform:java.lang.String(java.lang.String)",
+          "java.lang.String.toLowerCase:java.lang.String()",
+          "java.lang.String.toUpperCase:java.lang.String()"
+        ]
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.io.File.<init>:void(java.lang.String)",
+          "java.nio.file.Paths.get:java.nio.file.Path(java.lang.String,java.lang.String[])",
+          "java.io.FileInputStream.<init>:void(java.lang.String)",
+          "java.io.FileOutputStream.<init>:void(java.lang.String)"
+        ]
+      }
+    },
+    "presentation": {
+      "template_rendering": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.example.sample.Template.render:java.lang.String(java.lang.String,java.util.Map)"
+        ]
+      }
+    },
+    "logging": {
+      "operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.slf4j.Logger.info:void(java.lang.String)",
+          "org.slf4j.Logger.debug:void(java.lang.String)",
+          "com.example.sample.Logger.log:void(java.lang.String)"
+        ]
+      }
+    },
+    "communication": {
+      "socket": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.net.Socket.<init>:void(java.lang.String,int)",
+          "java.net.ServerSocket.<init>:void(int)"
+        ]
+      },
+      "http": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "java.net.URL.openConnection:java.net.URLConnection()",
+          "java.net.HttpURLConnection.connect:void()",
+          "com.example.sample.http.HttpClient.get:java.lang.String(java.lang.String)",
+          "com.example.sample.rest.RestClient.call:java.lang.Object(java.lang.String,java.lang.String)"
+        ]
+      }
+    },
+    "routing": {
+      "handler_classes": {
+        "class_pattern": {
+          "type": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Controller|.*Handler|.*Resource|.*Endpoint"
+        },
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Controller",
+            "RestController",
+            "RequestMapping"
+          ]
+        }
+      },
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name_regex",
+          "pattern": ".*Mapping|.*Route|.*Path"
+        },
+        "http_methods": {
+          "type": "joern",
+          "search_type": "annotation_name_regex",
+          "patterns": {
+            "get": "GetMapping|GET|Get",
+            "post": "PostMapping|POST|Post",
+            "put": "PutMapping|PUT|Put",
+            "delete": "DeleteMapping|DELETE|Delete"
+          }
+        },
+        "files": {
+          "web.xml": {
+            "type": "filecontent",
+            "search_type": "xpath",
+            "patterns": {
+              "servlet_mapping": "//servlet-mapping",
+              "url_pattern": "//url-pattern/text()"
+            }
+          },
+          "routes.rb": {
+            "type": "filecontent",
+            "search_type": "regex",
+            "pattern": "(get|post|put|delete|patch)\\s+['\"]([^'\"]+)['\"]"
+          },
+          "urls.py": {
+            "type": "filecontent",
+            "search_type": "regex",
+            "pattern": "path\\(['\"]([^'\"]+)['\"]"
+          }
+        }
+      },
+      "parameters": {
+        "type": "joern",
+        "search_type": "annotation_name_regex",
+        "patterns": {
+          "path_variable": "PathVariable|PathParam",
+          "query_param": "RequestParam|QueryParam",
+          "request_body": "RequestBody|Body"
+        }
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.owasp.encoder.Encode.forHtml:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScript:java.lang.String(java.lang.String)",
+          "com.example.sample.Validator.sanitize:java.lang.String(java.lang.String)"
+        ]
+      },
+      "authentication": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.example.sample.security.AuthManager.authenticate:boolean(java.lang.String,java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getUserPrincipal:java.security.Principal()"
+        ]
+      },
+      "authorization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.example.sample.security.AuthManager.hasPermission:boolean(java.lang.String)",
+          "com.example.sample.security.AccessControl.checkAccess:void(java.lang.String)"
+        ]
+      },
+      "crypto": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.crypto.Cipher.getInstance:javax.crypto.Cipher(java.lang.String)",
+          "java.security.MessageDigest.getInstance:java.security.MessageDigest(java.lang.String)",
+          "com.example.sample.Crypto.encrypt:byte[](byte[])"
+        ]
+      }
+    }
+  }
+}

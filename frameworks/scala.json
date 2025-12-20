@@ -1,0 +1,42 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Scala",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "scala.xml.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "scala.xml.Utility$.escape(java.lang.String)",
+          "scala.xml.Utility$.unescape(java.lang.String,scala.collection.mutable.StringBuilder)"
+        ]
+      }
+    }
+  }
+}

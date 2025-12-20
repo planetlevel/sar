@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Coverity",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.coverity.security.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.coverity.security.Escape.cssString(java.lang.String)",
+          "com.coverity.security.Escape.html(java.lang.String)",
+          "com.coverity.security.Escape.htmlText(java.lang.String)",
+          "com.coverity.security.Escape.jsString(java.lang.String)",
+          "com.coverity.security.Escape.uri(java.lang.String)",
+          "com.coverity.security.Escape.uriParam(java.lang.String)"
+        ]
+      }
+    }
+  }
+}

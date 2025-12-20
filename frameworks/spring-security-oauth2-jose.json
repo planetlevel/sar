@@ -1,0 +1,167 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-oauth2-jose",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-oauth2-jose*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtDecoder.decode:org.springframework.security.oauth2.jwt.Jwt(java.lang.String)",
+              "description": "Decodes and validates a JWT token string into a Jwt object for authentication"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.NimbusJwtDecoder.decode:org.springframework.security.oauth2.jwt.Jwt(java.lang.String)",
+              "description": "Nimbus implementation of JWT token decoding for authentication"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.ReactiveJwtDecoder.decode:reactor.core.publisher.Mono(java.lang.String)",
+              "description": "Reactive version of JWT token decoding for authentication"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtClaimAccessor.getSubject:java.lang.String()",
+              "description": "Retrieves the subject claim from a JWT token for authentication purposes"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtAudienceValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates the audience claim in a JWT token for authorization"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtClaimValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates JWT claims for authorization purposes"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtIssuerValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates the issuer claim in a JWT token for authorization"
+            }
+          ]
+        }
+      },
+      "crypto": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.jwt.NimbusJwtEncoder.encode:org.springframework.security.oauth2.jwt.Jwt(org.springframework.security.oauth2.jwt.JwtEncoderParameters)",
+              "description": "Cryptographically encodes a JWT token using the Nimbus JOSE implementation"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtEncoder.encode:org.springframework.security.oauth2.jwt.Jwt(org.springframework.security.oauth2.jwt.JwtEncoderParameters)",
+              "description": "Cryptographically encodes a JWT token"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.NimbusJwtEncoder.withSecretKey:org.springframework.security.oauth2.jwt.NimbusJwtEncoder$SecretKeyJwtEncoderBuilder(javax.crypto.SecretKey)",
+              "description": "Configures JWT encoder with a cryptographic secret key"
+            }
+          ]
+        }
+      },
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtTimestampValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates JWT token timestamp claims"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.JwtTypeValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates JWT token type claim"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.jwt.X509CertificateThumbprintValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+              "description": "Validates X.509 certificate thumbprint in JWT token"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jersey",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "jersey-server",
+          "library": "Jersey"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.glassfish.jersey",
+          "library": "Jersey"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.glassfish.jersey.message.internal.*",
+        "org.glassfish.jersey.uri.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "org.glassfish.jersey.message.internal.InboundMessageContext.getHeaderString(java.lang.String)"
+      },
+      "propagators": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "org.glassfish.jersey.uri.UriComponent.decode(java.lang.String,int)"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.glassfish.jersey.message.internal.AcceptableMediaType.valueOf(org.glassfish.jersey.message.internal.HttpHeaderReader)",
+          "org.glassfish.jersey.uri.UriComponent._encode(java.lang.String,org.glassfish.jersey.uri.UriComponent$Type,boolean,boolean)"
+        ]
+      }
+    }
+  }
+}

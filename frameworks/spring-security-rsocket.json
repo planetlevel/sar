@@ -1,0 +1,179 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-rsocket",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-rsocket*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.rsocket.RSocketSecurity$AuthorizePayloadsSpec$Access.authenticated:org.springframework.security.config.annotation.rsocket.RSocketSecurity$AuthorizePayloadsSpec():org.springframework.security.config.annotation.rsocket.RSocketSecurity$AuthorizePayloadsSpec()",
+              "description": "Configures RSocket security to require authenticated users"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.authentication.AuthenticationPayloadExchangeConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange):reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+              "description": "Converts RSocket payload exchange to authentication token"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.authentication.BasicAuthenticationPayloadExchangeConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange):reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+              "description": "Converts RSocket payload exchange to basic authentication token"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.authentication.BearerPayloadExchangeConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange):reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+              "description": "Converts RSocket payload exchange to bearer token authentication"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.authentication.PayloadExchangeAuthenticationConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange):reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+              "description": "Base converter for extracting authentication from RSocket payload exchanges"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.rsocket.RSocketSecurity.authorizePayload:org.springframework.security.config.annotation.rsocket.RSocketSecurity(org.springframework.security.config.Customizer):org.springframework.security.config.annotation.rsocket.RSocketSecurity(org.springframework.security.config.Customizer)",
+              "description": "Configures authorization rules for RSocket payloads"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.authorization.PayloadExchangeMatcherReactiveAuthorizationManager.authorize:reactor.core.publisher.Mono(reactor.core.publisher.Mono,org.springframework.security.rsocket.api.PayloadExchange):reactor.core.publisher.Mono(reactor.core.publisher.Mono,org.springframework.security.rsocket.api.PayloadExchange)",
+              "description": "Performs authorization checks on RSocket payload exchanges"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.rsocket.metadata.BasicAuthenticationEncoder.encode:reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map):reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map)",
+              "description": "Encodes basic authentication credentials into RSocket metadata"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.metadata.BearerTokenAuthenticationEncoder.encode:reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map):reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map)",
+              "description": "Encodes bearer token authentication into RSocket metadata"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.metadata.SimpleAuthenticationEncoder.encode:reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map):reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map)",
+              "description": "Encodes simple authentication credentials into RSocket metadata"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.metadata.BasicAuthenticationDecoder.decode:reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map):reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map)",
+              "description": "Decodes basic authentication credentials from RSocket metadata"
+            }
+          ]
+        }
+      }
+    },
+    "communication": {
+      "socket": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.rsocket.core.PayloadInterceptorRSocket.requestResponse:reactor.core.publisher.Mono(io.rsocket.Payload):reactor.core.publisher.Mono(io.rsocket.Payload)",
+              "description": "Handles RSocket request-response communication with security interception"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.core.PayloadInterceptorRSocket.requestStream:reactor.core.publisher.Flux(io.rsocket.Payload):reactor.core.publisher.Flux(io.rsocket.Payload)",
+              "description": "Handles RSocket request-stream communication with security interception"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.core.PayloadInterceptorRSocket.requestChannel:reactor.core.publisher.Flux(org.reactivestreams.Publisher):reactor.core.publisher.Flux(org.reactivestreams.Publisher)",
+              "description": "Handles RSocket channel communication with security interception"
+            },
+            {
+              "signature": "org.springframework.security.rsocket.core.PayloadInterceptorRSocket.fireAndForget:reactor.core.publisher.Mono(io.rsocket.Payload):reactor.core.publisher.Mono(io.rsocket.Payload)",
+              "description": "Handles RSocket fire-and-forget communication with security interception"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

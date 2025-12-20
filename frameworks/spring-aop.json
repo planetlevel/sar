@@ -1,0 +1,170 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring AOP",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-aop*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "org.aopalliance.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "org.aopalliance"
+        ],
+        "depth_3": [
+          "org.springframework.aop",
+          "org.aopalliance.intercept",
+          "org.aopalliance.aop"
+        ],
+        "depth_4": [
+          "org.springframework.aop.aspectj",
+          "org.springframework.aop.framework",
+          "org.springframework.aop.support",
+          "org.springframework.aop.target",
+          "org.springframework.aop.config",
+          "org.springframework.aop.interceptor",
+          "org.springframework.aop.scope",
+          "org.springframework.aop.Advisor",
+          "org.aopalliance.aop.Advice",
+          "org.aopalliance.aop.AspectException",
+          "org.aopalliance.intercept.ConstructorInterceptor",
+          "org.aopalliance.intercept.ConstructorInvocation",
+          "org.aopalliance.intercept.Interceptor",
+          "org.aopalliance.intercept.Invocation",
+          "org.aopalliance.intercept.Joinpoint",
+          "org.aopalliance.intercept.MethodInterceptor",
+          "org.aopalliance.intercept.MethodInvocation",
+          "org.springframework.aop.AfterAdvice",
+          "org.springframework.aop.AfterReturningAdvice",
+          "org.springframework.aop.AopInvocationException"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Uses reflection to invoke a method on a target object with given arguments"
+            },
+            {
+              "signature": "org.springframework.aop.support.AopUtils$KotlinDelegate.invokeSuspendingFunction:java.lang.Object(java.lang.reflect.Method,java.lang.Object,java.lang.Object[])",
+              "description": "Invokes a Kotlin suspending function using reflection"
+            }
+          ]
+        }
+      },
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.aop.aspectj.AspectJExpressionPointcut$BeanPointcutDesignatorHandler.parse:org.aspectj.weaver.tools.ContextBasedMatcher(java.lang.String)",
+              "description": "Parses AspectJ pointcut expressions to create matchers"
+            }
+          ]
+        }
+      }
+    },
+    "defense": {
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.aop.IntroductionAdvisor.validateInterfaces:void()",
+              "description": "Validates interface configurations for AOP introductions"
+            },
+            {
+              "signature": "org.springframework.aop.aspectj.DeclareParentsAdvisor.validateInterfaces:void()",
+              "description": "Validates interfaces declared in AspectJ parent declarations"
+            },
+            {
+              "signature": "org.springframework.aop.aspectj.annotation.AbstractAspectJAdvisorFactory.validate:void(java.lang.Class)",
+              "description": "Validates aspect class configuration and structure"
+            },
+            {
+              "signature": "org.springframework.aop.support.DefaultIntroductionAdvisor.validateInterfaces:void()",
+              "description": "Validates interfaces for default introduction advisors"
+            },
+            {
+              "signature": "org.springframework.aop.target.CommonsPool2TargetSource.validateObject:boolean(org.apache.commons.pool2.PooledObject)",
+              "description": "Validates pooled objects before use in Commons Pool 2"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "xml_parsing": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.aop.config.AspectJAutoProxyBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for AspectJ auto-proxy definitions"
+            },
+            {
+              "signature": "org.springframework.aop.config.ConfigBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for AOP config definitions"
+            },
+            {
+              "signature": "org.springframework.aop.config.SpringConfiguredBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for Spring-configured definitions"
+            }
+          ]
+        }
+      }
+    },
+    "logging": {
+      "operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.aop.interceptor.AbstractTraceInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+              "description": "Provides tracing/logging functionality for method invocations"
+            },
+            {
+              "signature": "org.springframework.aop.interceptor.DebugInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+              "description": "Intercepts method calls for debugging purposes"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

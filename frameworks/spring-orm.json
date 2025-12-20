@@ -1,0 +1,133 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring ORM",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "native-image.properties",
+        "spring-orm*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.orm.jpa.*",
+        "org.springframework.orm.ObjectOptimisticLockingFailureException.*",
+        "org.springframework.orm.ObjectRetrievalFailureException.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.orm"
+        ],
+        "depth_4": [
+          "org.springframework.orm.jpa",
+          "org.springframework.orm.ObjectOptimisticLockingFailureException",
+          "org.springframework.orm.ObjectRetrievalFailureException"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "jpa_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.orm.jpa.EntityManagerFactoryUtils.findEntityManagerFactory:jakarta.persistence.EntityManagerFactory(org.springframework.beans.factory.ListableBeanFactory,java.lang.String)",
+              "description": "Locates an EntityManagerFactory by name in the Spring container"
+            }
+          ]
+        }
+      },
+      "orm_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.createNativeEntityManager:jakarta.persistence.EntityManager(java.util.Map)",
+              "description": "Creates a native JPA EntityManager instance with specified properties"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.EntityManagerFactoryInfo.createNativeEntityManager:jakarta.persistence.EntityManager(java.util.Map)",
+              "description": "Creates a native EntityManager instance with custom properties"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.hibernate.LocalSessionFactoryBuilder.buildSessionFactory:org.hibernate.SessionFactory(org.springframework.core.task.AsyncTaskExecutor)",
+              "description": "Builds a Hibernate SessionFactory with async executor support"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean$ManagedEntityManagerFactoryInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations on managed EntityManagerFactory proxy"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.ExtendedEntityManagerCreator$ExtendedEntityManagerInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations on extended EntityManager proxy"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations on shared EntityManager proxy"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.SharedEntityManagerCreator$DeferredQueryInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations for deferred query execution"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.hibernate.LocalSessionFactoryBuilder$BootstrapSessionFactoryInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations during SessionFactory bootstrap"
+            },
+            {
+              "signature": "org.springframework.orm.jpa.hibernate.SharedSessionCreator$SharedSessionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocations on shared Hibernate Session proxy"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.orm.jpa.persistenceunit.ClassFileTransformerAdapter.transform:byte[](java.lang.ClassLoader,java.lang.String,java.lang.Class,java.security.ProtectionDomain,byte[])",
+              "description": "Transforms class files during JPA entity enhancement"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

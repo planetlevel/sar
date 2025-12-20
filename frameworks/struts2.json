@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Struts2",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "struts.xml",
+        "struts-config.xml"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "struts2-core",
+          "library": "Struts 2"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.apache.struts",
+          "library": "Struts"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name_regex",
+          "pattern": ".*Mapping"
+        }
+      }
+    },
+    "presentation": {
+      "redirects": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.apache.struts2.dispatcher.ServletRedirectResult.setLocation:void(java.lang.String)",
+          "org.apache.struts2.dispatcher.ServletRedirectResult.execute:void(com.opensymphony.xwork2.ActionInvocation)"
+        ]
+      }
+    }
+  }
+}

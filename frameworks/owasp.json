@@ -1,0 +1,124 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Owasp",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.owasp.encoder.*",
+        "org.owasp.esapi.*",
+        "org.owasp.esapi.codecs.*",
+        "org.owasp.html.*",
+        "org.owasp.validator.html.*",
+        "org.owasp.validator.html.scan.*"
+      ]
+    }
+  },
+  "architecture": {
+    "data_flow": {
+      "propagators": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.owasp.esapi.codecs.Base64.decode(java.lang.String)",
+          "org.owasp.esapi.codecs.Base64.decode(java.lang.String,int)",
+          "org.owasp.esapi.codecs.Base64.decode(byte[],int,int,int)"
+        ]
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.owasp.esapi.Validator.isValidDirectoryPath(java.lang.String,java.lang.String,java.io.File,boolean)",
+          "org.owasp.esapi.Validator.isValidFileName(java.lang.String,java.lang.String,java.util.List,boolean)",
+          "org.owasp.validator.html.scan.AbstractAntiSamyScanner.scan(java.lang.String)",
+          "org.owasp.validator.html.CleanResults.getCleanHTML()",
+          "org.owasp.validator.html.CleanResults.getCleanXMLDocumentFragment()",
+          "org.owasp.esapi.Encoder.encodeForXML(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForXMLAttribute(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForHTML(java.lang.String)",
+          "org.owasp.esapi.Encoder.decodeForHTML(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForHTMLAttribute(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForURL(java.lang.String)",
+          "org.owasp.esapi.Encoder.decodeFromURL(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForXPath(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForLDAP(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForOS(org.owasp.esapi.codecs.Codec,java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForSQL(org.owasp.esapi.codecs.Codec,java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForBase64(byte[],boolean)",
+          "org.owasp.esapi.Encoder.decodeFromBase64(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForCSS(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForJavaScript(java.lang.String)",
+          "org.owasp.esapi.Encoder.encodeForVBScript(java.lang.String)",
+          "org.owasp.html.PolicyFactory.sanitize(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtml(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlAttribute(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlContent(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlUnquotedAttribute(java.lang.String)",
+          "org.owasp.encoder.Encode.forXml(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlAttribute(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlComment(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlContent(java.lang.String)",
+          "org.owasp.encoder.Encode.forUri(java.lang.String)",
+          "org.owasp.encoder.Encode.forUriComponent(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScript(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptAttribute(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptBlock(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptSource(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssString(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssUrl(java.lang.String)",
+          "org.owasp.esapi.codecs.Base64.encodeBytes(byte[])",
+          "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int)",
+          "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int,int)",
+          "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int,int,int)",
+          "org.owasp.encoder.Encode.forHtml:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlContent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScript:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptBlock:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptSource:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssString:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssUrl:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forUri:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forUriComponent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXml:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlContent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlComment:java.lang.String(java.lang.String)",
+          "org.owasp.html.PolicyFactory.sanitize:java.lang.String(java.lang.String)",
+          "org.owasp.html.HtmlPolicyBuilder.toFactory:org.owasp.html.PolicyFactory()"
+        ]
+      },
+      "output_encoding": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.owasp.encoder.Encode.forHtml:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forHtmlContent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScript:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptBlock:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forJavaScriptSource:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssString:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forCssUrl:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forUri:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forUriComponent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXml:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlAttribute:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlContent:java.lang.String(java.lang.String)",
+          "org.owasp.encoder.Encode.forXmlComment:java.lang.String(java.lang.String)"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,305 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Core",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "native-image.properties",
+        "spring-core*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.core.*",
+        "org.springframework.cglib.*",
+        "org.springframework.util.*",
+        "org.springframework.aot.*",
+        "org.springframework.asm.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.core",
+          "org.springframework.cglib",
+          "org.springframework.util",
+          "org.springframework.aot",
+          "org.springframework.asm",
+          "org.springframework.lang",
+          "org.springframework.objenesis"
+        ],
+        "depth_4": [
+          "org.springframework.core.io",
+          "org.springframework.core.convert",
+          "org.springframework.cglib.core",
+          "org.springframework.aot.hint",
+          "org.springframework.core.annotation",
+          "org.springframework.cglib.proxy",
+          "org.springframework.cglib.transform",
+          "org.springframework.aot.generate",
+          "org.springframework.core.type",
+          "org.springframework.core.env",
+          "org.springframework.core.codec",
+          "org.springframework.util.xml",
+          "org.springframework.cglib.beans",
+          "org.springframework.cglib.reflect",
+          "org.springframework.cglib.util",
+          "org.springframework.core.task",
+          "org.springframework.core.metrics",
+          "org.springframework.aot.nativex",
+          "org.springframework.core.log",
+          "org.springframework.core.retry"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.cglib.proxy.InvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Handles dynamic method invocation through reflection proxy"
+            },
+            {
+              "signature": "org.springframework.cglib.proxy.MethodProxy.invoke:java.lang.Object(java.lang.Object,java.lang.Object[])",
+              "description": "Invokes a method dynamically using CGLIB proxy"
+            },
+            {
+              "signature": "org.springframework.util.ReflectionUtils.invokeMethod:java.lang.Object(java.lang.reflect.Method,java.lang.Object)",
+              "description": "Invokes a method on an object using reflection"
+            },
+            {
+              "signature": "org.springframework.util.ReflectionUtils.findMethod:java.lang.reflect.Method(java.lang.Class,java.lang.String)",
+              "description": "Finds a method by name using reflection"
+            },
+            {
+              "signature": "org.springframework.util.ReflectionUtils.findField:java.lang.reflect.Field(java.lang.Class,java.lang.String)",
+              "description": "Finds a field by name using reflection"
+            },
+            {
+              "signature": "org.springframework.util.ReflectionUtils.handleInvocationTargetException:void(java.lang.reflect.InvocationTargetException)",
+              "description": "Handles exceptions from reflective method invocations"
+            },
+            {
+              "signature": "org.springframework.cglib.proxy.Enhancer.create:java.lang.Object()",
+              "description": "Creates a proxy object using reflection"
+            },
+            {
+              "signature": "org.springframework.cglib.proxy.Enhancer.create:java.lang.Object(java.lang.Class[],java.lang.Object[])",
+              "description": "Creates a proxy object with constructor arguments using reflection"
+            },
+            {
+              "signature": "org.springframework.cglib.proxy.Enhancer.createClass:java.lang.Class()",
+              "description": "Creates a proxy class using reflection"
+            }
+          ]
+        }
+      },
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.cglib.core.DuplicatesPredicate.evaluate:boolean(java.lang.Object)",
+              "description": "Evaluates a predicate expression for duplicate detection"
+            },
+            {
+              "signature": "org.springframework.cglib.core.Predicate.evaluate:boolean(java.lang.Object)",
+              "description": "Evaluates a generic predicate expression"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "file_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.io.File)",
+              "description": "Recursively deletes a file or directory"
+            },
+            {
+              "signature": "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.nio.file.Path)",
+              "description": "Recursively deletes a file or directory using NIO Path"
+            },
+            {
+              "signature": "org.springframework.core.io.FileSystemResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+              "description": "Opens an input stream to read from a file system resource"
+            },
+            {
+              "signature": "org.springframework.util.FileSystemUtils.deleteRecursively.SimpleFileVisitor$0.postVisitDirectory:java.nio.file.FileVisitResult(java.nio.file.Path,java.io.IOException)",
+              "description": "Performs cleanup operations after visiting a directory during recursive deletion"
+            },
+            {
+              "signature": "org.springframework.aot.generate.GeneratedFiles$FileHandler.create:void(org.springframework.core.io.InputStreamSource)",
+              "description": "Creates a file from an input stream source"
+            }
+          ]
+        }
+      },
+      "input_sources": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.core.io.InputStreamSource.getInputStream:java.io.InputStream():java.io.InputStream()",
+              "description": "Provides access to an input stream for reading data"
+            },
+            {
+              "signature": "org.springframework.core.io.buffer.DataBuffer.asInputStream:java.io.InputStream()",
+              "description": "Converts a DataBuffer to an InputStream for reading data"
+            },
+            {
+              "signature": "org.springframework.core.io.buffer.DataBufferInputStream.transferTo:long(java.io.OutputStream)",
+              "description": "Transfers data from an input stream to an output stream"
+            }
+          ]
+        }
+      },
+      "xml_parsing": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.util.xml.AbstractXMLStreamReader.getElementText:java.lang.String():java.lang.String()",
+              "description": "Retrieves the text content of an XML element"
+            },
+            {
+              "signature": "org.springframework.util.xml.DomUtils.getTextValue:java.lang.String(org.w3c.dom.Element)",
+              "description": "Extracts text value from an XML DOM element"
+            }
+          ]
+        }
+      },
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.core.serializer.support.DeserializingConverter.convert:java.lang.Object(byte[])",
+              "description": "Converts serialized bytes back into an object"
+            },
+            {
+              "signature": "org.springframework.core.serializer.support.SerializingConverter.convert:byte[](java.lang.Object)",
+              "description": "Converts an object into serialized bytes"
+            },
+            {
+              "signature": "org.springframework.core.serializer.DefaultDeserializer.deserialize:java.lang.Object(java.io.InputStream)",
+              "description": "Deserializes an object from an input stream"
+            },
+            {
+              "signature": "org.springframework.core.serializer.DefaultSerializer.serialize:void(java.lang.Object,java.io.OutputStream)",
+              "description": "Serializes an object to an output stream"
+            },
+            {
+              "signature": "org.springframework.core.serializer.Deserializer.deserialize:java.lang.Object(java.io.InputStream)",
+              "description": "Interface method for deserializing objects from streams"
+            },
+            {
+              "signature": "org.springframework.core.serializer.Deserializer.deserializeFromByteArray:java.lang.Object(byte[])",
+              "description": "Deserializes an object from a byte array"
+            },
+            {
+              "signature": "org.springframework.core.serializer.Serializer.serialize:void(java.lang.Object,java.io.OutputStream)",
+              "description": "Interface method for serializing objects to streams"
+            },
+            {
+              "signature": "org.springframework.core.serializer.Serializer.serializeToByteArray:byte[](java.lang.Object)",
+              "description": "Serializes an object to a byte array"
+            },
+            {
+              "signature": "org.springframework.core.serializer.support.SerializationDelegate.serialize:void(java.lang.Object,java.io.OutputStream)",
+              "description": "Delegates object serialization to a configured serializer"
+            },
+            {
+              "signature": "org.springframework.core.serializer.support.SerializationDelegate.deserialize:java.lang.Object(java.io.InputStream)",
+              "description": "Delegates object deserialization to a configured deserializer"
+            },
+            {
+              "signature": "org.springframework.util.SerializationUtils.serialize:byte[](java.lang.Object)",
+              "description": "Utility method to serialize an object to bytes"
+            },
+            {
+              "signature": "org.springframework.util.SerializationUtils.deserialize:java.lang.Object(byte[])",
+              "description": "Utility method to deserialize bytes into an object"
+            }
+          ]
+        }
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.io.File)",
+              "description": "Performs recursive filesystem deletion operation"
+            },
+            {
+              "signature": "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.nio.file.Path)",
+              "description": "Performs recursive filesystem deletion operation using NIO"
+            },
+            {
+              "signature": "org.springframework.core.io.FileSystemResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+              "description": "Provides access to file system resources"
+            },
+            {
+              "signature": "org.springframework.core.io.PathResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+              "description": "Provides access to resources using Java NIO Path API"
+            }
+          ]
+        }
+      }
+    },
+    "defense": {
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.core.env.AbstractEnvironment.validateRequiredProperties:void():void()",
+              "description": "Validates that all required environment properties are present"
+            },
+            {
+              "signature": "org.springframework.core.annotation.AnnotationUtils.validateAnnotation:void(java.lang.annotation.Annotation)",
+              "description": "Validates annotation metadata for correctness"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

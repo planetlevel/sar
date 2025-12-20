@@ -1,0 +1,151 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-access",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-access*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager$Builder$Constraint.authenticated:org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager$Builder()",
+              "description": "Configures message security to require authenticated users"
+            },
+            {
+              "signature": "org.springframework.security.web.access.intercept.RequestMatcherDelegatingAuthorizationManager$Builder$AuthorizedUrl.authenticated:org.springframework.security.web.access.intercept.RequestMatcherDelegatingAuthorizationManager$Builder()",
+              "description": "Configures URL security to require authenticated users"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.springframework.messaging.Message)",
+              "description": "Performs message-based authorization using configured matchers and rules"
+            },
+            {
+              "signature": "org.springframework.security.web.access.IpAddressAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.springframework.security.web.access.intercept.RequestAuthorizationContext)",
+              "description": "Authorizes requests based on IP address rules"
+            },
+            {
+              "signature": "org.springframework.security.web.access.expression.WebExpressionAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.springframework.security.web.access.intercept.RequestAuthorizationContext)",
+              "description": "Performs web request authorization using Spring Expression Language (SpEL)"
+            },
+            {
+              "signature": "org.springframework.security.web.access.intercept.RequestMatcherDelegatingAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,jakarta.servlet.http.HttpServletRequest)",
+              "description": "Delegates request authorization to appropriate handlers based on request matchers"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.access.expression.AbstractSecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(org.springframework.security.core.Authentication,java.lang.Object)",
+              "description": "Creates a context for evaluating security expressions"
+            }
+          ]
+        }
+      }
+    },
+    "routing": {
+      "parameters": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.web.access.intercept.RequestAuthorizationContext.getRequest:jakarta.servlet.http.HttpServletRequest()",
+              "description": "Retrieves the HTTP request being authorized"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

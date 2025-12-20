@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Guava",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "guava",
+          "library": "Google Guava"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "com.google.guava:guava",
+          "library": "Google Guava"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.google.common.*"
+      ]
+    }
+  },
+  "architecture": {
+    "security": {
+      "input_validation": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.google.common.base.Preconditions.checkArgument:void(boolean)",
+          "com.google.common.base.Preconditions.checkArgument:void(boolean,java.lang.Object)",
+          "com.google.common.base.Preconditions.checkNotNull:java.lang.Object(java.lang.Object)",
+          "com.google.common.base.Preconditions.checkNotNull:java.lang.Object(java.lang.Object,java.lang.Object)",
+          "com.google.common.base.Preconditions.checkState:void(boolean)"
+        ]
+      }
+    }
+  }
+}

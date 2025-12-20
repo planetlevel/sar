@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Anthropic TypeScript SDK",
+  "languages": [
+    "javascript",
+    "typescript"
+  ],
+  "detection": {
+    "dependencies": {
+      "package.json": [
+        {
+          "pattern": "\"@anthropic-ai/sdk\"",
+          "library": "Anthropic TypeScript SDK"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "Anthropic.messages.create",
+          "Anthropic.messages.stream"
+        ]
+      }
+    }
+  }
+}

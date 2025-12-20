@@ -1,0 +1,70 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Netty",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "netty-all",
+          "library": "Netty"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "io.netty",
+          "library": "Netty"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "io.netty.handler.codec.http.*",
+        "io.netty.handler.codec.http.multipart.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "io.netty.handler.codec.http.HttpRequest.getUri()",
+          "io.netty.handler.codec.http.HttpHeaders.get(java.lang.CharSequence)",
+          "io.netty.handler.codec.http.HttpHeaders.getAll(java.lang.CharSequence)",
+          "io.netty.handler.codec.http.HttpHeaders.get(java.lang.String)",
+          "io.netty.handler.codec.http.HttpHeaders.getAll(java.lang.String)",
+          "io.netty.handler.codec.http.HttpHeaders.entries()",
+          "io.netty.handler.codec.http.multipart.InterfaceHttpData.getName()",
+          "io.netty.handler.codec.http.multipart.HttpData.get()",
+          "io.netty.handler.codec.http.multipart.HttpData.getString()",
+          "io.netty.handler.codec.http.multipart.HttpData.getString(java.nio.charset.Charset)",
+          "io.netty.handler.codec.http.multipart.FileUpload.getContentTransferEncoding()",
+          "io.netty.handler.codec.http.multipart.FileUpload.getContentType()",
+          "io.netty.handler.codec.http.multipart.FileUpload.getFilename()",
+          "io.netty.handler.codec.http.multipart.Attribute.getValue()",
+          "io.netty.handler.codec.http.multipart.FileUpload.getFile()",
+          "io.netty.handler.codec.http.HttpObjectAggregator$AggregatedFullHttpMessage.content()"
+        ]
+      }
+    }
+  }
+}

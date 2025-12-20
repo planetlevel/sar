@@ -1,0 +1,37 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Anthropic Python SDK",
+  "languages": [
+    "python"
+  ],
+  "extends": "python",
+  "detection": {
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "pattern": "anthropic",
+          "library": "Anthropic Python SDK"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "pattern": "anthropic",
+          "library": "Anthropic Python SDK"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "anthropic.py:<module>.Anthropic.__init__.<returnValue>.<member>(messages).create",
+          "anthropic.py:<module>.Anthropic.__init__.<returnValue>.<member>(messages).stream",
+          "anthropic.py:<module>.AsyncAnthropic.__init__.<returnValue>.<member>(messages).create"
+        ]
+      }
+    }
+  }
+}

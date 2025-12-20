@@ -1,0 +1,79 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Javax Servlet",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "javax.servlet.*",
+        "javax.servlet.http.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.servlet.http.HttpServletRequest.getPart(java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getParts()",
+          "javax.servlet.http.Part.getHeader(java.lang.String)",
+          "javax.servlet.http.Part.getHeaderNames()",
+          "javax.servlet.http.Part.getHeaders(java.lang.String)",
+          "javax.servlet.http.Part.getInputStream()",
+          "javax.servlet.http.Part.getName()",
+          "javax.servlet.http.Part.getContentType()",
+          "javax.servlet.http.HttpServletRequest.getCookies()",
+          "javax.servlet.http.HttpServletRequest.getQueryString()",
+          "javax.servlet.http.HttpServletRequest.getRequestedSessionId()",
+          "javax.servlet.ServletRequest.getParameter(java.lang.String)",
+          "javax.servlet.ServletRequest.getParameterNames()",
+          "javax.servlet.ServletRequest.getParameterValues(java.lang.String)",
+          "javax.servlet.ServletRequest.getParameterMap()",
+          "javax.servlet.http.HttpServletRequest.getHeader(java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getHeaderNames()",
+          "javax.servlet.http.HttpServletRequest.getHeaders(java.lang.String)",
+          "javax.servlet.http.HttpServletRequest.getRequestURI()",
+          "javax.servlet.http.HttpServletRequest.getRequestURL()",
+          "javax.servlet.http.HttpServletRequest.getPathInfo()",
+          "javax.servlet.http.HttpServletResponse.getWriter()",
+          "javax.servlet.http.HttpServletResponse.getOutputStream()",
+          "javax.servlet.http.HttpServletRequest.getContentType()",
+          "javax.servlet.ServletRequest.getInputStream()",
+          "javax.servlet.ServletRequest.getReader()"
+        ]
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.servlet.http.HttpServletResponse.encodeUrl(java.lang.String)",
+          "javax.servlet.http.HttpServletResponse.encodeURL(java.lang.String)",
+          "javax.servlet.http.HttpServletResponse.encodeRedirectUrl(java.lang.String)",
+          "javax.servlet.http.HttpServletResponse.encodeRedirectURL(java.lang.String)"
+        ]
+      }
+    }
+  }
+}

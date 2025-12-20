@@ -1,0 +1,46 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Xenon",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.vmware.xenon.common.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.vmware.xenon.common.Operation.getUri()",
+          "com.vmware.xenon.common.Operation.getBodyRaw()",
+          "com.vmware.xenon.common.Operation.getBody(java.lang.Class)",
+          "com.vmware.xenon.common.Operation.getRequestHeader(java.lang.String)",
+          "com.vmware.xenon.common.Operation.getRequestHeaderAsIs(java.lang.String)",
+          "com.vmware.xenon.common.Operation.getCookies()"
+        ]
+      }
+    }
+  }
+}

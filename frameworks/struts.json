@@ -1,0 +1,135 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Struts",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "struts.xml",
+        "struts-config.xml"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "struts2-core",
+          "library": "Struts 2"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.apache.struts",
+          "library": "Struts"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.opensymphony.xwork2.interceptor.*",
+        "org.apache.struts.taglib.*",
+        "org.apache.struts.util.*",
+        "org.apache.struts2.interceptor.*",
+        "webwork.util.*"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name_regex",
+          "patterns": [
+            "Action",
+            "Actions",
+            "Namespace"
+          ]
+        },
+        "xml": {
+          "type": "xml",
+          "files": [
+            "src/main/resources/struts.xml",
+            "src/main/resources/struts-config.xml"
+          ],
+          "patterns": {
+            "element": "action",
+            "parent": "package",
+            "namespace_attr": "namespace",
+            "attributes": [
+              "name",
+              "class",
+              "method"
+            ]
+          }
+        },
+        "http_methods": {
+          "type": "manual",
+          "note": "Struts actions handle all HTTP methods by default unless configured otherwise"
+        }
+      },
+      "parameters": {
+        "path_variable": {
+          "type": "joern",
+          "search_type": "annotation",
+          "pattern": ".*Param"
+        },
+        "query_param": {
+          "type": "joern",
+          "search_type": "method_pattern",
+          "pattern": "set.*"
+        },
+        "request_body": {
+          "type": "joern",
+          "search_type": "method_pattern",
+          "pattern": "set.*"
+        },
+        "form_binding": {
+          "type": "joern",
+          "search_type": "method_pattern",
+          "pattern": "set.*"
+        }
+      },
+      "handler_classes": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Action",
+        "exclude_pattern": ".*Abstract.*|.*Base.*"
+      }
+    },
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "com.opensymphony.xwork2.interceptor.ParametersInterceptor.acceptableName(java.lang.String)",
+          "org.apache.struts2.interceptor.CookieInterceptor.isAcceptableName(java.lang.String)",
+          "webwork.util.TextUtil.escapeHTML(java.lang.String,boolean)",
+          "org.apache.struts.util.ResponseUtils.filter(java.lang.String)",
+          "org.apache.struts.taglib.TagUtils.filter(java.lang.String)",
+          "org.apache.struts.util.ResponseUtils.encodeURL(java.lang.String)",
+          "org.apache.struts.util.ResponseUtils.encodeURL(java.lang.String,java.lang.String)",
+          "org.apache.struts.taglib.TagUtils.encodeURL(java.lang.String)",
+          "org.apache.struts.taglib.TagUtils.encodeURL(java.lang.String,java.lang.String)"
+        ]
+      }
+    }
+  }
+}

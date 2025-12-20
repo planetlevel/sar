@@ -1,0 +1,165 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-data-envers",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-data-jpa",
+    "branch": "main",
+    "commit": "7332f29b2b5b26e2ad93895c6bf86c27066b2d67",
+    "date": "2025-10-31"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "pom.xml",
+        "spring-data-envers*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-data-envers",
+          "library": "spring-data-envers"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.data.jpa.*",
+        "org.springframework.data.envers.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.data"
+        ],
+        "depth_4": [
+          "org.springframework.data.jpa",
+          "org.springframework.data.envers"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "orm_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findLastChangeRevision:java.util.Optional(java.lang.Object)",
+              "description": "Retrieves the last revision change for an entity by its ID using Hibernate Envers"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevision:java.util.Optional(java.lang.Object,java.lang.Number)",
+              "description": "Retrieves a specific revision of an entity by ID and revision number using Hibernate Envers"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.history.Revisions(java.lang.Object)",
+              "description": "Retrieves all revisions for an entity by ID using Hibernate Envers"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.domain.Page(java.lang.Object,org.springframework.data.domain.Pageable)",
+              "description": "Retrieves paginated revisions for an entity by ID using Hibernate Envers"
+            }
+          ]
+        }
+      },
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findLastChangeRevision:java.util.Optional(java.lang.Object)",
+              "description": "Repository method to find last entity revision"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevision:java.util.Optional(java.lang.Object,java.lang.Number)",
+              "description": "Repository method to find specific entity revision"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.history.Revisions(java.lang.Object)",
+              "description": "Repository method to find all entity revisions"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.domain.Page(java.lang.Object,org.springframework.data.domain.Pageable)",
+              "description": "Repository method to find paginated entity revisions"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "data_accessors": {
+        "read_by_id": {
+          "type": "joern",
+          "search_type": "method_signature",
+          "description": "Methods that read by id",
+          "signatures": [
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findLastChangeRevision:java.util.Optional(java.lang.Object)",
+              "description": "Retrieves last revision of entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevision:java.util.Optional(java.lang.Object,java.lang.Number)",
+              "description": "Retrieves specific revision of entity by ID and revision number"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.history.Revisions(java.lang.Object)",
+              "description": "Retrieves all revisions of entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl.findRevisions:org.springframework.data.domain.Page(java.lang.Object,org.springframework.data.domain.Pageable)",
+              "description": "Retrieves paginated revisions of entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.JpaRepository.getOne:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity reference by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.JpaRepository.getById:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.JpaRepository.getReferenceById:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity reference by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById:java.util.Optional(java.lang.Object)",
+              "description": "Retrieves entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getOne:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity reference by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getById:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getReferenceById:java.lang.Object(java.lang.Object)",
+              "description": "Retrieves entity reference by ID"
+            },
+            {
+              "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findAllById:java.util.List(java.lang.Iterable)",
+              "description": "Retrieves multiple entities by IDs"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

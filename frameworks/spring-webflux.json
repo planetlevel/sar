@@ -1,0 +1,200 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring WebFlux",
+  "languages": [
+    "ruby",
+    "python",
+    "javascript",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-webflux*.jar"
+      ]
+    },
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "artifact": "spring_webflux",
+          "library": "Spring WebFlux"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "artifact": "spring_webflux",
+          "library": "Spring WebFlux"
+        }
+      ],
+      "setup.py": [
+        {
+          "artifact": "spring_webflux",
+          "library": "Spring WebFlux"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.web.reactive.result.*",
+        "org.springframework.web.reactive.function.*",
+        "org.springframework.web.reactive.socket.*",
+        "org.springframework.web.reactive.resource.*",
+        "org.springframework.web.reactive.accept.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.web"
+        ],
+        "depth_4": [
+          "org.springframework.web.reactive"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "routing": {
+      "parameters": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.function.server.DefaultServerRequest.queryParams:org.springframework.util.MultiValueMap():org.springframework.util.MultiValueMap()",
+            "org.springframework.web.reactive.function.server.RequestPredicates.queryParam:org.springframework.web.reactive.function.server.RequestPredicate(java.lang.String,java.lang.String)",
+            "org.springframework.web.reactive.function.server.ServerRequest.queryParam:java.util.Optional(java.lang.String)"
+          ]
+        }
+      },
+      "handler_classes": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.requestMappingHandlerMapping:org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping",
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.requestMappingHandlerAdapter:org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerAdapter",
+            "org.springframework.web.reactive.function.server.RouterFunction.withAttribute:org.springframework.web.reactive.function.server.RouterFunction(java.lang.String,java.lang.Object)",
+            "org.springframework.web.reactive.function.server.RouterFunctionBuilder.build:org.springframework.web.reactive.function.server.RouterFunction()"
+          ]
+        }
+      },
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "EnableWebFlux",
+            "org.springframework.web.reactive.result.method.RequestMappingInfo$Builder.build:org.springframework.web.reactive.result.method.RequestMappingInfo()"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.result.method.InvocableHandlerMethod.invoke:reactor.core.publisher.Mono",
+            "org.springframework.web.reactive.result.method.InvocableHandlerMethod$KotlinDelegate.invokeFunction:java.lang.Object"
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.function.server.ServerRequest.queryParams:org.springframework.util.MultiValueMap()",
+            "org.springframework.web.reactive.function.BodyInserters$FormInserter.with:org.springframework.web.reactive.function.BodyInserters$FormInserter(java.lang.String,java.lang.Object)",
+            "org.springframework.web.reactive.function.BodyInserters$MultipartInserter.with:org.springframework.web.reactive.function.BodyInserters$MultipartInserter(org.springframework.util.MultiValueMap)"
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "response_output": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.responseBodyResultHandler:org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler",
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.responseEntityResultHandler:org.springframework.web.reactive.result.method.annotation.ResponseEntityResultHandler",
+            "org.springframework.web.reactive.function.server.ServerResponse.created:org.springframework.web.reactive.function.server.ServerResponse$BodyBuilder(java.net.URI)",
+            "org.springframework.web.reactive.function.server.DefaultEntityResponseBuilder.build:reactor.core.publisher.Mono()"
+          ]
+        }
+      },
+      "headers": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.resource.HttpResource.getResponseHeaders:org.springframework.http.HttpHeaders()"
+          ]
+        }
+      },
+      "redirects": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.result.view.Rendering.redirectTo:org.springframework.web.reactive.result.view.Rendering$RedirectBuilder(java.lang.String)"
+          ]
+        }
+      }
+    },
+    "communication": {
+      "socket": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.socket.WebSocketSession.send:reactor.core.publisher.Mono(org.reactivestreams.Publisher)",
+            "org.springframework.web.reactive.socket.WebSocketSession.receive:reactor.core.publisher.Flux()",
+            "org.springframework.web.reactive.socket.CloseStatus.create:org.springframework.web.reactive.socket.CloseStatus(int,java.lang.String)",
+            "org.springframework.web.reactive.socket.CloseStatus.withReason:org.springframework.web.reactive.socket.CloseStatus(java.lang.String)"
+          ]
+        }
+      },
+      "http": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.function.client.WebClient.builder:org.springframework.web.reactive.function.client.WebClient$Builder()",
+            "org.springframework.web.reactive.function.client.WebClient$Builder.build:org.springframework.web.reactive.function.client.WebClient()"
+          ]
+        }
+      }
+    },
+    "integration": {
+      "http_clients": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.reactive.function.client.DefaultWebClient.delete:org.springframework.web.reactive.function.client.WebClient$RequestHeadersUriSpec()"
+          ]
+        }
+      }
+    }
+  }
+}

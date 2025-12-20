@@ -1,0 +1,64 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Grails",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "grails-app/conf/application.yml",
+        "application.properties"
+      ]
+    },
+    "dependencies": {
+      "build.gradle": [
+        {
+          "pattern": "org.grails",
+          "library": "Grails"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "asset.pipeline.*",
+        "org.codehaus.groovy.grails.plugins.web.api.*",
+        "org.codehaus.groovy.grails.web.servlet.mvc.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.codehaus.groovy.grails.plugins.web.api.CommonWebApi.getParams()",
+          "org.codehaus.groovy.grails.web.servlet.mvc.GrailsWebRequest.getParameterMap()",
+          "org.codehaus.groovy.grails.web.servlet.mvc.GrailsWebRequest.getParams()"
+        ]
+      },
+      "propagators": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "asset.pipeline.AssetHelper.normalizePath(java.lang.String)"
+      }
+    }
+  }
+}

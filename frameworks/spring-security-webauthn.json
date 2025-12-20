@@ -1,0 +1,183 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-webauthn",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-webauthn*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcPublicKeyCredentialUserEntityRepository.findById:org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity(org.springframework.security.web.webauthn.api.Bytes)",
+              "description": "Repository method to find a user entity by ID"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcPublicKeyCredentialUserEntityRepository.findByUsername:org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity(java.lang.String)",
+              "description": "Repository method to find a user entity by username"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcUserCredentialRepository.findByCredentialId:org.springframework.security.web.webauthn.api.CredentialRecord(org.springframework.security.web.webauthn.api.Bytes)",
+              "description": "Repository method to find credential record by credential ID"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcUserCredentialRepository.findByUserId:java.util.List(org.springframework.security.web.webauthn.api.Bytes)",
+              "description": "Repository method to find all credentials for a user ID"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcPublicKeyCredentialUserEntityRepository.save:void(org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity)",
+              "description": "Repository method to save a user entity"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcUserCredentialRepository.save:void(org.springframework.security.web.webauthn.api.CredentialRecord)",
+              "description": "Repository method to save a credential record"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcPublicKeyCredentialUserEntityRepository.delete:void(org.springframework.security.web.webauthn.api.Bytes)",
+              "description": "Repository method to delete a user entity by ID"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.JdbcUserCredentialRepository.delete:void(org.springframework.security.web.webauthn.api.Bytes)",
+              "description": "Repository method to delete a credential record by ID"
+            }
+          ]
+        }
+      }
+    },
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.web.webauthn.authentication.WebAuthnAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates a WebAuthn authentication request"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.management.WebAuthnRelyingPartyOperations.authenticate:org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity(org.springframework.security.web.webauthn.management.RelyingPartyAuthenticationRequest)",
+              "description": "Authenticates a WebAuthn relying party request"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.authentication.WebAuthnAuthentication$Builder.build:org.springframework.security.web.webauthn.authentication.WebAuthnAuthentication():org.springframework.security.web.webauthn.authentication.WebAuthnAuthentication()",
+              "description": "Builds a WebAuthn authentication object for web authentication security"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.web.webauthn.jackson.BytesJackson2Serializer.serialize:void(org.springframework.security.web.webauthn.api.Bytes,com.fasterxml.jackson.core.JsonGenerator,com.fasterxml.jackson.databind.SerializerProvider)",
+              "description": "Serializes Bytes object to JSON"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.jackson.BytesSerializer.serialize:void(org.springframework.security.web.webauthn.api.Bytes,tools.jackson.core.JsonGenerator,tools.jackson.databind.SerializationContext)",
+              "description": "Serializes Bytes object to JSON using Jackson"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.api.PublicKeyCredentialDescriptor$PublicKeyCredentialDescriptorBuilder.build:org.springframework.security.web.webauthn.api.PublicKeyCredentialDescriptor():org.springframework.security.web.webauthn.api.PublicKeyCredentialDescriptor()",
+              "description": "Builds a public key credential descriptor for WebAuthn authentication"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions.builder:org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions$PublicKeyCredentialRequestOptionsBuilder():org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions$PublicKeyCredentialRequestOptionsBuilder()",
+              "description": "Creates a builder for WebAuthn credential request options"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions$PublicKeyCredentialRequestOptionsBuilder.build:org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions():org.springframework.security.web.webauthn.api.PublicKeyCredentialRequestOptions()",
+              "description": "Builds WebAuthn credential request options object"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity.builder:org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity$PublicKeyCredentialRpEntityBuilder():org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity$PublicKeyCredentialRpEntityBuilder()",
+              "description": "Creates a builder for WebAuthn relying party entity"
+            },
+            {
+              "signature": "org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity$PublicKeyCredentialRpEntityBuilder.build:org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity():org.springframework.security.web.webauthn.api.PublicKeyCredentialRpEntity()",
+              "description": "Builds WebAuthn relying party entity object"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

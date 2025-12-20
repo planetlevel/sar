@@ -1,0 +1,262 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-config",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "catalog.xml",
+        "spring-security-config*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration$AuthenticationManagerDelegator.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Delegates authentication requests to the configured AuthenticationManager"
+            },
+            {
+              "signature": "org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer$OidcAuthenticationRequestChecker.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates OAuth2/OIDC login requests"
+            },
+            {
+              "signature": "org.springframework.security.config.web.server.OidcBackChannelLogoutReactiveAuthenticationManager.authenticate:reactor.core.publisher.Mono(org.springframework.security.core.Authentication)",
+              "description": "Handles OIDC back-channel logout authentication in reactive applications"
+            },
+            {
+              "signature": "org.springframework.security.config.http.FormLoginBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for form-based login settings"
+            },
+            {
+              "signature": "org.springframework.security.config.http.OAuth2LoginBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for OAuth2 login settings"
+            },
+            {
+              "signature": "org.springframework.security.config.http.Saml2LoginBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for SAML2 login settings"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.rsocket.RSocketSecurity$AuthorizePayloadsSpec$Access.authenticated:org.springframework.security.config.annotation.rsocket.RSocketSecurity$AuthorizePayloadsSpec()",
+              "description": "Requires authentication for RSocket payload access"
+            },
+            {
+              "signature": "org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer$AuthorizedUrl.authenticated:org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer$AuthorizationManagerRequestMatcherRegistry()",
+              "description": "Configures HTTP request authorization to require authentication"
+            },
+            {
+              "signature": "org.springframework.security.config.method.PointcutDelegatingAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.aopalliance.intercept.MethodInvocation)",
+              "description": "Performs method-level authorization using pointcut expressions"
+            },
+            {
+              "signature": "org.springframework.security.config.http.AuthorizationFilterParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration to create authorization filter bean definitions"
+            }
+          ]
+        }
+      },
+      "cookie_security": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.web.configurers.LogoutConfigurer.deleteCookies:org.springframework.security.config.annotation.web.configurers.LogoutConfigurer(java.lang.String[])",
+              "description": "Configures deletion of security-related cookies during logout"
+            },
+            {
+              "signature": "org.springframework.security.config.http.CsrfBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for CSRF protection settings"
+            }
+          ]
+        }
+      }
+    },
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry.requestMatchers:java.lang.Object(java.lang.String[])",
+              "description": "Defines URL patterns for security rule application"
+            },
+            {
+              "signature": "org.springframework.security.config.annotation.web.AbstractRequestMatcherRegistry.requestMatchers:java.lang.Object(org.springframework.http.HttpMethod,java.lang.String[])",
+              "description": "Defines URL patterns with HTTP method constraints for security rules"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.method.configuration.DeferringMethodInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+              "description": "Intercepts and evaluates security expressions for method invocations"
+            }
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "cookies": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.web.configurers.LogoutConfigurer.deleteCookies:org.springframework.security.config.annotation.web.configurers.LogoutConfigurer(java.lang.String[])",
+              "description": "Manages cookie deletion during user logout process"
+            }
+          ]
+        }
+      },
+      "headers": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.http.HeadersBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for security header settings"
+            }
+          ]
+        }
+      },
+      "redirects": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.annotation.web.builders.HttpSecurity.redirectToHttps:org.springframework.security.config.annotation.web.builders.HttpSecurity(org.springframework.security.config.Customizer)",
+              "description": "Configures HTTPS redirect behavior for security"
+            }
+          ]
+        }
+      }
+    },
+    "database": {
+      "ldap_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.ldap.LdapProviderBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for LDAP authentication provider settings"
+            },
+            {
+              "signature": "org.springframework.security.config.ldap.LdapServerBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for LDAP server connection settings"
+            }
+          ]
+        }
+      }
+    },
+    "communication": {
+      "http": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.config.http.HttpFirewallBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for HTTP firewall settings"
+            },
+            {
+              "signature": "org.springframework.security.config.http.HttpSecurityBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)",
+              "description": "Parses XML configuration for HTTP security settings"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

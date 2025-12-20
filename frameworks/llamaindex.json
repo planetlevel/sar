@@ -1,0 +1,37 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "LlamaIndex",
+  "languages": [
+    "python"
+  ],
+  "extends": "python",
+  "detection": {
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "pattern": "llama-index",
+          "library": "LlamaIndex"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "pattern": "llama-index",
+          "library": "LlamaIndex"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "llama_index.py:<module>.QueryEngine.__init__.<returnValue>.query",
+          "llama_index.py:<module>.ChatEngine.__init__.<returnValue>.chat",
+          "llama_index.py:<module>.VectorStoreIndex.__init__.<returnValue>.as_query_engine"
+        ]
+      }
+    }
+  }
+}

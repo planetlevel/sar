@@ -1,0 +1,668 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Framework",
+  "languages": [
+    "ruby",
+    "python",
+    "javascript",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "gradle.properties",
+        "aop.xml",
+        "native-image.properties",
+        "sql-error-codes.xml",
+        "CustomWeaverConfiguration.xml",
+        "RegexpConfiguration.xml",
+        "JdkRegexpConfiguration.xml",
+        "LazyConfiguration.xml",
+        "MovieRecommender.xml",
+        "ShapeGuess.xml",
+        "spring*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-framework-bom",
+          "library": "Spring Framework"
+        },
+        {
+          "artifact": "spring-core",
+          "library": "Spring Framework"
+        },
+        {
+          "artifact": "spring-beans",
+          "library": "Spring Framework"
+        },
+        {
+          "artifact": "spring-context",
+          "library": "Spring Framework"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.springframework",
+          "library": "Spring Framework"
+        }
+      ],
+      "requirements.txt": [
+        {
+          "artifact": "spring_framework",
+          "library": "Spring Framework"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "artifact": "spring_framework",
+          "library": "Spring Framework"
+        }
+      ],
+      "setup.py": [
+        {
+          "artifact": "spring_framework",
+          "library": "Spring Framework"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "org.aopalliance.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "org.aopalliance"
+        ],
+        "depth_3": [
+          "org.springframework.web",
+          "org.springframework.http",
+          "org.springframework.core",
+          "org.springframework.beans",
+          "org.springframework.docs",
+          "org.springframework.messaging",
+          "org.springframework.context",
+          "org.springframework.jdbc",
+          "org.springframework.aop",
+          "org.springframework.cglib",
+          "org.springframework.util",
+          "org.springframework.expression",
+          "org.springframework.transaction",
+          "org.springframework.jms",
+          "org.springframework.cache",
+          "org.springframework.aot",
+          "org.springframework.scheduling",
+          "org.springframework.orm",
+          "org.springframework.r2dbc",
+          "org.springframework.format"
+        ],
+        "depth_4": [
+          "org.springframework.web.servlet",
+          "org.springframework.web.reactive",
+          "org.springframework.beans.factory",
+          "org.springframework.web.socket",
+          "org.springframework.http.codec",
+          "org.springframework.docs.integration",
+          "org.springframework.context.annotation",
+          "org.springframework.jdbc.core",
+          "org.springframework.expression.spel",
+          "org.springframework.docs.web",
+          "org.springframework.http.server",
+          "org.springframework.web.util",
+          "org.springframework.messaging.simp",
+          "org.springframework.core.io",
+          "org.springframework.http.converter",
+          "org.springframework.http.client",
+          "org.springframework.web.context",
+          "org.springframework.orm.jpa",
+          "org.springframework.docs.core",
+          "org.springframework.core.convert"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "sql_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jdbc.core.JdbcOperations.execute:void(java.lang.String)",
+            "org.springframework.jdbc.core.JdbcTemplate.execute:void(java.lang.String)",
+            "org.springframework.jdbc.core.simple.SimpleJdbcInsert.execute:int(java.util.Map)",
+            "org.springframework.jdbc.core.SqlQuery.execute:java.util.List()",
+            "org.springframework.jdbc.core.JdbcOperations.queryForObject:java.lang.Object(java.lang.String,java.lang.Object[],int[],org.springframework.jdbc.core.RowMapper)",
+            "org.springframework.jdbc.core.JdbcOperations.queryForMap:java.util.Map(java.lang.String,java.lang.Object[])",
+            "org.springframework.jdbc.core.JdbcOperations.queryForList:java.util.List(java.lang.String,java.lang.Object[],java.lang.Class)",
+            "org.springframework.jdbc.core.JdbcTemplate.query:java.lang.Object(java.lang.String,org.springframework.jdbc.core.ResultSetExtractor)",
+            "org.springframework.jdbc.core.JdbcTemplate.queryForStream:java.util.stream.Stream(java.lang.String,org.springframework.jdbc.core.RowMapper)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations.query:java.lang.Object(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource,org.springframework.jdbc.core.ResultSetExtractor)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations.queryForMap:java.util.Map(java.lang.String,java.util.Map)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations.queryForList:java.util.List(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.queryForObject:java.lang.Object(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource,java.lang.Class)",
+            "org.springframework.jdbc.object.SqlQuery.findObject:java.lang.Object(java.lang.Object[],java.util.Map)",
+            "org.springframework.jdbc.object.SqlQuery.findObjectByNamedParam:java.lang.Object(java.util.Map)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterUtils.parseSqlStatement:org.springframework.jdbc.core.namedparam.ParsedSql(java.lang.String)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterUtils.parseSqlStatementIntoString:java.lang.String(java.lang.String)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterUtils.buildValueArray:java.lang.Object[](org.springframework.jdbc.core.namedparam.ParsedSql,org.springframework.jdbc.core.namedparam.SqlParameterSource,java.util.List)",
+            "org.springframework.jdbc.core.namedparam.NamedParameterUtils.buildSqlTypeArray:int[](org.springframework.jdbc.core.namedparam.ParsedSql,org.springframework.jdbc.core.namedparam.SqlParameterSource)",
+            "org.springframework.jdbc.core.simple.SimpleJdbcCall.withTableName:org.springframework.jdbc.core.simple.SimpleJdbcInsert(java.lang.String)",
+            "org.springframework.jdbc.core.simple.SimpleJdbcCall.withSchemaName:org.springframework.jdbc.core.simple.SimpleJdbcInsert(java.lang.String)",
+            "org.springframework.jdbc.core.simple.SimpleJdbcCall.withCatalogName:org.springframework.jdbc.core.simple.SimpleJdbcInsert(java.lang.String)"
+          ]
+        }
+      },
+      "orm_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jdbc.core.simple.SimpleJdbcInsert.executeAndReturnKey:java.lang.Number(java.util.Map)",
+            "org.springframework.jdbc.core.simple.SimpleJdbcInsert.executeBatch:int[](java.util.Map[])",
+            "org.springframework.jdbc.core.JdbcOperations.queryForObject:java.lang.Object(java.lang.String,java.lang.Object[],org.springframework.jdbc.core.RowMapper)",
+            "org.springframework.jdbc.core.JdbcTemplate.queryForObject:java.lang.Object(java.lang.String,org.springframework.jdbc.core.RowMapper)",
+            "org.springframework.orm.jpa.hibernate.HibernateTransactionManager.getResourceFactory:java.lang.Object()"
+          ]
+        }
+      },
+      "jpa_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.orm.jpa.SharedEntityManagerCreator$SharedEntityManagerInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.r2dbc.core.binding.Bindings.merge:org.springframework.r2dbc.core.binding.Bindings(org.springframework.r2dbc.core.binding.Bindings,org.springframework.r2dbc.core.binding.Bindings)",
+            "org.springframework.orm.jpa.JpaTransactionManager.getResourceFactory:java.lang.Object()",
+            "org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.createNativeEntityManager:jakarta.persistence.EntityManager(java.util.Map)",
+            "org.springframework.orm.jpa.EntityManagerFactoryInfo.createNativeEntityManager:jakarta.persistence.EntityManager(java.util.Map)",
+            "org.springframework.orm.jpa.ExtendedEntityManagerCreator.createApplicationManagedEntityManager:jakarta.persistence.EntityManager(jakarta.persistence.EntityManager,org.springframework.orm.jpa.EntityManagerFactoryInfo)",
+            "org.springframework.orm.jpa.ExtendedEntityManagerCreator.createContainerManagedEntityManager:jakarta.persistence.EntityManager(jakarta.persistence.EntityManagerFactory)",
+            "org.springframework.orm.jpa.hibernate.LocalSessionFactoryBuilder.buildSessionFactory:org.hibernate.SessionFactory(org.springframework.core.task.AsyncTaskExecutor)"
+          ]
+        }
+      },
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Repository"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.expression.MethodExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object,java.lang.Object[])",
+            "org.springframework.expression.ConstructorExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object[])",
+            "org.springframework.beans.factory.config.BeanExpressionResolver.evaluate:java.lang.Object(java.lang.String,org.springframework.beans.factory.config.BeanExpressionContext)",
+            "org.springframework.context.expression.StandardBeanExpressionResolver.evaluate:java.lang.Object(java.lang.String,org.springframework.beans.factory.config.BeanExpressionContext)",
+            "org.springframework.scripting.ScriptEvaluator.evaluate:java.lang.Object(org.springframework.scripting.ScriptSource)",
+            "org.springframework.scripting.ScriptEvaluator.evaluate:java.lang.Object(org.springframework.scripting.ScriptSource,java.util.Map)",
+            "org.springframework.scripting.bsh.BshScriptEvaluator.evaluate:java.lang.Object(org.springframework.scripting.ScriptSource)",
+            "org.springframework.expression.TypeLocator.findType:java.lang.Class(java.lang.String)",
+            "org.springframework.expression.spel.ExpressionState.findType:java.lang.Class(java.lang.String)",
+            "org.springframework.expression.spel.SpelBenchmark.getValueFromMap:java.lang.Object(org.springframework.expression.spel.SpelBenchmark$ValueBenchmarkData)",
+            "org.springframework.web.servlet.resource.ContentVersionStrategy.getResourceVersion:java.lang.String(org.springframework.core.io.Resource)",
+            "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String)",
+            "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String,org.springframework.expression.ParserContext)",
+            "org.springframework.expression.spel.standard.SpelExpressionParser.parseRaw:org.springframework.expression.spel.standard.SpelExpression(java.lang.String)",
+            "org.springframework.expression.TypeConverter.convertValue:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor,org.springframework.core.convert.TypeDescriptor)",
+            "org.springframework.expression.spel.ExpressionState.convertValue:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor)",
+            "org.springframework.cache.interceptor.CacheOperationExpressionEvaluator.createEvaluationContext:org.springframework.expression.EvaluationContext(java.util.Collection,java.lang.reflect.Method,java.lang.Object[],java.lang.Object,java.lang.Class,java.lang.reflect.Method,java.lang.Object)",
+            "org.springframework.scripting.bsh.BshScriptUtils.createBshObject:java.lang.Object(java.lang.String)",
+            "org.springframework.expression.spel.support.SimpleEvaluationContext$Builder.build:org.springframework.expression.spel.support.SimpleEvaluationContext()",
+            "org.springframework.expression.spel.support.SimpleEvaluationContext$Builder.withInstanceMethods:org.springframework.expression.spel.support.SimpleEvaluationContext$Builder()"
+          ]
+        }
+      },
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.expression.spel.support.ReflectiveMethodExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object,java.lang.Object[])",
+            "org.springframework.expression.spel.support.ReflectiveConstructorExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object[])",
+            "org.springframework.beans.factory.groovy.GroovyDynamicElementReader.invokeMethod:java.lang.Object(java.lang.String,java.lang.Object)",
+            "org.springframework.beans.factory.support.AutowireUtils$ObjectFactoryDelegatingInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.util.ReflectionUtils.invokeMethod:java.lang.Object(java.lang.reflect.Method,java.lang.Object)",
+            "org.springframework.util.ReflectionUtils.invokeMethod:java.lang.Object(java.lang.reflect.Method,java.lang.Object,java.lang.Object[])",
+            "org.springframework.cglib.core.ReflectUtils.findMethod:java.lang.reflect.Method(java.lang.String)",
+            "org.springframework.cglib.core.ReflectUtils.findDeclaredMethod:java.lang.reflect.Method(java.lang.Class,java.lang.String,java.lang.Class[])",
+            "org.springframework.util.ReflectionUtils.findMethod:java.lang.reflect.Method(java.lang.Class,java.lang.String)",
+            "org.springframework.util.ReflectionUtils.findField:java.lang.reflect.Field(java.lang.Class,java.lang.String)",
+            "org.springframework.util.ReflectionUtils.handleInvocationTargetException:void(java.lang.reflect.InvocationTargetException)",
+            "org.springframework.aot.agent.InstrumentedBridgeMethods.fieldget:java.lang.Object(java.lang.reflect.Field,java.lang.Object)",
+            "org.springframework.expression.spel.support.ReflectionHelper.convertAllArguments:boolean(org.springframework.expression.TypeConverter,java.lang.Object[],java.lang.reflect.Method)",
+            "org.springframework.expression.spel.support.ReflectionHelper.convertAllMethodHandleArguments:boolean(org.springframework.expression.TypeConverter,java.lang.Object[],java.lang.invoke.MethodHandle,java.lang.Integer)",
+            "org.springframework.cglib.proxy.Enhancer.create:java.lang.Object(java.lang.Class,org.springframework.cglib.proxy.Callback)",
+            "org.springframework.cglib.reflect.FastClass.create:org.springframework.cglib.reflect.FastClass(java.lang.Class)",
+            "org.springframework.cglib.reflect.MethodDelegate.create:org.springframework.cglib.reflect.MethodDelegate(java.lang.Object,java.lang.String,java.lang.Class)",
+            "Reflective",
+            "RegisterReflection",
+            "ReflectiveScan"
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "file_operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript:void(java.sql.Connection,org.springframework.core.io.Resource)",
+            "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.io.File)",
+            "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.nio.file.Path)",
+            "org.springframework.web.context.support.ServletContextResource.getInputStream:java.io.InputStream()",
+            "org.springframework.web.servlet.resource.VersionResourceResolver$FileNameVersionedResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.FileSystemResource.createRelative:org.springframework.core.io.Resource(java.lang.String)",
+            "org.springframework.core.io.FileUrlResource.createRelative:org.springframework.core.io.Resource(java.lang.String)",
+            "org.springframework.http.codec.multipart.FilePartEvent.create:reactor.core.publisher.Flux(java.lang.String,java.nio.file.Path)"
+          ]
+        }
+      },
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jdbc.core.RowMapper",
+            "org.springframework.mail.SimpleMailMessage.hashCode:int():int()",
+            "org.springframework.web.client.RestClientResponseException.getResponseBodyAs:java.lang.Object(org.springframework.core.ParameterizedTypeReference)",
+            "org.springframework.oxm.xstream.XStreamMarshaller.marshalOutputStream:void(java.lang.Object,java.io.OutputStream)",
+            "org.springframework.oxm.xstream.XStreamMarshaller.unmarshalInputStream:java.lang.Object(java.io.InputStream)",
+            "org.springframework.http.MediaType.parseMediaType:org.springframework.http.MediaType(java.lang.String)",
+            "org.springframework.http.MediaType.parseMediaTypes:java.util.List(java.lang.String)",
+            "org.springframework.core.serializer.support.DeserializingConverter.convert:java.lang.Object(byte[])",
+            "org.springframework.core.serializer.support.SerializingConverter.convert:byte[](java.lang.Object)",
+            "org.springframework.web.testfixture.servlet.MockHttpSession.serializeState:java.io.Serializable():java.io.Serializable()",
+            "org.springframework.web.testfixture.servlet.MockHttpSession.deserializeState:void(java.io.Serializable):void(java.io.Serializable)",
+            "org.springframework.web.reactive.function.client.WebClient$RequestHeadersSpec.exchangeToFlux:reactor.core.publisher.Flux(java.util.function.Function)",
+            "org.springframework.mail.javamail.JavaMailSenderImpl.createMimeMessage:jakarta.mail.internet.MimeMessage(java.io.InputStream)",
+            "org.springframework.oxm.jaxb.Jaxb2Marshaller.createMarshaller:jakarta.xml.bind.Marshaller()",
+            "org.springframework.oxm.jaxb.Jaxb2Marshaller.createUnmarshaller:jakarta.xml.bind.Unmarshaller()",
+            "org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build:java.lang.Object()",
+            "org.springframework.http.converter.DefaultHttpMessageConverters$DefaultClientBuilder.withJsonConverter:org.springframework.http.converter.HttpMessageConverters$ClientBuilder(org.springframework.http.converter.HttpMessageConverter)",
+            "org.springframework.http.converter.DefaultHttpMessageConverters$DefaultServerBuilder.withJsonConverter:org.springframework.http.converter.HttpMessageConverters$ServerBuilder(org.springframework.http.converter.HttpMessageConverter)"
+          ]
+        }
+      },
+      "input_sources": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.util.WebUtils.findParameterValue:java.lang.String(jakarta.servlet.ServletRequest,java.lang.String)",
+            "org.springframework.web.util.WebUtils.findParameterValue:java.lang.String(java.util.Map,java.lang.String)",
+            "org.springframework.web.multipart.MultipartFileResource.hashCode:int():int()",
+            "org.springframework.web.server.ServerRequest.requestPath:org.springframework.http.server.RequestPath()",
+            "org.springframework.messaging.core.MessageReceivingOperations.receive:org.springframework.messaging.Message()",
+            "org.springframework.web.reactive.socket.WebSocketSession.receive:reactor.core.publisher.Flux()",
+            "org.springframework.core.io.InputStreamSource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.ByteArrayResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.ClassPathResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.FileSystemResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.InputStreamResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.UrlResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.VfsResource.getInputStream:java.io.InputStream()",
+            "org.springframework.web.multipart.MultipartFile.getBytes:byte[]()",
+            "org.springframework.web.multipart.MultipartFile.getInputStream:java.io.InputStream()",
+            "org.springframework.web.multipart.MultipartFile.getOriginalFilename:java.lang.String()",
+            "org.springframework.web.servlet.resource.ResourceHttpRequestHandler.getResourceResolvers:java.util.List()",
+            "org.springframework.core.io.buffer.DataBuffer.asInputStream:java.io.InputStream()",
+            "org.springframework.core.io.buffer.DataBuffer.asInputStream:java.io.InputStream(boolean)",
+            "org.springframework.core.io.buffer.DataBufferUtils.readInputStream:reactor.core.publisher.Flux",
+            "org.springframework.util.StreamUtils.emptyInput:java.io.InputStream()",
+            "org.springframework.core.env.SimpleCommandLineArgsParser.parse:org.springframework.core.env.CommandLineArgs(java.lang.String[])",
+            "org.springframework.core.io.Resource.createRelative:org.springframework.core.io.Resource(java.lang.String)"
+          ]
+        }
+      },
+      "xml_parsing": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.util.xml.AbstractXMLStreamReader.getElementText:java.lang.String()",
+            "org.springframework.util.xml.DomUtils.getTextValue:java.lang.String(org.w3c.dom.Element)",
+            "org.springframework.util.xml.ListBasedXMLEventReader.getElementText:java.lang.String()",
+            "org.springframework.oxm.support.SaxResourceUtils.createInputSource:org.xml.sax.InputSource(org.springframework.core.io.Resource)",
+            "org.springframework.util.xml.AbstractStaxXMLReader.parse:void(org.xml.sax.InputSource)",
+            "org.springframework.util.xml.AbstractStaxXMLReader.parse:void(java.lang.String)",
+            "org.springframework.oxm.support.MarshallingSource$MarshallingXMLReader.parse:void(org.xml.sax.InputSource)",
+            "org.springframework.oxm.support.MarshallingSource$MarshallingXMLReader.parse:void(java.lang.String)",
+            "org.springframework.util.xml.DomUtils.createContentHandler:org.xml.sax.ContentHandler(org.w3c.dom.Node)",
+            "org.springframework.util.xml.StaxUtils.createStaxSource:javax.xml.transform.Source(javax.xml.stream.XMLStreamReader)",
+            "org.springframework.util.xml.StaxUtils.createStaxSource:javax.xml.transform.Source(javax.xml.stream.XMLEventReader)",
+            "org.springframework.http.converter.DefaultHttpMessageConverters$DefaultClientBuilder.withXmlConverter:org.springframework.http.converter.HttpMessageConverters$ClientBuilder(org.springframework.http.converter.HttpMessageConverter)",
+            "org.springframework.http.converter.DefaultHttpMessageConverters$DefaultServerBuilder.withXmlConverter:org.springframework.http.converter.HttpMessageConverters$ServerBuilder(org.springframework.http.converter.HttpMessageConverter)"
+          ]
+        }
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jdbc.datasource.init.ResourceDatabasePopulator.execute:void(javax.sql.DataSource)",
+            "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.io.File)",
+            "org.springframework.util.FileSystemUtils.deleteRecursively:boolean(java.nio.file.Path)",
+            "org.springframework.web.context.support.ServletContextResource.hashCode:int():int()",
+            "org.springframework.build.architecture.ArchitectureCheck.getResourcesDirectory:org.gradle.api.file.DirectoryProperty()",
+            "org.springframework.core.io.FileSystemResource.getInputStream:java.io.InputStream()",
+            "org.springframework.core.io.FileSystemResourceLoader$FileSystemContextResource.getPathWithinContext:java.lang.String()",
+            "org.springframework.core.io.PathResource.createRelative:org.springframework.core.io.Resource(java.lang.String)"
+          ]
+        }
+      },
+      "http_clients": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.service.invoker.HttpServiceMethod.invoke:java.lang.Object(java.lang.Object[])",
+            "org.springframework.web.client.RestOperations.put:void(java.lang.String,java.lang.Object,java.lang.Object[])",
+            "org.springframework.web.client.RestOperations.put:void(java.net.URI,java.lang.Object)",
+            "org.springframework.web.client.RestClient.put:org.springframework.web.client.RestClient$RequestBodyUriSpec()",
+            "org.springframework.web.client.RestClient$RequestHeadersSpec.exchange:java.lang.Object(org.springframework.web.client.RestClient$RequestHeadersSpec$ExchangeFunction)",
+            "org.springframework.web.client.RestTemplate.exchange:org.springframework.http.ResponseEntity(java.net.URI,org.springframework.http.HttpMethod,org.springframework.http.HttpEntity,java.lang.Class)",
+            "org.springframework.web.reactive.function.client.WebClient$RequestHeadersSpec.exchangeToMono:reactor.core.publisher.Mono(java.util.function.Function)",
+            "org.springframework.web.client.RestClient.builder:org.springframework.web.client.RestClient$Builder()",
+            "org.springframework.web.client.RestClient$Builder.build:org.springframework.web.client.RestClient()"
+          ]
+        }
+      },
+      "messaging": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.messaging.converter.ProtobufMessageConverter$ProtobufFormatSupport.merge:<unresolvedSignature>(5)",
+            "org.springframework.messaging.converter.ProtobufMessageConverter$ProtobufJavaUtilSupport.merge:<unresolvedSignature>(5)",
+            "org.springframework.jms.core.JmsClient$OperationSpec.send:void(org.springframework.messaging.Message)",
+            "org.springframework.jms.core.DefaultJmsClient$DefaultOperationSpec.sendAndReceive:java.util.Optional(org.springframework.messaging.Message)",
+            "org.springframework.docs.integration.jms.jmsreceivingasyncmessagelisteneradapter.DefaultResponsiveTextMessageDelegate.receive:java.lang.String(jakarta.jms.TextMessage)",
+            "org.springframework.docs.integration.jms.jmsreceivingasyncmessagelisteneradapter.DefaultTextMessageDelegate.receive:void(org.springframework.web.socket.TextMessage)",
+            "org.springframework.jms.core.JmsTemplate.receive:jakarta.jms.Message()",
+            "org.springframework.messaging.PollableChannel.receive:org.springframework.messaging.Message()",
+            "org.springframework.jms.core.JmsMessageOperations.convertAndSend:void(java.lang.String,java.lang.Object)",
+            "org.springframework.jms.core.JmsMessageOperations.convertAndSend:void(java.lang.String,java.lang.Object,java.util.Map)",
+            "org.springframework.jms.core.JmsMessageOperations.convertAndSend:void(java.lang.String,java.lang.Object,org.springframework.messaging.core.MessagePostProcessor)",
+            "org.springframework.jms.core.JmsMessageOperations.convertSendAndReceive:java.lang.Object(java.lang.String,java.lang.Object,java.lang.Class)",
+            "org.springframework.jms.core.JmsMessagingTemplate.convertAndSend:void(java.lang.Object,java.util.Map,org.springframework.messaging.core.MessagePostProcessor)",
+            "org.springframework.jms.core.JmsClient.create:org.springframework.jms.core.JmsClient(jakarta.jms.ConnectionFactory)",
+            "org.springframework.jms.core.MessageCreator.createMessage:jakarta.jms.Message(jakarta.jms.Session)",
+            "org.springframework.jms.core.JmsClient$OperationSpec.withDeliveryDelay:org.springframework.jms.core.JmsClient$OperationSpec(long)",
+            "org.springframework.jms.core.JmsClient$OperationSpec.withTimeToLive:org.springframework.jms.core.JmsClient$OperationSpec(long)",
+            "org.springframework.jms.core.JmsClient$OperationSpec.withPriority:org.springframework.jms.core.JmsClient$OperationSpec(int)",
+            "EnableJms",
+            "JmsListener",
+            "SendTo",
+            "SendToUser"
+          ]
+        }
+      },
+      "email": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.mail.MailSender.send:void(org.springframework.mail.SimpleMailMessage)",
+            "org.springframework.mail.javamail.JavaMailSender.send:void(jakarta.mail.internet.MimeMessage)"
+          ]
+        }
+      }
+    },
+    "routing": {
+      "handler_classes": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest:java.lang.Object(org.springframework.web.context.request.NativeWebRequest,org.springframework.web.method.support.ModelAndViewContainer,java.lang.Object[])",
+            "org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle:void(org.springframework.web.context.request.ServletWebRequest,org.springframework.web.method.support.ModelAndViewContainer,java.lang.Object[])",
+            "org.springframework.web.method.HandlerMethod.hashCode:int():int()",
+            "org.springframework.messaging.handler.HandlerMethod.hashCode:int():int()",
+            "org.springframework.web.servlet.handler.SimpleServletPostProcessor$DelegatingServletConfig.getServletContext:jakarta.servlet.ServletContext()",
+            "org.springframework.web.servlet.mvc.ServletWrappingController$DelegatingServletConfig.getServletContext:jakarta.servlet.ServletContext()",
+            "Controller",
+            "RestController",
+            "ControllerAdvice",
+            "RestControllerAdvice"
+          ]
+        }
+      },
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "GetMapping",
+            "PostMapping",
+            "PutMapping",
+            "DeleteMapping",
+            "PatchMapping",
+            "RequestMapping",
+            "MessageMapping"
+          ]
+        }
+      },
+      "parameters": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.method.annotation.HandlerMethodValidationException$Visitor.requestBody:void(org.springframework.web.bind.annotation.RequestBody,org.springframework.validation.method.ParameterErrors)",
+            "org.springframework.web.method.annotation.HandlerMethodValidationException$Visitor.requestParam:void(org.springframework.web.bind.annotation.RequestParam,org.springframework.validation.method.ParameterValidationResult)",
+            "org.springframework.web.method.annotation.HandlerMethodValidationException$Visitor.requestHeader:void(org.springframework.web.bind.annotation.RequestHeader,org.springframework.validation.method.ParameterValidationResult)",
+            "org.springframework.beans.factory.BeanCreationException.getResourceDescription:java.lang.String()",
+            "org.springframework.beans.factory.parsing.ImportDefinition.getImportedResource:java.lang.String()",
+            "org.springframework.web.util.UrlPathHelper.getLookupPathForRequest:java.lang.String(jakarta.servlet.http.HttpServletRequest)",
+            "org.springframework.web.util.UrlPathHelper.getRequestUri:java.lang.String(jakarta.servlet.http.HttpServletRequest)",
+            "org.springframework.util.RouteMatcher.parseRoute:org.springframework.util.RouteMatcher$Route(java.lang.String)",
+            "org.springframework.util.SimpleRouteMatcher.parseRoute:org.springframework.util.RouteMatcher$Route(java.lang.String)",
+            "PathVariable",
+            "RequestParam",
+            "RequestBody",
+            "RequestHeader",
+            "CookieValue",
+            "MatrixVariable"
+          ]
+        }
+      }
+    },
+    "communication": {
+      "http": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.http.RequestEntity.delete:org.springframework.http.RequestEntity$HeadersBuilder(java.net.URI)",
+            "org.springframework.mock.http.server.reactive.MockServerHttpRequest.delete:org.springframework.mock.http.server.reactive.MockServerHttpRequest$BaseBuilder(java.lang.String,java.lang.Object[])",
+            "org.springframework.http.HttpMethod.hashCode:int():int()",
+            "org.springframework.http.RequestEntity.hashCode:int():int()",
+            "org.springframework.web.client.RestClient$Builder.requestInterceptor:org.springframework.web.client.RestClient$Builder(org.springframework.http.client.ClientHttpRequestInterceptor)",
+            "org.springframework.web.client.RestTemplate.responseEntityExtractor:org.springframework.web.client.ResponseExtractor(java.lang.reflect.Type)",
+            "org.springframework.web.servlet.support.RequestContext.getContextUrl:java.lang.String(java.lang.String)",
+            "org.springframework.http.client.JdkClientHttpRequest$TimeoutHandler.wrapInputStream:java.io.InputStream(java.net.http.HttpResponse)",
+            "org.springframework.web.client.RestOperations.exchange:org.springframework.http.ResponseEntity(java.lang.String,org.springframework.http.HttpMethod,org.springframework.http.HttpEntity,java.lang.Class,java.lang.Object[])",
+            "org.springframework.web.client.RestTemplate.exchange:org.springframework.http.ResponseEntity(java.lang.String,org.springframework.http.HttpMethod,org.springframework.http.HttpEntity,java.lang.Class,java.util.Map)",
+            "org.springframework.web.reactive.function.client.ExchangeFunction.exchange:reactor.core.publisher.Mono(org.springframework.web.reactive.function.client.ClientRequest)",
+            "org.springframework.http.client.ClientHttpRequestFactory.createRequest:org.springframework.http.client.ClientHttpRequest(java.net.URI,org.springframework.http.HttpMethod)",
+            "org.springframework.http.client.SimpleClientHttpRequestFactory.createRequest:org.springframework.http.client.ClientHttpRequest(java.net.URI,org.springframework.http.HttpMethod)",
+            "org.springframework.http.client.ReactorClientHttpRequestFactory.createRequest:org.springframework.http.client.ClientHttpRequest(java.net.URI,org.springframework.http.HttpMethod)"
+          ]
+        }
+      },
+      "socket": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.socket.sockjs.transport.TransportType.sendsNoCacheInstruction:boolean():boolean()",
+            "org.springframework.web.socket.sockjs.transport.TransportType.sendsSessionCookie:boolean():boolean()",
+            "org.springframework.web.socket.sockjs.transport.session.AbstractSockJsSession.sendMessage:void(org.springframework.web.socket.WebSocketMessage)",
+            "org.springframework.web.socket.sockjs.transport.session.WebSocketServerSockJsSession.sendMessageInternal:void(java.lang.String)",
+            "org.springframework.web.socket.WebSocketSession.getTextMessageSizeLimit:int()",
+            "org.springframework.web.socket.sockjs.transport.handler.EventSourceTransportHandler.createSession:org.springframework.web.socket.sockjs.transport.session.StreamingSockJsSession(java.lang.String,org.springframework.web.socket.WebSocketHandler,java.util.Map)",
+            "org.springframework.web.socket.sockjs.transport.handler.WebSocketTransportHandler.createSession:org.springframework.web.socket.sockjs.transport.session.AbstractSockJsSession(java.lang.String,org.springframework.web.socket.WebSocketHandler,java.util.Map)"
+          ]
+        }
+      }
+    },
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.mock.web.MockHttpServletRequest.authenticate:boolean(jakarta.servlet.http.HttpServletResponse)",
+            "org.springframework.web.testfixture.servlet.MockHttpServletRequest.authenticate:boolean(jakarta.servlet.http.HttpServletResponse)"
+          ]
+        }
+      },
+      "cookie_security": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.servlet.support.RequestContext.getResponseEncodedHtmlEscape:java.lang.Boolean()"
+          ]
+        }
+      },
+      "output_encoding": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.util.UriUtils.encodeScheme:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeAuthority:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeUserInfo:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeHost:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodePort:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodePath:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodePathSegment:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeQuery:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeQueryParam:java.lang.String(java.lang.String,java.lang.String)",
+            "org.springframework.web.util.UriUtils.encodeFragment:java.lang.String(java.lang.String,java.lang.String)"
+          ]
+        }
+      },
+      "input_validation": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "Validated"
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "response_output": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.ui.ConcurrentModel.mergeAttributes:org.springframework.ui.ConcurrentModel(java.util.Map)",
+            "org.springframework.ui.Model.mergeAttributes:org.springframework.ui.Model(java.util.Map)",
+            "org.springframework.web.reactive.result.view.Fragment.mergeAttributes:void(org.springframework.ui.Model)",
+            "org.springframework.http.ResponseEntity.hashCode:int():int()",
+            "org.springframework.http.HttpEntity.hashCode:int():int()",
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.responseBodyResultHandler:org.springframework.web.reactive.result.method.annotation.ResponseBodyResultHandler",
+            "org.springframework.web.reactive.config.WebFluxConfigurationSupport.responseEntityResultHandler:org.springframework.web.reactive.result.method.annotation.ResponseEntityResultHandler",
+            "org.springframework.web.util.ContentCachingResponseWrapper.getContentInputStream:java.io.InputStream()",
+            "org.springframework.web.servlet.resource.EncodedResourceResolver$EncodedResource.getInputStream:java.io.InputStream()",
+            "org.springframework.web.servlet.resource.HttpResource.getResponseHeaders:org.springframework.http.HttpHeaders()",
+            "org.springframework.http.codec.json.Jackson2JsonEncoderBenchmark.encode:void(org.openjdk.jmh.infra.Blackhole,org.springframework.http.codec.json.Jackson2JsonEncoderBenchmark$EncodeData)",
+            "org.springframework.core.codec.AbstractSingleValueEncoder.encode:reactor.core.publisher.Flux(org.reactivestreams.Publisher,org.springframework.core.io.buffer.DataBufferFactory,org.springframework.core.ResolvableType,org.springframework.util.MimeType,java.util.Map)",
+            "org.springframework.web.reactive.function.server.ServerRequest.exchange:org.springframework.web.server.ServerWebExchange()",
+            "org.springframework.http.ResponseEntity.created:org.springframework.http.ResponseEntity$BodyBuilder(java.net.URI)",
+            "org.springframework.http.ResponseEntity$HeadersBuilder.build:org.springframework.http.ResponseEntity()",
+            "org.springframework.http.ResponseEntity$DefaultBuilder.build:org.springframework.http.ResponseEntity()",
+            "ResponseBody",
+            "ResponseStatus"
+          ]
+        }
+      },
+      "redirects": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.web.servlet.mvc.support.RedirectAttributes.mergeAttributes:org.springframework.web.servlet.mvc.support.RedirectAttributes(java.util.Map)",
+            "org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap.mergeAttributes:org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap(java.util.Map)"
+          ]
+        }
+      },
+      "headers": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.http.HttpHeaders.hashCode:int():int()",
+            "org.springframework.web.method.annotation.HandlerMethodValidationException$Visitor.requestHeader:void(org.springframework.web.bind.annotation.RequestHeader,org.springframework.validation.method.ParameterValidationResult)",
+            "org.springframework.web.multipart.MultipartHttpServletRequest.getRequestHeaders:org.springframework.http.HttpHeaders()",
+            "org.springframework.web.socket.sockjs.client.DefaultTransportRequest.getHttpRequestHeaders:org.springframework.http.HttpHeaders()",
+            "org.springframework.web.servlet.resource.EncodedResourceResolver$EncodedResource.getResponseHeaders:org.springframework.http.HttpHeaders()",
+            "org.springframework.http.HttpHeaders.put:java.util.List(java.lang.String,java.util.List)",
+            "org.springframework.http.HttpHeaders.putAll:void(org.springframework.http.HttpHeaders)",
+            "org.springframework.messaging.simp.SimpMessageHeaderAccessor.create:org.springframework.messaging.simp.SimpMessageHeaderAccessor()",
+            "org.springframework.http.ContentDisposition.builder:org.springframework.http.ContentDisposition$Builder(java.lang.String)",
+            "CrossOrigin"
+          ]
+        }
+      },
+      "cookies": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.http.HttpCookie.hashCode:int():int()",
+            "org.springframework.http.ResponseCookie.hashCode:int():int()",
+            "org.springframework.web.context.request.ServletRequestAttributes.getResponse:jakarta.servlet.http.HttpServletResponse()",
+            "org.springframework.mock.web.MockCookie.parse:org.springframework.mock.web.MockCookie(java.lang.String)",
+            "org.springframework.http.ResponseCookie$Parser.parse:java.util.List(java.lang.String)",
+            "org.springframework.http.ResponseCookie$ResponseCookieBuilder.build:org.springframework.http.ResponseCookie()"
+          ]
+        }
+      }
+    },
+    "logging": {
+      "operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.core.NestedExceptionUtils.buildMessage:java.lang.String(java.lang.String,java.lang.Throwable)"
+          ]
+        }
+      }
+    }
+  }
+}

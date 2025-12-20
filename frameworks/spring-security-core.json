@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-core",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "messages.properties",
+        "spring-security-core*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.authentication.AbstractUserDetailsReactiveAuthenticationManager.authenticate:reactor.core.publisher.Mono(org.springframework.security.core.Authentication)",
+              "description": "Authenticates user credentials using reactive paradigm with UserDetails"
+            },
+            {
+              "signature": "org.springframework.security.authentication.AnonymousAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates anonymous users in the system"
+            },
+            {
+              "signature": "org.springframework.security.authentication.AuthenticationManager.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Core authentication method to process authentication requests"
+            },
+            {
+              "signature": "org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated:org.springframework.security.authentication.UsernamePasswordAuthenticationToken(java.lang.Object,java.lang.Object,java.util.Collection)",
+              "description": "Creates an authenticated token with principal, credentials and authorities"
+            },
+            {
+              "signature": "org.springframework.security.core.context.SecurityContextHolder.getContext:org.springframework.security.core.context.SecurityContext()",
+              "description": "Retrieves the current SecurityContext containing authentication information"
+            },
+            {
+              "signature": "org.springframework.security.core.context.SecurityContext.getAuthentication:org.springframework.security.core.Authentication()",
+              "description": "Gets the current Authentication object from the SecurityContext"
+            },
+            {
+              "signature": "org.springframework.security.authentication.AuthenticationObservationContext.getAuthenticationRequest:org.springframework.security.core.Authentication()",
+              "description": "Retrieves the authentication request from the observation context"
+            },
+            {
+              "signature": "org.springframework.security.authentication.AuthenticationObservationContext.getAuthenticationResult:org.springframework.security.core.Authentication()",
+              "description": "Gets the authentication result from the observation context"
+            },
+            {
+              "signature": "org.springframework.security.core.context.SecurityContextImpl.getAuthentication:org.springframework.security.core.Authentication()",
+              "description": "Retrieves the Authentication object from SecurityContextImpl"
+            },
+            {
+              "signature": "org.springframework.security.core.context.SecurityContextHolder.createEmptyContext:org.springframework.security.core.context.SecurityContext()",
+              "description": "Creates a new empty SecurityContext for managing authentication state"
+            },
+            {
+              "signature": "org.springframework.security.core.context.SecurityContextHolderStrategy.createEmptyContext:org.springframework.security.core.context.SecurityContext()",
+              "description": "Strategy interface method for creating empty SecurityContext instances"
+            },
+            {
+              "signature": "org.springframework.security.authentication.UsernamePasswordAuthenticationToken$Builder.build:org.springframework.security.authentication.UsernamePasswordAuthenticationToken()",
+              "description": "Builds a UsernamePasswordAuthenticationToken for username/password authentication"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.authorization.AuthenticatedAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,java.lang.Object)",
+              "description": "Performs authorization check for authenticated users"
+            },
+            {
+              "signature": "org.springframework.security.authorization.AuthorityAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,java.lang.Object)",
+              "description": "Authorizes requests based on granted authorities"
+            },
+            {
+              "signature": "org.springframework.security.authorization.method.PreAuthorizeAuthorizationManager.authorize:org.springframework.security.authorization.AuthorizationResult(java.util.function.Supplier,org.aopalliance.intercept.MethodInvocation)",
+              "description": "Performs pre-method authorization checks using Spring Security expressions"
+            },
+            {
+              "signature": "org.springframework.security.authorization.AuthorizationManager.verify:void(java.util.function.Supplier,java.lang.Object)",
+              "description": "Verifies authorization for a given authentication and object"
+            },
+            {
+              "signature": "org.springframework.security.authorization.ReactiveAuthorizationManager.verify:reactor.core.publisher.Mono(reactor.core.publisher.Mono,java.lang.Object)",
+              "description": "Performs reactive authorization verification"
+            },
+            {
+              "signature": "org.springframework.security.authorization.method.AuthorizationManagerAfterMethodInterceptor.postAuthorize:org.springframework.security.authorization.method.AuthorizationManagerAfterMethodInterceptor()",
+              "description": "Creates post-authorization interceptor for method security"
+            },
+            {
+              "signature": "org.springframework.security.access.expression.SecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(org.springframework.security.core.Authentication,java.lang.Object)",
+              "description": "Creates context for evaluating security expressions during authorization"
+            },
+            {
+              "signature": "org.springframework.security.authorization.AllRequiredFactorsAuthorizationManager.builder:org.springframework.security.authorization.AllRequiredFactorsAuthorizationManager$Builder()",
+              "description": "Creates builder for configuring multi-factor authorization requirements"
+            }
+          ]
+        }
+      },
+      "crypto": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.saml2.core.Saml2X509Credential.encryption:org.springframework.security.saml2.core.Saml2X509Credential(java.security.cert.X509Certificate)",
+              "description": "Creates encryption credentials using X509 certificate"
+            },
+            {
+              "signature": "org.springframework.security.saml2.core.Saml2X509Credential.decryption:org.springframework.security.saml2.core.Saml2X509Credential(java.security.PrivateKey,java.security.cert.X509Certificate)",
+              "description": "Creates decryption credentials using private key and certificate"
+            },
+            {
+              "signature": "org.springframework.security.converter.RsaKeyConverters$X509PemDecoder.convert:java.security.interfaces.RSAPublicKey(java.util.List)",
+              "description": "Converts PEM-encoded X.509 certificates to RSA public keys"
+            },
+            {
+              "signature": "org.springframework.security.converter.RsaKeyConverters$X509CertificateDecoder.convert:java.security.interfaces.RSAPublicKey(java.util.List)",
+              "description": "Converts X.509 certificates to RSA public keys"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "expression": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.access.expression.ExpressionUtils.evaluateAsBoolean:boolean(org.springframework.expression.Expression,org.springframework.expression.EvaluationContext)",
+              "description": "Evaluates a security expression to a boolean result"
+            },
+            {
+              "signature": "org.springframework.security.access.expression.SecurityExpressionOperations.getAuthentication:org.springframework.security.core.Authentication()",
+              "description": "Gets authentication for security expression evaluation"
+            },
+            {
+              "signature": "org.springframework.security.access.expression.SecurityExpressionRoot.getAuthentication:org.springframework.security.core.Authentication()",
+              "description": "Retrieves authentication for security expression evaluation"
+            },
+            {
+              "signature": "org.springframework.security.access.expression.AbstractSecurityExpressionHandler.createEvaluationContext:org.springframework.expression.EvaluationContext(org.springframework.security.core.Authentication,java.lang.Object)",
+              "description": "Creates context for evaluating security expressions"
+            }
+          ]
+        }
+      },
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.core.parameters.AnnotationParameterNameDiscoverer$ParameterNameFactory.findParameterAnnotations:java.lang.annotation.Annotation[][](java.lang.reflect.AccessibleObject)",
+              "description": "Uses reflection to discover parameter annotations"
+            }
+          ]
+        }
+      }
+    },
+    "database": {
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.authorization.RequiredAuthoritiesRepository.findRequiredAuthorities:java.util.List(java.lang.String)",
+              "description": "Retrieves required authorities for a given username from repository"
+            },
+            {
+              "signature": "org.springframework.security.provisioning.JdbcUserDetailsManager.findAllGroups:java.util.List()",
+              "description": "Retrieves all security groups from database"
+            }
+          ]
+        }
+      },
+      "ldap_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.provisioning.JdbcUserDetailsManager.createUser:void(org.springframework.security.core.userdetails.UserDetails)",
+              "description": "Creates a new user in the JDBC-based user store"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.jackson.UserDeserializer.deserialize:org.springframework.security.core.userdetails.User(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+              "description": "Deserializes User objects from JSON"
+            },
+            {
+              "signature": "org.springframework.security.jackson.UsernamePasswordAuthenticationTokenDeserializer.deserialize:org.springframework.security.authentication.UsernamePasswordAuthenticationToken(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+              "description": "Deserializes UsernamePasswordAuthenticationToken objects from JSON"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

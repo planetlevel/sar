@@ -1,0 +1,127 @@
+{
+  "name": "Hibernate",
+  "languages": [
+    "shell",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/hibernate/hibernate-orm",
+    "branch": "main",
+    "commit": "44ee3089c13aeb8c0e850db7facb562410a57613",
+    "date": "2025-10-13"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "persistence.xml",
+        "hibernate-orm*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "hibernate-core"
+        },
+        {
+          "artifact": "hibernate-orm"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.hibernate"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.hibernate.boot.*",
+        "org.hibernate.query.*",
+        "org.hibernate.sql.*",
+        "org.hibernate.dialect.*",
+        "org.hibernate.type.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.hibernate"
+        ],
+        "depth_3": [
+          "org.hibernate.boot",
+          "org.hibernate.query",
+          "org.hibernate.dialect",
+          "org.hibernate.sql",
+          "org.hibernate.type",
+          "org.hibernate.engine",
+          "org.hibernate.envers",
+          "org.hibernate.metamodel",
+          "org.hibernate.community",
+          "org.hibernate.annotations",
+          "org.hibernate.tool",
+          "org.hibernate.internal",
+          "org.hibernate.event",
+          "org.hibernate.bytecode",
+          "org.hibernate.cache",
+          "org.hibernate.spatial",
+          "org.hibernate.resource",
+          "org.hibernate.processor",
+          "org.hibernate.loader",
+          "org.hibernate.persister"
+        ],
+        "depth_4": [
+          "org.hibernate.query.sqm",
+          "org.hibernate.boot.model",
+          "org.hibernate.type.descriptor",
+          "org.hibernate.boot.models",
+          "org.hibernate.dialect.function",
+          "org.hibernate.community.dialect",
+          "org.hibernate.sql.ast",
+          "org.hibernate.sql.results",
+          "org.hibernate.metamodel.mapping",
+          "org.hibernate.engine.jdbc",
+          "org.hibernate.boot.jaxb",
+          "org.hibernate.tool.schema",
+          "org.hibernate.envers.internal",
+          "org.hibernate.bytecode.enhance",
+          "org.hibernate.internal.util",
+          "org.hibernate.engine.spi",
+          "org.hibernate.dialect.type",
+          "org.hibernate.sql.exec",
+          "org.hibernate.event.spi",
+          "org.hibernate.loader.ast"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "jpa_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.persistence.EntityManager.persist:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.merge:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.remove:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.find:<unresolvedSignature>(2)",
+          "javax.persistence.EntityManager.createQuery:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.createQuery:<unresolvedSignature>(2)",
+          "javax.persistence.EntityManager.createNativeQuery:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.createNativeQuery:<unresolvedSignature>(2)",
+          "javax.persistence.EntityManager.createNamedQuery:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.createNamedQuery:<unresolvedSignature>(2)",
+          "javax.persistence.EntityManager.flush:<unresolvedSignature>(0)",
+          "javax.persistence.EntityManager.refresh:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.detach:<unresolvedSignature>(1)",
+          "javax.persistence.EntityManager.clear:<unresolvedSignature>(0)",
+          "javax.persistence.EntityManager.getReference:<unresolvedSignature>(2)"
+        ]
+      }
+    }
+  }
+}

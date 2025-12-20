@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Mulesoft",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.mule.extension.http.api.*",
+        "org.mule.runtime.http.api.domain.message.*",
+        "org.mule.runtime.http.api.domain.message.request.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValue(java.lang.String)",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValueIgnoreCase(java.lang.String)",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValues(java.lang.String)",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValuesIgnoreCase(java.lang.String)",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaders()",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderNames()",
+          "org.mule.runtime.http.api.domain.message.HttpMessage.getEntity()",
+          "org.mule.runtime.http.api.domain.message.request.HttpRequest.getPath()",
+          "org.mule.runtime.http.api.domain.message.request.HttpRequest.getUri()",
+          "org.mule.runtime.http.api.domain.message.request.HttpRequest.getQueryParams()",
+          "org.mule.extension.http.api.HttpAttributes.getHeaders()",
+          "org.mule.extension.http.api.BaseHttpRequestAttributes.getQueryParams()",
+          "org.mule.extension.http.api.BaseHttpRequestAttributes.getUriParams()",
+          "org.mule.extension.http.api.BaseHttpRequestAttributes.getRequestPath()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getRelativePath()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getRawRequestPath()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getMaskedRequestPath()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getRequestUri()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getRawRequestUri()",
+          "org.mule.extension.http.api.HttpRequestAttributes.getQueryString()"
+        ]
+      }
+    }
+  }
+}

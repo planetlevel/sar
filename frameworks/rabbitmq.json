@@ -1,0 +1,39 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Rabbitmq",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "com.rabbitmq.client.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "com.rabbitmq.client.Consumer.handleDelivery(java.lang.String,com.rabbitmq.client.Envelope,com.rabbitmq.client.AMQP$BasicProperties,byte[])"
+      }
+    }
+  }
+}

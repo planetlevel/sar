@@ -1,0 +1,51 @@
+# User directories
+workspace/
+reports/
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+*.cover
+.pytest_cache/
+
+# AWS login script
+login.sh
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CPG files (large binary files)
+*.bin
+
+# Temporary files
+*.tmp
+*.log
+

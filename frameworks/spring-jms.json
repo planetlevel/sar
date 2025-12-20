@@ -1,0 +1,138 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring JMS",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-jms*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.jms.support.*",
+        "org.springframework.jms.listener.*",
+        "org.springframework.jms.config.*",
+        "org.springframework.jms.connection.*",
+        "org.springframework.jms.core.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.jms"
+        ],
+        "depth_4": [
+          "org.springframework.jms.listener",
+          "org.springframework.jms.connection",
+          "org.springframework.jms.support",
+          "org.springframework.jms.config",
+          "org.springframework.jms.core",
+          "org.springframework.jms.annotation",
+          "org.springframework.jms.IllegalStateException",
+          "org.springframework.jms.InvalidClientIDException",
+          "org.springframework.jms.InvalidDestinationException",
+          "org.springframework.jms.InvalidSelectorException",
+          "org.springframework.jms.JmsException",
+          "org.springframework.jms.JmsSecurityException",
+          "org.springframework.jms.MessageEOFException",
+          "org.springframework.jms.MessageFormatException",
+          "org.springframework.jms.MessageNotReadableException",
+          "org.springframework.jms.MessageNotWriteableException",
+          "org.springframework.jms.ResourceAllocationException",
+          "org.springframework.jms.TransactionInProgressException",
+          "org.springframework.jms.TransactionRolledBackException",
+          "org.springframework.jms.UncategorizedJmsException"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "integration": {
+      "messaging": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jms.core.JmsOperations.send:void(org.springframework.jms.core.MessageCreator)",
+            "org.springframework.jms.core.JmsTemplate.send:void(java.lang.String,org.springframework.jms.core.MessageCreator)",
+            "org.springframework.jms.core.JmsMessagingTemplate.send:void(org.springframework.messaging.Message)",
+            "org.springframework.jms.core.JmsOperations.receive:jakarta.jms.Message()",
+            "org.springframework.jms.core.JmsTemplate.receive:jakarta.jms.Message(java.lang.String)",
+            "org.springframework.jms.core.JmsOperations.sendAndReceive:jakarta.jms.Message(org.springframework.jms.core.MessageCreator)",
+            "org.springframework.jms.core.MessageCreator.createMessage:jakarta.jms.Message(jakarta.jms.Session)",
+            "JmsListener",
+            "JmsListeners",
+            "EnableJms"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jms.connection.CachingConnectionFactory$CachedSessionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.jms.connection.SingleConnectionFactory$SharedConnectionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.jms.connection.TransactionAwareConnectionFactoryProxy$TransactionAwareConnectionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])"
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jms.core.JmsMessagingTemplate.receiveAndConvert:java.lang.Object(java.lang.Class)",
+            "org.springframework.jms.core.JmsOperations.receiveAndConvert:java.lang.Object()"
+          ]
+        }
+      }
+    },
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter.createTopicConnection:jakarta.jms.TopicConnection(java.lang.String,java.lang.String)",
+            "org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter.createContext:jakarta.jms.JMSContext(java.lang.String,java.lang.String)",
+            "org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter.createContext:jakarta.jms.JMSContext(java.lang.String,java.lang.String,int)"
+          ]
+        }
+      }
+    },
+    "logging": {
+      "operations": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            "org.springframework.jms.support.JmsUtils.buildExceptionMessage:java.lang.String(jakarta.jms.JMSException)"
+          ]
+        }
+      }
+    }
+  }
+}

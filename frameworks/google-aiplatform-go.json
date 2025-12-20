@@ -1,0 +1,29 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Google Cloud AI Platform Go",
+  "languages": [
+    "go"
+  ],
+  "detection": {
+    "dependencies": {
+      "go.mod": [
+        {
+          "pattern": "cloud.google.com/go/aiplatform",
+          "library": "Google Cloud AI Platform"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "PredictionClient.Predict",
+          "EndpointClient.Predict"
+        ]
+      }
+    }
+  }
+}

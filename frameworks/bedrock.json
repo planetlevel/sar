@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "AWS Bedrock",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "bedrock",
+          "library": "AWS Bedrock"
+        },
+        {
+          "artifact": "bedrockruntime",
+          "library": "AWS Bedrock Runtime"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "software.amazon.awssdk:bedrock",
+          "library": "AWS Bedrock"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient.invokeModel:software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse(software.amazon.awssdk.services.bedrockruntime.model.InvokeModelRequest)",
+          "software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient.invokeModelWithResponseStream:software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamResponse(software.amazon.awssdk.services.bedrockruntime.model.InvokeModelWithResponseStreamRequest)",
+          "software.amazon.awssdk.services.bedrock.BedrockClient.listFoundationModels:software.amazon.awssdk.services.bedrock.model.ListFoundationModelsResponse(software.amazon.awssdk.services.bedrock.model.ListFoundationModelsRequest)",
+          "software.amazon.awssdk.services.bedrock.BedrockClient.getFoundationModel:software.amazon.awssdk.services.bedrock.model.GetFoundationModelResponse(software.amazon.awssdk.services.bedrock.model.GetFoundationModelRequest)"
+        ]
+      }
+    }
+  }
+}

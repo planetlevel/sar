@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Vercel AI SDK",
+  "languages": [
+    "javascript",
+    "typescript"
+  ],
+  "detection": {
+    "dependencies": {
+      "package.json": [
+        {
+          "pattern": "\"ai\"",
+          "library": "Vercel AI SDK"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "generateText",
+          "streamText",
+          "generateObject",
+          "embed"
+        ]
+      }
+    }
+  }
+}

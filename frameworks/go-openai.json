@@ -1,0 +1,31 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "go-openai",
+  "languages": [
+    "go"
+  ],
+  "detection": {
+    "dependencies": {
+      "go.mod": [
+        {
+          "pattern": "github.com/sashabaranov/go-openai",
+          "library": "go-openai"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "Client.CreateChatCompletion",
+          "Client.CreateCompletion",
+          "Client.CreateEmbedding",
+          "Client.CreateImage"
+        ]
+      }
+    }
+  }
+}

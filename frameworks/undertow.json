@@ -1,0 +1,65 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Undertow",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "undertow-core",
+          "library": "Undertow"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "io.undertow",
+          "library": "Undertow"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "io.undertow.server.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "io.undertow.server.HttpServerExchange.getRequestCookies()",
+          "io.undertow.server.HttpServerExchange.getProtocol()",
+          "io.undertow.server.HttpServerExchange.getRequestMethod()",
+          "io.undertow.server.HttpServerExchange.getRequestScheme()",
+          "io.undertow.server.HttpServerExchange.getRequestCharset()",
+          "io.undertow.server.HttpServerExchange.getHostName()",
+          "io.undertow.server.HttpServerExchange.getHostAndPort()",
+          "io.undertow.server.HttpServerExchange.getRequestURI()",
+          "io.undertow.server.HttpServerExchange.getRequestURL()",
+          "io.undertow.server.HttpServerExchange.getQueryString()",
+          "io.undertow.server.HttpServerExchange.getQueryParameters()",
+          "io.undertow.server.HttpServerExchange.getPathParameters()"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jsf Adf",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "faces-config.xml"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "javax.faces",
+          "library": "JSF"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "javax.faces",
+          "library": "JSF"
+        }
+      ]
+    },
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "oracle.adfinternal.view.faces.webapp.rich.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "pattern": "oracle.adfinternal.view.faces.webapp.rich.ServletWindowManager._validatePageId(java.lang.String)"
+      }
+    }
+  }
+}

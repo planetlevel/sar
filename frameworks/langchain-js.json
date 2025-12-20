@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "LangChain.js",
+  "languages": [
+    "javascript",
+    "typescript"
+  ],
+  "detection": {
+    "dependencies": {
+      "package.json": [
+        {
+          "pattern": "\"langchain\"",
+          "library": "LangChain.js"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "ChatOpenAI.call",
+          "OpenAI.call",
+          "LLMChain.call",
+          "OpenAIEmbeddings.embedQuery",
+          "AgentExecutor.call"
+        ]
+      }
+    }
+  }
+}

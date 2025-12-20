@@ -1,0 +1,79 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jakarta Servlet",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "jakarta.servlet.*",
+        "jakarta.servlet.http.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "jakarta.servlet.http.HttpServletRequest.getPart(java.lang.String)",
+          "jakarta.servlet.http.HttpServletRequest.getParts()",
+          "jakarta.servlet.http.Part.getHeader(java.lang.String)",
+          "jakarta.servlet.http.Part.getHeaderNames()",
+          "jakarta.servlet.http.Part.getHeaders(java.lang.String)",
+          "jakarta.servlet.http.Part.getInputStream()",
+          "jakarta.servlet.http.Part.getName()",
+          "jakarta.servlet.http.Part.getContentType()",
+          "jakarta.servlet.http.HttpServletRequest.getCookies()",
+          "jakarta.servlet.http.HttpServletRequest.getQueryString()",
+          "jakarta.servlet.http.HttpServletRequest.getRequestedSessionId()",
+          "jakarta.servlet.ServletRequest.getParameter(java.lang.String)",
+          "jakarta.servlet.ServletRequest.getParameterNames()",
+          "jakarta.servlet.ServletRequest.getParameterValues(java.lang.String)",
+          "jakarta.servlet.ServletRequest.getParameterMap()",
+          "jakarta.servlet.http.HttpServletRequest.getHeader(java.lang.String)",
+          "jakarta.servlet.http.HttpServletRequest.getHeaderNames()",
+          "jakarta.servlet.http.HttpServletRequest.getHeaders(java.lang.String)",
+          "jakarta.servlet.http.HttpServletRequest.getRequestURI()",
+          "jakarta.servlet.http.HttpServletRequest.getRequestURL()",
+          "jakarta.servlet.http.HttpServletRequest.getPathInfo()",
+          "jakarta.servlet.http.HttpServletResponse.getWriter()",
+          "jakarta.servlet.http.HttpServletResponse.getOutputStream()",
+          "jakarta.servlet.http.HttpServletRequest.getContentType()",
+          "jakarta.servlet.ServletRequest.getInputStream()",
+          "jakarta.servlet.ServletRequest.getReader()"
+        ]
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "jakarta.servlet.http.HttpServletResponse.encodeUrl(java.lang.String)",
+          "jakarta.servlet.http.HttpServletResponse.encodeURL(java.lang.String)",
+          "jakarta.servlet.http.HttpServletResponse.encodeRedirectUrl(java.lang.String)",
+          "jakarta.servlet.http.HttpServletResponse.encodeRedirectURL(java.lang.String)"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring JDBC",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "sql-error-codes.xml",
+        "spring-jdbc*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.jdbc.core.*",
+        "org.springframework.jdbc.support.*",
+        "org.springframework.jdbc.datasource.*",
+        "org.springframework.jdbc.object.*",
+        "org.springframework.jdbc.config.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.jdbc"
+        ],
+        "depth_4": [
+          "org.springframework.jdbc.core",
+          "org.springframework.jdbc.support",
+          "org.springframework.jdbc.datasource",
+          "org.springframework.jdbc.object",
+          "org.springframework.jdbc.config",
+          "org.springframework.jdbc.BadSqlGrammarException",
+          "org.springframework.jdbc.CannotGetJdbcConnectionException",
+          "org.springframework.jdbc.IncorrectResultSetColumnCountException",
+          "org.springframework.jdbc.InvalidResultSetAccessException",
+          "org.springframework.jdbc.JdbcUpdateAffectedIncorrectNumberOfRowsException",
+          "org.springframework.jdbc.LobRetrievalFailureException",
+          "org.springframework.jdbc.SQLWarningException",
+          "org.springframework.jdbc.UncategorizedSQLException"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "sql_queries": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.execute:void(java.lang.String)",
+              "description": "Executes a SQL statement directly"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.query:java.lang.Object(java.lang.String,org.springframework.jdbc.core.ResultSetExtractor)",
+              "description": "Executes a SQL query and extracts results using a ResultSetExtractor"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.queryForObject:java.lang.Object(java.lang.String,org.springframework.jdbc.core.RowMapper)",
+              "description": "Executes a SQL query and maps a single result row to an object"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.queryForMap:java.util.Map(java.lang.String)",
+              "description": "Executes a SQL query and returns a single row as a Map"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.queryForList:java.util.List(java.lang.String)",
+              "description": "Executes a SQL query and returns multiple rows as a List"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.simple.SimpleJdbcCall.execute:java.util.Map(java.lang.Object[])",
+              "description": "Executes a stored procedure with array parameters"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.simple.SimpleJdbcCall.executeFunction:java.lang.Object(java.lang.Class,java.lang.Object[])",
+              "description": "Executes a database function and returns result of specified type"
+            },
+            {
+              "signature": "org.springframework.jdbc.object.StoredProcedure.execute:java.util.Map(java.lang.Object[])",
+              "description": "Executes a stored procedure with array parameters"
+            },
+            {
+              "signature": "org.springframework.jdbc.object.SqlFunction.run:int(java.lang.Object[])",
+              "description": "Executes a SQL function that returns an integer"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations.queryForRowSet:org.springframework.jdbc.support.rowset.SqlRowSet(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource)",
+              "description": "Executes SQL query and returns results as a SqlRowSet using named parameters"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.query:java.lang.Object(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource,org.springframework.jdbc.core.ResultSetExtractor)",
+              "description": "Executes SQL query with named parameters and extracts results using ResultSetExtractor"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcOperations.update:int(java.lang.String)",
+              "description": "Executes SQL UPDATE, INSERT, or DELETE statement and returns affected row count"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.queryForObject:java.lang.Object(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource,org.springframework.jdbc.core.RowMapper)",
+              "description": "Executes SQL query and maps single result row to object using RowMapper"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.queryForList:java.util.List(java.lang.String,org.springframework.jdbc.core.namedparam.SqlParameterSource)",
+              "description": "Executes SQL query and returns results as a List of Maps"
+            },
+            {
+              "signature": "org.springframework.jdbc.object.SqlQuery.findObject:java.lang.Object(java.lang.Object[],java.util.Map)",
+              "description": "Executes SQL query and returns single result object with parameters and context"
+            },
+            {
+              "signature": "org.springframework.jdbc.object.SqlUpdate.update:int(java.lang.Object[])",
+              "description": "Executes parameterized SQL UPDATE statement and returns affected row count"
+            }
+          ]
+        }
+      },
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.jdbc.core.simple.SimpleJdbcInsert.execute:int(java.util.Map)",
+              "description": "Executes an insert operation using a repository-style pattern"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.simple.SimpleJdbcInsert.executeAndReturnKey:java.lang.Number(java.util.Map)",
+              "description": "Executes an insert operation and returns generated key"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.simple.SimpleJdbcInsert.executeBatch:int[](java.util.Map[])",
+              "description": "Executes batch insert operations in repository pattern style"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.JdbcTemplate.update:int(java.lang.String)",
+              "description": "Repository-pattern method for executing database updates"
+            },
+            {
+              "signature": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.queryForObject:java.lang.Object(java.lang.String,java.util.Map,org.springframework.jdbc.core.RowMapper)",
+              "description": "Repository-pattern method for querying single objects"
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "reflection": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.jdbc.core.JdbcTemplate$CloseSuppressingInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Uses reflection to invoke methods while suppressing connection close operations"
+            },
+            {
+              "signature": "org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy$LazyConnectionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Uses reflection to lazily initialize database connections"
+            },
+            {
+              "signature": "org.springframework.jdbc.datasource.SingleConnectionDataSource$CloseSuppressingInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Uses reflection to handle method invocations on a single connection"
+            },
+            {
+              "signature": "org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy$TransactionAwareInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+              "description": "Uses reflection to make database operations transaction-aware"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.jdbc.support.lob.AbstractLobHandler.getBlobAsBytes:byte[](java.sql.ResultSet,java.lang.String)",
+              "description": "Deserializes BLOB data to byte array from result set"
+            },
+            {
+              "signature": "org.springframework.jdbc.support.lob.DefaultLobHandler.getBlobAsBytes:byte[](java.sql.ResultSet,int)",
+              "description": "Deserializes BLOB data to byte array using column index"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

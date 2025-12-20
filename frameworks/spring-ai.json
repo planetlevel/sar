@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring AI",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "spring",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-ai-core",
+          "library": "Spring AI"
+        },
+        {
+          "artifact": "spring-ai-openai",
+          "library": "Spring AI OpenAI"
+        },
+        {
+          "artifact": "spring-ai-azure-openai",
+          "library": "Spring AI Azure OpenAI"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.springframework.ai",
+          "library": "Spring AI"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.springframework.ai.chat.ChatClient.call:java.lang.String(java.lang.String)",
+          "org.springframework.ai.chat.ChatClient.call:org.springframework.ai.chat.ChatResponse(org.springframework.ai.chat.Prompt)",
+          "org.springframework.ai.chat.ChatClient.stream:reactor.core.publisher.Flux(org.springframework.ai.chat.Prompt)",
+          "org.springframework.ai.chat.StreamingChatClient.stream:reactor.core.publisher.Flux(org.springframework.ai.chat.Prompt)",
+          "org.springframework.ai.embedding.EmbeddingClient.embed:java.util.List(java.lang.String)",
+          "org.springframework.ai.embedding.EmbeddingClient.embed:org.springframework.ai.embedding.EmbeddingResponse(org.springframework.ai.embedding.EmbeddingRequest)",
+          "org.springframework.ai.image.ImageClient.call:org.springframework.ai.image.ImageResponse(org.springframework.ai.image.ImagePrompt)",
+          "org.springframework.ai.openai.OpenAiChatClient.call:org.springframework.ai.chat.ChatResponse(org.springframework.ai.chat.Prompt)"
+        ]
+      }
+    }
+  }
+}

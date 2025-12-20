@@ -1,0 +1,37 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Hugging Face Transformers",
+  "languages": [
+    "python"
+  ],
+  "extends": "python",
+  "detection": {
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "pattern": "transformers",
+          "library": "Hugging Face Transformers"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "pattern": "transformers",
+          "library": "Hugging Face Transformers"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "transformers.py:<module>.pipeline",
+          "transformers.py:<module>.AutoModel.__init__.<returnValue>.generate",
+          "transformers.py:<module>.PreTrainedTokenizer.__init__.<returnValue>.encode"
+        ]
+      }
+    }
+  }
+}

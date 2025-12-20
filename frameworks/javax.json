@@ -1,0 +1,95 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Javax",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "jakarta.ws.rs.core.*",
+        "javax.jms.*",
+        "javax.ws.rs.core.*"
+      ]
+    },
+    "annotations": {
+      "type": "joern",
+      "search_type": "annotation_name",
+      "patterns": [
+        "javax.ws.rs.QueryParam",
+        "javax.ws.rs.CookieParam",
+        "javax.ws.rs.FormParam",
+        "javax.ws.rs.PathParam"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.jms.MessageConsumer.receive()",
+          "javax.jms.MessageConsumer.receive(long)",
+          "javax.jms.MessageConsumer.receiveNoWait()",
+          "javax.jms.MessageListener.onMessage(javax.jms.Message)",
+          "javax.jms.JMSConsumer.receive()",
+          "javax.jms.JMSConsumer.receive(long)",
+          "javax.jms.JMSConsumer.receiveNoWait()",
+          "javax.jms.JMSConsumer.receiveBody(java.lang.Class)",
+          "javax.jms.JMSConsumer.receiveBody(java.lang.Class,long)",
+          "javax.jms.JMSConsumer.receiveBodyNoWait(java.lang.Class)",
+          "javax.ws.rs.core.PathSegment.getMatrixParameters()",
+          "javax.ws.rs.core.UriInfo.getPathParameters(boolean)",
+          "javax.ws.rs.core.UriInfo.getQueryParameters(boolean)",
+          "javax.ws.rs.core.HttpHeaders.getRequestHeader(java.lang.String)",
+          "javax.ws.rs.core.HttpHeaders.getRequestHeaders()",
+          "javax.ws.rs.core.HttpHeaders.getHeaderString(java.lang.String)",
+          "javax.ws.rs.core.HttpHeaders.getCookies()",
+          "jakarta.ws.rs.core.PathSegment.getMatrixParameters()",
+          "jakarta.ws.rs.core.UriInfo.getPathParameters(boolean)",
+          "jakarta.ws.rs.core.UriInfo.getQueryParameters(boolean)",
+          "jakarta.ws.rs.core.HttpHeaders.getRequestHeader(java.lang.String)",
+          "jakarta.ws.rs.core.HttpHeaders.getRequestHeaders()",
+          "jakarta.ws.rs.core.HttpHeaders.getHeaderString(java.lang.String)",
+          "jakarta.ws.rs.core.HttpHeaders.getCookies()"
+        ]
+      }
+    },
+    "routing": {
+      "route_definitions": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name_regex",
+          "pattern": ".*Mapping"
+        }
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "javax.ws.rs.core.Cookie.getValue()",
+          "javax.ws.rs.core.Cookie.getName()"
+        ]
+      }
+    }
+  }
+}

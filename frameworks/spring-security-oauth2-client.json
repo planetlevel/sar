@@ -1,0 +1,257 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-oauth2-client",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "spring-security-oauth2-client*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates OAuth2 authorization code grant flow credentials"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates OAuth2 login credentials"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+              "description": "Authenticates OpenID Connect authorization code credentials"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthenticationToken$Builder.build:org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken():org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken()",
+              "description": "Builds an OAuth2 authentication token representing an authenticated user"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken$Builder.build:org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken():org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken()",
+              "description": "Builds an OIDC logout token for terminating authentication sessions"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizationContext.withClientRegistration:org.springframework.security.oauth2.client.OAuth2AuthorizationContext$Builder(org.springframework.security.oauth2.client.registration.ClientRegistration):org.springframework.security.oauth2.client.OAuth2AuthorizationContext$Builder(org.springframework.security.oauth2.client.registration.ClientRegistration)",
+              "description": "Creates authorization context builder with OAuth2 client registration details"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizationContext.withAuthorizedClient:org.springframework.security.oauth2.client.OAuth2AuthorizationContext$Builder(org.springframework.security.oauth2.client.OAuth2AuthorizedClient):org.springframework.security.oauth2.client.OAuth2AuthorizationContext$Builder(org.springframework.security.oauth2.client.OAuth2AuthorizedClient)",
+              "description": "Creates authorization context builder with authorized OAuth2 client details"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizeRequest.withClientRegistrationId:org.springframework.security.oauth2.client.OAuth2AuthorizeRequest$Builder(java.lang.String):org.springframework.security.oauth2.client.OAuth2AuthorizeRequest$Builder(java.lang.String)",
+              "description": "Creates OAuth2 authorization request builder with client registration ID"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizeRequest.withAuthorizedClient:org.springframework.security.oauth2.client.OAuth2AuthorizeRequest$Builder(org.springframework.security.oauth2.client.OAuth2AuthorizedClient):org.springframework.security.oauth2.client.OAuth2AuthorizeRequest$Builder(org.springframework.security.oauth2.client.OAuth2AuthorizedClient)",
+              "description": "Creates OAuth2 authorization request builder with authorized client"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken.withTokenValue:org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken$Builder(java.lang.String):org.springframework.security.oauth2.client.oidc.authentication.logout.OidcLogoutToken$Builder(java.lang.String)",
+              "description": "Creates OIDC logout token builder with token value"
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager.authorize:org.springframework.security.oauth2.client.OAuth2AuthorizedClient(org.springframework.security.oauth2.client.OAuth2AuthorizeRequest)",
+              "description": "Authorizes OAuth2 client requests"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider.authorize:org.springframework.security.oauth2.client.OAuth2AuthorizedClient(org.springframework.security.oauth2.client.OAuth2AuthorizationContext)",
+              "description": "Provides authorization for OAuth2 clients"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration$Builder.build:org.springframework.security.oauth2.client.registration.ClientRegistration():org.springframework.security.oauth2.client.registration.ClientRegistration()",
+              "description": "Builds OAuth2 client registration with authorization configuration"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings.builder:org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings$Builder():org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings$Builder()",
+              "description": "Creates builder for OAuth2 client security settings"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings$Builder.build:org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings():org.springframework.security.oauth2.client.registration.ClientRegistration$ClientSettings()",
+              "description": "Builds OAuth2 client security settings configuration"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration.withRegistrationId:org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(java.lang.String):org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(java.lang.String)",
+              "description": "Creates OAuth2 client registration builder with registration ID"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration.withClientRegistration:org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(org.springframework.security.oauth2.client.registration.ClientRegistration):org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(org.springframework.security.oauth2.client.registration.ClientRegistration)",
+              "description": "Creates OAuth2 client registration builder from existing registration"
+            }
+          ]
+        }
+      },
+      "cookie_security": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.web.AuthorizationRequestRepository.saveAuthorizationRequest:void(org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest,jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+              "description": "Securely saves OAuth2 authorization request in HTTP session"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository.saveAuthorizationRequest:void(org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest,jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+              "description": "Securely stores OAuth2 authorization request in HTTP session"
+            }
+          ]
+        }
+      },
+      "session_management": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.oidc.session.OidcSessionInformation.withSessionId:org.springframework.security.oauth2.client.oidc.session.OidcSessionInformation(java.lang.String):org.springframework.security.oauth2.client.oidc.session.OidcSessionInformation(java.lang.String)",
+              "description": "Creates OIDC session information with specified session ID"
+            }
+          ]
+        }
+      },
+      "crypto": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers.withPkce:java.util.function.Consumer():java.util.function.Consumer()",
+              "description": "Adds PKCE (Proof Key for Code Exchange) cryptographic protection to OAuth2 authorization requests"
+            }
+          ]
+        }
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.jackson.ClientRegistrationDeserializer.deserialize:org.springframework.security.oauth2.client.registration.ClientRegistration(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+              "description": "Deserializes OAuth2 client registration data from JSON"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.jackson.OAuth2AuthorizationRequestDeserializer.deserialize:org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+              "description": "Deserializes OAuth2 authorization request data from JSON"
+            }
+          ]
+        }
+      }
+    },
+    "database": {
+      "repository_pattern": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistrationRepository.findByRegistrationId:org.springframework.security.oauth2.client.registration.ClientRegistration(java.lang.String)",
+              "description": "Retrieves OAuth2 client registration by ID from repository"
+            },
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository.findByRegistrationId:org.springframework.security.oauth2.client.registration.ClientRegistration(java.lang.String)",
+              "description": "Retrieves OAuth2 client registration from in-memory repository"
+            }
+          ]
+        }
+      }
+    },
+    "routing": {
+      "parameters": {
+        "annotations": {
+          "type": "joern",
+          "search_type": "annotation_name",
+          "patterns": [
+            {
+              "signature": "org.springframework.security.oauth2.client.registration.ClientRegistration$Builder.redirectUri:org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(java.lang.String):org.springframework.security.oauth2.client.registration.ClientRegistration$Builder(java.lang.String)",
+              "description": "Sets OAuth2 client redirect URI for handling authorization responses"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

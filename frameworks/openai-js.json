@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "OpenAI Node.js SDK",
+  "languages": [
+    "javascript",
+    "typescript"
+  ],
+  "detection": {
+    "dependencies": {
+      "package.json": [
+        {
+          "pattern": "\"openai\"",
+          "library": "OpenAI Node.js SDK"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "OpenAI.chat.completions.create",
+          "OpenAI.completions.create",
+          "OpenAI.embeddings.create",
+          "OpenAI.images.generate"
+        ]
+      }
+    }
+  }
+}

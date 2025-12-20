@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Freemarker",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "freemarker.template.utility.*",
+        "freemarker.template.utility.StringUtil.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "class_name_regex",
+        "pattern": ".*Repository.*|.*DAO.*"
+      },
+      "operation_methods": {
+        "type": "joern",
+        "search_type": "method_name_regex",
+        "pattern": "save|persist|find.*|delete.*"
+      }
+    },
+    "security": {
+      "sanitization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "freemarker.template.utility.StringUtil.URLEnc(java.lang.String,java.lang.String)",
+          "freemarker.template.utility.StringUtil.URLEnc(java.lang.String,java.lang.String,boolean)",
+          "freemarker.template.utility.StringUtil.FTLStringLiteralEnc(java.lang.String,char,boolean)",
+          "freemarker.template.utility.StringUtil.XMLOrHTMLEnc(java.lang.String,boolean,boolean,char[])",
+          "freemarker.template.utility.StringUtil.XMLOrXHTMLEnc(java.lang.String,java.lang.String)",
+          "freemarker.template.utility.StringUtil.XMLEncNA(java.lang.String)",
+          "freemarker.template.utility.StringUtil.XMLEncNQG(java.lang.String)",
+          "freemarker.template.utility.StringUtil.XMLEncQAttr(java.lang.String)",
+          "freemarker.template.utility.StringUtil.javaScriptStringEnc(java.lang.String)",
+          "freemarker.template.utility.StringUtil.jQuoteNoXSS(java.lang.String)",
+          "freemarker.template.utility.StringUtil.jsStringEnc(java.lang.String)"
+        ]
+      }
+    }
+  }
+}

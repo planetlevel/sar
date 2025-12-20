@@ -1,0 +1,64 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Apache HttpClient",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "httpclient",
+          "library": "Apache HttpClient"
+        },
+        {
+          "artifact": "httpcore",
+          "library": "Apache HttpCore"
+        },
+        {
+          "artifact": "httpasyncclient",
+          "library": "Apache HttpAsyncClient"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "data_flow": {
+      "input_sources": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.apache.http.HttpResponse.getEntity:org.apache.http.HttpEntity()",
+          "org.apache.http.HttpEntity.getContent:java.io.InputStream()",
+          "org.apache.http.util.EntityUtils.toString:java.lang.String(org.apache.http.HttpEntity)",
+          "org.apache.http.util.EntityUtils.toString:java.lang.String(org.apache.http.HttpEntity,java.lang.String)",
+          "org.apache.http.util.EntityUtils.toByteArray:byte[](org.apache.http.HttpEntity)"
+        ]
+      }
+    },
+    "communication": {
+      "apache_http": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          "org.apache.http.client.HttpClient.execute:org.apache.http.HttpResponse(org.apache.http.client.methods.HttpUriRequest)",
+          "org.apache.http.client.HttpClient.execute:org.apache.http.HttpResponse(org.apache.http.HttpHost,org.apache.http.HttpRequest)",
+          "org.apache.http.client.HttpClient.execute:org.apache.http.HttpResponse(org.apache.http.client.methods.HttpUriRequest,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.client.HttpClient.execute:org.apache.http.HttpResponse(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.impl.client.CloseableHttpClient.execute:org.apache.http.client.methods.CloseableHttpResponse(org.apache.http.client.methods.HttpUriRequest)",
+          "org.apache.http.impl.client.CloseableHttpClient.execute:org.apache.http.client.methods.CloseableHttpResponse(org.apache.http.client.methods.HttpUriRequest,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.impl.client.CloseableHttpClient.execute:org.apache.http.client.methods.CloseableHttpResponse(org.apache.http.HttpHost,org.apache.http.HttpRequest)",
+          "org.apache.http.impl.client.CloseableHttpClient.execute:org.apache.http.client.methods.CloseableHttpResponse(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.client.HttpClient.execute:java.lang.Object(org.apache.http.client.methods.HttpUriRequest,org.apache.http.client.ResponseHandler)",
+          "org.apache.http.client.HttpClient.execute:java.lang.Object(org.apache.http.client.methods.HttpUriRequest,org.apache.http.client.ResponseHandler,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.client.HttpClient.execute:java.lang.Object(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.client.ResponseHandler)",
+          "org.apache.http.client.HttpClient.execute:java.lang.Object(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.client.ResponseHandler,org.apache.http.protocol.HttpContext)",
+          "org.apache.http.nio.client.HttpAsyncClient.execute:java.util.concurrent.Future(org.apache.http.nio.protocol.HttpAsyncRequestProducer,org.apache.http.nio.protocol.HttpAsyncResponseConsumer,org.apache.http.concurrent.FutureCallback)",
+          "org.apache.http.nio.client.HttpAsyncClient.execute:java.util.concurrent.Future(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.concurrent.FutureCallback)",
+          "org.apache.http.nio.client.HttpAsyncClient.execute:java.util.concurrent.Future(org.apache.http.client.methods.HttpUriRequest,org.apache.http.concurrent.FutureCallback)"
+        ]
+      }
+    }
+  }
+}
