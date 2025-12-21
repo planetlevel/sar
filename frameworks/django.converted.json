@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Django",
+  "languages": [
+    "python"
+  ],
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "manage.py",
+        "settings.py"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {}
+  }
+}

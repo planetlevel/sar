@@ -1,6 +1,6 @@
 {
   "$schema": "../schema/framework-schema.json",
-  "name": "spring-security-kerberos-client",
+  "name": "spring-security-aspects",
   "languages": [
     "java"
   ],
@@ -14,7 +14,7 @@
     "files": {
       "type": "filename",
       "patterns": [
-        "spring-security-kerberos-client*.jar"
+        "spring-security-aspects*.jar"
       ]
     },
     "dependencies": {},
@@ -76,36 +76,5 @@
       }
     }
   },
-  "architecture": {
-    "execution": {
-      "native": [
-        {
-          "target": "joern",
-          "search_type": "annotation_name",
-          "pattern": "org.springframework.security.kerberos.client.KerberosRestTemplate.doExecute.PrivilegedAction$0.run:java.lang.Object():java.lang.Object()",
-          "description": "Executes a privileged Kerberos action within a security context for REST operations"
-        }
-      ]
-    },
-    "defense": {
-      "authentication": [
-        {
-          "target": "joern",
-          "search_type": "annotation_name",
-          "pattern": "org.springframework.security.kerberos.client.ldap.KerberosLdapContextSource.getDirContextInstance.PrivilegedAction$0.run:javax.naming.directory.DirContext():javax.naming.directory.DirContext()",
-          "description": "Executes privileged Kerberos authentication action to establish LDAP connection"
-        }
-      ]
-    },
-    "database": {
-      "ldap_queries": [
-        {
-          "target": "joern",
-          "search_type": "annotation_name",
-          "pattern": "org.springframework.security.kerberos.client.ldap.KerberosLdapContextSource.getDirContextInstance.PrivilegedAction$0.run:javax.naming.directory.DirContext():javax.naming.directory.DirContext()",
-          "description": "Obtains an LDAP directory context instance using Kerberos authentication"
-        }
-      ]
-    }
-  }
+  "architecture": {}
 }
