@@ -1510,69 +1510,92 @@ Now extract roles from the expression above:"""
     # REPORT BUILDING
     # ========================================================================
 
-    def build_defense_usage_matrix(self, all_mechanisms: List[Dict],
+    def build_defense_usage_matrix(self,
+                                   exposures: List[Dict],
+                                   all_mechanisms: List[Dict],
                                    defense_type: str = 'authorization') -> Dict:
         """
-        Build matrix: exposures × defenses (roles)
+        Build matrix: exposures (rows) × defense options (columns)
 
-        Shows which exposures (places needing protection) have which defenses (roles).
+        For authorization: rows = endpoints/routes, columns = roles
+        Example: 17 endpoints × 2 roles (USER, ADMIN)
 
         Args:
+            exposures: List of exposure dicts with 'method', 'route', 'httpMethod'
             all_mechanisms: List of discovered defense mechanisms
             defense_type: Type of defense being analyzed (for labeling)
 
         Returns:
             {
-                'mappings': [
-                    {'exposure': 'GET /users/{id}', 'roles': ['ADMIN', 'USER']},
-                    {'exposure': 'DELETE /users/{id}', 'roles': ['ADMIN']},
-                    {'exposure': 'POST /users', 'roles': []},  # UNPROTECTED
+                'rows': ['GET /api/owners/{id}', 'POST /api/owners', ...],  # Exposure identifiers
+                'columns': ['USER', 'ADMIN'],  # Defense options (roles)
+                'matrix': [
+                    [True, False],   # GET /api/owners/{id}: protected by USER only
+                    [True, True],    # POST /api/owners: protected by USER and ADMIN
+                    [False, False],  # DELETE /api/owners/{id}: UNPROTECTED
                 ],
-                'protected_count': int,
-                'unprotected_count': int,
-                'coverage_percentage': float
+                'row_protected': [True, True, False],  # Which rows have any protection
             }
         """
-        # Discover all exposures (places that need protection)
-        exposures = self._discover_exposures()
+        # Extract all unique roles (defense options) from mechanisms
+        all_roles = set()
+        for mechanism in all_mechanisms:
+            for behavior in mechanism.get('behaviors', []):
+                all_roles.update(behavior.get('roles', []))
 
-        mappings = []
-        protected_count = 0
-        unprotected_count = 0
+        columns = sorted(list(all_roles))  # Defense options (roles)
 
-        # For each exposure, find which roles (if any) protect it
-        for exposure in exposures:
-            # Find defense behaviors for this exposure
-            defense_info = self.find_location_authorization(exposure, all_mechanisms)
+        # Build row identifiers from exposures
+        rows = []
+        for exp in exposures:
+            # Format: "GET /api/owners/{id}" or "GET OwnerController.getOwner"
+            http_method = exp.get('httpMethod', 'UNKNOWN')
+            route = exp.get('route', '')
 
-            if defense_info['status'] == 'protected':
-                # Extract roles from all protecting behaviors
-                roles = set()
-                for behavior_info in defense_info['behaviors']:
-                    mech_idx = behavior_info['mechanism_index']
-                    behavior_idx = behavior_info['behavior_index']
-                    behavior = all_mechanisms[mech_idx]['behaviors'][behavior_idx]
-                    roles.update(behavior.get('roles', []))
+            # If no route, use simplified method name
+            if not route:
+                method_full = exp.get('method', 'unknown')
+                # Extract class.method from full signature
+                # e.g., "org.example.Owner.Controller.getOwner:String(int)" -> "OwnerController.getOwner"
+                if ':' in method_full:
+                    method_full = method_full.split(':')[0]
+                if '.' in method_full:
+                    parts = method_full.split('.')
+                    # Get last 2 parts (ClassName.methodName)
+                    route = '.'.join(parts[-2:]) if len(parts) >= 2 else parts[-1]
+                else:
+                    route = method_full
 
-                mappings.append({
-                    'exposure': exposure,
-                    'roles': sorted(list(roles))
-                })
-                protected_count += 1
-            else:
-                # Unprotected exposure
-                mappings.append({
-                    'exposure': exposure,
-                    'roles': []
-                })
-                unprotected_count += 1
+            rows.append(f"{http_method} {route}")
 
-        total = len(exposures)
+        # Build matrix: rows × columns
+        matrix = []
+        row_protected = []
+
+        for exp in exposures:
+            # Find which roles protect this exposure
+            protecting_roles = set()
+            exp_method = exp.get('method', '')
+            exp_class = exp.get('class', '')
+
+            # Search mechanisms for behaviors that match this exposure
+            for mechanism in all_mechanisms:
+                for behavior in mechanism.get('behaviors', []):
+                    # Match by method signature or route
+                    if (behavior.get('method') == exp_method and
+                        behavior.get('class') == exp_class):
+                        protecting_roles.update(behavior.get('roles', []))
+
+            # Create row: True if role protects this exposure
+            row = [role in protecting_roles for role in columns]
+            matrix.append(row)
+            row_protected.append(any(row))
+
         return {
-            'mappings': mappings[:100],  # Sample for evidence
-            'protected_count': protected_count,
-            'unprotected_count': unprotected_count,
-            'coverage_percentage': round((protected_count / total * 100), 1) if total > 0 else 0
+            'rows': rows,
+            'columns': columns,
+            'matrix': matrix,
+            'row_protected': row_protected
         }
 
     def build_defense_metadata(self, all_mechanisms: List[Dict]) -> Dict:
@@ -2057,6 +2080,9 @@ Now extract roles from the expression above:"""
                         callers = json.loads(output)
                         caller_map[method_sig] = callers
 
+            except json.JSONDecodeError:
+                # Empty or invalid output from Joern - method probably has no callers
+                continue
             except Exception as e:
                 if self.debug:
                     print(f"[UTILS] Caller query failed for {method_sig}: {e}")

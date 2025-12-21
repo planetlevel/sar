@@ -14,6 +14,7 @@ Three-Phase Analysis:
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 import json
+import os
 from .authorization_utils import AuthorizationUtils
 
 
@@ -66,6 +67,9 @@ class EndpointAuthorizationAgent:
         # State from Phase 2
         self.architecture_evaluation = {}
 
+        # State from Phase 3
+        self.discovered_exposures = []  # Exposures discovered during metrics calculation
+
     def get_agent_id(self) -> str:
         return "endpoint_authorization"
 
@@ -104,14 +108,26 @@ class EndpointAuthorizationAgent:
 
         self.auth_pattern = self._detect_authorization_pattern()
 
-        # ALWAYS run AI analysis to understand authorization architecture
+        # Discover routes and trace execution paths for Phase 1.5
         if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Running AI architecture analysis...")
+            print(f"[{self.get_agent_id().upper()}] Discovering routes and tracing execution paths...")
+
+        self._discover_routes_and_trace_paths()
+
+        # Phase 1.5: Custom Defense Discovery
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Phase 1.5: Custom Defense Discovery")
+
+        self.custom_mechanisms = self._discover_custom_defenses()
+
+        # Consolidate ALL mechanisms (standard + custom)
+        self.all_mechanisms = self.standard_mechanisms + self.custom_mechanisms
+
+        # NOW run AI analysis with complete mechanism picture
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Running AI architecture analysis (with custom defenses)...")
 
         self.ai_analysis_result = self._run_ai_analysis()
-
-        # Consolidate mechanisms
-        self.all_mechanisms = self.standard_mechanisms + self._extract_mechanisms_from_ai()
 
         # Phase 2: Architecture Evaluation
         if self.debug:
@@ -670,6 +686,670 @@ Respond in JSON:
         return []
 
     # ========================================================================
+    # PHASE 1.5: CUSTOM DEFENSE DISCOVERY
+    # ========================================================================
+
+    def _discover_routes_and_trace_paths(self):
+        """
+        Discover HTTP routes and trace their execution paths
+
+        This gives us the actual request flow:
+        Route → Controller → Service Layer → Data Access
+
+        Much better than random sampling - we analyze real execution paths
+        """
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Discovering routes and tracing execution paths...")
+
+        # Step 1: Find all route entry points (methods with routing annotations)
+        routes = self.utils.query_all_endpoint_methods(self.matched_frameworks)
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Found {len(routes)} route entry points")
+
+        # Step 2: For each route, trace what it calls (execution path)
+        execution_paths = []
+
+        # Sample routes to trace (don't trace all if there are hundreds)
+        routes_to_trace = routes[:50] if len(routes) > 50 else routes
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Tracing execution paths for {len(routes_to_trace)} routes...")
+
+        for route in routes_to_trace:
+            route_method = route.get('method', '')
+
+            # Trace call graph from this route
+            called_methods = self._trace_call_graph(route_method, depth=2)
+
+            execution_paths.append({
+                'route': route,
+                'entry_point': route_method,
+                'called_methods': called_methods,
+                'path_length': len(called_methods)
+            })
+
+        self.execution_paths = execution_paths
+
+        # Store all unique methods in execution paths as discovered_exposures
+        all_methods = set()
+        for path in execution_paths:
+            all_methods.add(path['entry_point'])
+            all_methods.update(path['called_methods'])
+
+        # Convert back to dict format for compatibility
+        self.discovered_exposures = [{'method': m} for m in all_methods]
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Traced {len(execution_paths)} execution paths")
+            print(f"[{self.get_agent_id().upper()}] Found {len(self.discovered_exposures)} unique methods in paths")
+
+    def _trace_call_graph(self, method_sig: str, depth: int = 2) -> List[str]:
+        """
+        Trace what a method calls using Joern call graph
+
+        Args:
+            method_sig: Full method signature to trace from
+            depth: How many levels deep to trace (default 2)
+
+        Returns:
+            List of method signatures called (directly and transitively)
+        """
+        if depth <= 0:
+            return []
+
+        # Escape special characters in method signature for Joern
+        escaped_sig = method_sig.replace('"', '\\"')
+
+        query = f'''
+            cpg.method.fullName("{escaped_sig}")
+              .callee
+              .filterNot(_.isExternal)
+              .fullName
+              .dedup
+              .l
+              .toJson
+        '''
+
+        try:
+            result = self.cpg_tool.query(query)
+            if result.success and result.output and result.output.strip():
+                called = json.loads(result.output)
+
+                # If depth > 1, recursively trace what those methods call
+                if depth > 1 and called:
+                    transitive = []
+                    for callee in called[:10]:  # Limit to avoid explosion
+                        transitive.extend(self._trace_call_graph(callee, depth - 1))
+                    called.extend(transitive)
+
+                return list(set(called))  # Dedupe
+        except:
+            pass
+
+        return []
+
+    def _discover_custom_defenses(self) -> List[Dict]:
+        """
+        Discover custom authorization patterns by analyzing unprotected exposures
+
+        Language/framework agnostic approach:
+        1. Identify exposure pattern from WHERE standard defenses exist
+        2. Find ALL exposures matching that pattern
+        3. Sample high-risk unprotected exposures
+        4. Read source code for those exposures
+        5. Use AI to identify custom defense patterns in code
+        6. Query CPG to find similar custom patterns
+        7. Return custom mechanisms in standard format
+
+        Returns:
+            List of custom mechanism dicts matching standard_mechanisms format
+        """
+        if not self.ai:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Skipping custom defense discovery - no AI client")
+            return []
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Starting custom defense discovery...")
+
+        # Step 1: Get some unprotected exposures from existing discovery
+        # We already discovered exposures in _generate_ai_coverage_metrics
+        if not hasattr(self, 'discovered_exposures') or not self.discovered_exposures:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] No exposures discovered yet, skipping custom defense discovery")
+            return []
+
+        # Identify which are unprotected
+        protected_methods = set()
+        for mechanism in self.standard_mechanisms:
+            for behavior in mechanism.get('behaviors', []):
+                protected_methods.add(behavior.get('method', ''))
+
+        unprotected_exposures = [
+            exp for exp in self.discovered_exposures
+            if exp.get('method', '') not in protected_methods
+        ]
+
+        if not unprotected_exposures:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] All exposures protected by standard defenses")
+            return []
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Found {len(unprotected_exposures)} unprotected exposures")
+
+        # Step 2: Sample unprotected exposures (mix of high-risk and random)
+        samples = self._sample_exposures_for_analysis(unprotected_exposures)
+
+        if not samples:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] No exposures to analyze")
+            return []
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Sampled {len(samples)} exposures for analysis")
+
+        # Step 3: Read source code for ALL sampled exposures
+        code_samples = self._read_exposure_source_code(samples)
+
+        if not code_samples:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Could not read source code for exposures")
+            return []
+
+        # Step 4: Give ALL code samples to AI - let it figure out the patterns
+        custom_patterns = self._ai_identify_custom_patterns(code_samples)
+
+        if not custom_patterns:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] No custom defense patterns identified")
+            return []
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] AI identified {len(custom_patterns)} custom pattern(s)")
+            for i, pattern in enumerate(custom_patterns, 1):
+                print(f"[{self.get_agent_id().upper()}]   Pattern {i}: {pattern.get('type')} - {pattern.get('pattern')}")
+
+        # Step 7: Query CPG to find all instances of custom patterns
+        custom_mechanisms = self._query_custom_patterns(custom_patterns)
+
+        if self.debug:
+            total_behaviors = sum(len(m.get('behaviors', [])) for m in custom_mechanisms)
+            print(f"[{self.get_agent_id().upper()}] Found {total_behaviors} behaviors using custom patterns")
+
+        return custom_mechanisms
+
+    def _sample_exposures_for_analysis(self, unprotected_exposures: List[Dict]) -> List[Dict]:
+        """
+        Sample exposures from execution paths for AI analysis
+
+        Strategy:
+        - Use traced execution paths (routes → controllers → services)
+        - Prioritize high-risk unprotected methods
+        - Sample complete execution paths to give AI architectural context
+        - Goal: ~30-50 methods from ~10-15 execution paths
+        """
+        import random
+
+        if not hasattr(self, 'execution_paths') or not self.execution_paths:
+            # Fallback to simple sampling if no execution paths
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] No execution paths, using simple sampling")
+            return self._simple_sample(unprotected_exposures)
+
+        high_risk_keywords = [
+            'delete', 'remove', 'revoke',
+            'admin', 'superadmin', 'systemadmin',
+            'create', 'update', 'modify',
+            'password', 'token', 'key', 'secret', 'credential',
+            'grant', 'permission', 'role', 'access'
+        ]
+
+        # Build set of unprotected methods for quick lookup
+        unprotected_methods = {exp.get('method') for exp in unprotected_exposures}
+
+        # Score execution paths by risk
+        scored_paths = []
+        for path in self.execution_paths:
+            route_info = path.get('route', {})
+            route_method = route_info.get('method', '')
+            http_method = route_info.get('httpMethod', '').lower()
+
+            # Count unprotected methods in this path
+            unprotected_in_path = [
+                m for m in path.get('called_methods', [])
+                if m in unprotected_methods
+            ]
+            if route_method in unprotected_methods:
+                unprotected_in_path.append(route_method)
+
+            # Calculate risk score
+            risk_score = 0
+            if http_method == 'delete':
+                risk_score += 10
+            if any(keyword in route_method.lower() for keyword in high_risk_keywords):
+                risk_score += 5
+            risk_score += len(unprotected_in_path)  # More unprotected = higher risk
+
+            scored_paths.append({
+                'path': path,
+                'risk_score': risk_score,
+                'unprotected_count': len(unprotected_in_path)
+            })
+
+        # Sort by risk score (highest first)
+        scored_paths.sort(key=lambda x: x['risk_score'], reverse=True)
+
+        # Take top 15 paths, but ensure we get at least 10 with unprotected methods
+        selected_paths = []
+        paths_with_unprotected = [p for p in scored_paths if p['unprotected_count'] > 0]
+        paths_without_unprotected = [p for p in scored_paths if p['unprotected_count'] == 0]
+
+        selected_paths.extend(paths_with_unprotected[:12])  # Top 12 with unprotected
+        remaining = 15 - len(selected_paths)
+        if remaining > 0 and paths_without_unprotected:
+            selected_paths.extend(paths_without_unprotected[:remaining])
+
+        # Extract all methods from selected paths
+        sampled_exposures = []
+        for scored_path in selected_paths:
+            path = scored_path['path']
+            route_info = path.get('route', {})
+
+            # Add route entry point
+            sampled_exposures.append({
+                'method': route_info.get('method', ''),
+                'file': route_info.get('file', ''),
+                'line': route_info.get('line', 0),
+                'httpMethod': route_info.get('httpMethod', ''),
+                'path_context': 'route_entry_point'
+            })
+
+            # Add methods called from this route
+            for called_method in path.get('called_methods', [])[:5]:  # Limit to 5 per path
+                # Find file/line for this method
+                method_info = self._lookup_method_location(called_method)
+                sampled_exposures.append({
+                    'method': called_method,
+                    'file': method_info.get('file', ''),
+                    'line': method_info.get('line', 0),
+                    'httpMethod': 'UNKNOWN',
+                    'path_context': f"called_from_{route_info.get('httpMethod', 'UNKNOWN')}_{route_info.get('route', '')}"
+                })
+
+        return sampled_exposures[:50]  # Cap at 50 total
+
+    def _simple_sample(self, unprotected_exposures: List[Dict]) -> List[Dict]:
+        """Fallback sampling when no execution paths available"""
+        import random
+        high_risk_keywords = [
+            'delete', 'remove', 'revoke', 'admin', 'superadmin',
+            'create', 'update', 'modify', 'password', 'token'
+        ]
+
+        high_risk = []
+        normal_risk = []
+
+        for exposure in unprotected_exposures:
+            method = exposure.get('method', '').lower()
+            http_method = exposure.get('httpMethod', '').lower()
+
+            if http_method == 'delete' or any(keyword in method for keyword in high_risk_keywords):
+                high_risk.append(exposure)
+            else:
+                normal_risk.append(exposure)
+
+        samples = high_risk[:20]
+        remaining = 30 - len(samples)
+        if remaining > 0 and normal_risk:
+            samples.extend(random.sample(normal_risk, min(remaining, len(normal_risk))))
+
+        return samples
+
+    def _lookup_method_location(self, method_sig: str) -> Dict:
+        """Look up file/line for a method signature using Joern"""
+        escaped_sig = method_sig.replace('"', '\\"')
+        query = f'''
+            cpg.method.fullName("{escaped_sig}")
+              .map {{ m =>
+                Map(
+                  "file" -> m.file.name.headOption.getOrElse("unknown"),
+                  "line" -> m.lineNumber.getOrElse(0)
+                )
+              }}.headOption.getOrElse(Map("file" -> "unknown", "line" -> 0))
+              .toJson
+        '''
+
+        try:
+            result = self.cpg_tool.query(query)
+            if result.success and result.output and result.output.strip():
+                return json.loads(result.output)
+        except:
+            pass
+
+        return {'file': 'unknown', 'line': 0}
+
+    def _read_exposure_source_code(self, exposures: List[Dict]) -> List[Dict]:
+        """
+        Read source code for sampled exposures
+
+        Returns list of dicts with method info and source code
+        """
+        code_samples = []
+
+        for exposure in exposures:
+            method_sig = exposure.get('method', '')
+            file_path = exposure.get('file', '')
+            line_num = exposure.get('line', 0)
+
+            if not file_path or not line_num:
+                continue
+
+            # Build full file path
+            full_path = os.path.join(self.project_dir, file_path)
+
+            try:
+                # Read surrounding code context (method and annotations above it)
+                with open(full_path, 'r') as f:
+                    lines = f.readlines()
+
+                # Get ~30 lines of context (annotations + method)
+                start = max(0, line_num - 15)
+                end = min(len(lines), line_num + 15)
+                code_context = ''.join(lines[start:end])
+
+                code_samples.append({
+                    'method': method_sig,
+                    'file': file_path,
+                    'line': line_num,
+                    'code': code_context,
+                    'exposure': exposure
+                })
+
+            except Exception as e:
+                if self.debug:
+                    print(f"[{self.get_agent_id().upper()}] Could not read {file_path}: {e}")
+                continue
+
+        return code_samples
+
+    def _build_execution_path_summary(self) -> str:
+        """Build summary of execution paths for AI context"""
+        if not hasattr(self, 'execution_paths') or not self.execution_paths:
+            return "No execution paths traced"
+
+        summary_lines = [
+            f"Traced {len(self.execution_paths)} execution paths from routes through business logic:",
+            ""
+        ]
+
+        for i, path in enumerate(self.execution_paths[:10], 1):  # Show first 10
+            route_info = path.get('route', {})
+            http_method = route_info.get('httpMethod', 'UNKNOWN')
+            route = route_info.get('route', 'unknown')
+            path_length = path.get('path_length', 0)
+
+            summary_lines.append(f"{i}. {http_method} {route}")
+            summary_lines.append(f"   → Calls {path_length} methods in business logic")
+
+        if len(self.execution_paths) > 10:
+            summary_lines.append(f"... and {len(self.execution_paths) - 10} more paths")
+
+        return "\n".join(summary_lines)
+
+    def _ai_identify_custom_patterns(self, code_samples: List[Dict]) -> List[Dict]:
+        """
+        Use AI to analyze code samples and identify custom defense patterns
+
+        Uses execution path context to understand application architecture
+
+        Returns list of custom pattern dicts with query info
+        """
+        if not code_samples:
+            return []
+
+        # Build execution path context
+        path_summary = self._build_execution_path_summary()
+
+        # Build prompt with ALL code samples grouped by execution path
+        samples_by_path = {}
+        for sample in code_samples:
+            path_ctx = sample.get('exposure', {}).get('path_context', 'unknown')
+            if path_ctx not in samples_by_path:
+                samples_by_path[path_ctx] = []
+            samples_by_path[path_ctx].append(sample)
+
+        samples_text = []
+        path_num = 1
+        for path_context, samples in samples_by_path.items():
+            if path_context.startswith('route_entry_point'):
+                samples_text.append(f"\n=== EXECUTION PATH {path_num} ===\n")
+                path_num += 1
+
+            for i, sample in enumerate(samples, 1):
+                # Truncate very long code
+                code = sample['code'][:500] if len(sample['code']) > 500 else sample['code']
+                role_indicator = "ROUTE" if path_context.startswith('route_entry_point') else "CALLED"
+                samples_text.append(f"""
+[{role_indicator}] {sample['file']}:{sample['line']}
+{code}
+---
+""")
+
+        prompt = f"""You are analyzing {len(code_samples)} methods from {len(samples_by_path)} execution paths to identify custom authorization patterns.
+
+EXECUTION PATH CONTEXT:
+{path_summary}
+
+These methods are organized by request flow (route → controller → service).
+Each execution path shows how a route calls into business logic.
+
+CODE SAMPLES ({len(code_samples)} methods from traced execution paths):
+{''.join(samples_text)}
+
+TASK:
+Analyze these execution paths and identify ANY custom authorization patterns:
+
+1. CUSTOM ANNOTATIONS (highest priority):
+   - @Superadmin, @Admin, @RequiresRole, etc.
+   - Meta-annotations wrapping @PreAuthorize
+   - Class-level annotations protecting all methods
+
+2. MANUAL CHECKS:
+   - Permission checks in code (e.g., if (!hasPermission(...)))
+   - Service calls that check authorization
+   - Custom filters or interceptors
+
+3. ARCHITECTURAL PATTERNS:
+   - Where does authorization happen in the request flow?
+   - At route entry? In controllers? In services?
+   - Consistent pattern across execution paths?
+
+Return JSON listing EVERY distinct pattern:
+{{
+  "patterns_found": [
+    {{
+      "type": "custom_annotation|class_level|manual_check|filter|interceptor",
+      "pattern": "exact annotation name or code pattern",
+      "description": "what it does and where in execution path",
+      "confidence": "high|medium|low",
+      "locations": "route_level|controller_level|service_level|mixed"
+    }}
+  ],
+  "architectural_notes": "Brief observation about where authorization happens in request flow"
+}}
+
+If you see NO custom authorization patterns, return: {{"patterns_found": [], "architectural_notes": "No custom patterns detected"}}
+"""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=2000, temperature=0.3)
+            if response:
+                import re
+                # Find JSON in response
+                match = re.search(r'\{.*\}', response, re.DOTALL)
+                if match:
+                    json_str = match.group(0)
+                    # Try parsing with strict=False to handle control characters
+                    result = json.loads(json_str, strict=False)
+                    return result.get('patterns_found', [])
+        except json.JSONDecodeError as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] JSON parse error: {e}")
+                # Try to salvage by extracting patterns_found array directly
+                try:
+                    patterns_match = re.search(r'"patterns_found"\s*:\s*\[(.*?)\]', response, re.DOTALL)
+                    if patterns_match and '"patterns_found": []' in response:
+                        # Empty patterns array - no custom defenses found
+                        return []
+                except:
+                    pass
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] AI pattern identification failed: {e}")
+
+        return []
+
+    def _query_custom_patterns(self, custom_patterns: List[Dict]) -> List[Dict]:
+        """
+        Query CPG to find all instances of identified custom patterns
+
+        Returns list of mechanism dicts in standard format
+        """
+        mechanisms = []
+
+        for pattern_info in custom_patterns:
+            pattern_type = pattern_info.get('type', '')
+            pattern = pattern_info.get('pattern', '')
+
+            if not pattern:
+                continue
+
+            # Clean annotation name (remove @ prefix if present)
+            if pattern.startswith('@'):
+                pattern = pattern[1:]
+
+            if pattern_type == 'custom_annotation':
+                # Query for custom annotation
+                behaviors = self._query_custom_annotation(pattern)
+                if behaviors:
+                    mechanisms.append({
+                        'framework': 'custom',
+                        'category': 'custom_annotations',
+                        'type': 'custom',
+                        'patterns': [pattern],
+                        'behaviors': behaviors,
+                        'discovery_method': 'ai_code_analysis'
+                    })
+
+            elif pattern_type == 'class_level':
+                # Query for class-level authorization
+                behaviors = self._query_class_level_authorization(pattern)
+                if behaviors:
+                    mechanisms.append({
+                        'framework': 'custom',
+                        'category': 'class_level_authorization',
+                        'type': 'custom',
+                        'patterns': [pattern],
+                        'behaviors': behaviors,
+                        'discovery_method': 'ai_code_analysis'
+                    })
+
+        return mechanisms
+
+    def _query_custom_annotation(self, annotation_name: str) -> List[Dict]:
+        """Query CPG for methods with custom annotation"""
+        query = f'''
+            cpg.method
+              .where(_.annotation.name("{annotation_name}"))
+              .map {{ m =>
+                Map(
+                  "method" -> m.fullName,
+                  "file" -> m.file.name.headOption.getOrElse("unknown"),
+                  "line" -> m.lineNumber.getOrElse(0),
+                  "class" -> m.typeDecl.fullName.headOption.getOrElse("unknown"),
+                  "annotation" -> "{annotation_name}"
+                )
+              }}.toJson
+        '''
+
+        try:
+            result = self.cpg_tool.query(query)
+            if result.success and result.output and result.output.strip():
+                # Check if output is valid JSON
+                try:
+                    behaviors = json.loads(result.output)
+                    if not behaviors:  # Empty list
+                        return []
+
+                    # Convert to standard behavior format
+                    return [{
+                        'type': 'authorization_annotation',
+                        'mechanism': annotation_name,
+                        'method': b.get('method', ''),
+                        'class': b.get('class', ''),
+                        'file': b.get('file', ''),
+                        'line': b.get('line', 0),
+                        'roles': [annotation_name.lower()],  # Infer role from annotation name
+                        'location': f"{b.get('class', '')} (line {b.get('line', 0)})",
+                        'location_type': 'endpoint',
+                        'httpMethod': 'UNKNOWN'
+                    } for b in behaviors]
+                except json.JSONDecodeError:
+                    if self.debug:
+                        print(f"[{self.get_agent_id().upper()}] Invalid JSON from query for {annotation_name}")
+                    return []
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Query failed for {annotation_name}: {e}")
+
+        return []
+
+    def _query_class_level_authorization(self, annotation_name: str) -> List[Dict]:
+        """Query CPG for classes with authorization annotation, return all their methods"""
+        # First, find classes with the annotation
+        query = f'''
+            cpg.typeDecl
+              .where(_.annotation.name("{annotation_name}"))
+              .method
+              .isPublic
+              .map {{ m =>
+                Map(
+                  "method" -> m.fullName,
+                  "file" -> m.file.name.headOption.getOrElse("unknown"),
+                  "line" -> m.lineNumber.getOrElse(0),
+                  "class" -> m.typeDecl.fullName.headOption.getOrElse("unknown"),
+                  "class_annotation" -> "{annotation_name}"
+                )
+              }}.toJson
+        '''
+
+        try:
+            result = self.cpg_tool.query(query)
+            if result.success and result.output:
+                behaviors = json.loads(result.output)
+
+                # Convert to standard behavior format
+                return [{
+                    'type': 'authorization_annotation',
+                    'mechanism': f"{annotation_name} (class-level)",
+                    'method': b.get('method', ''),
+                    'class': b.get('class', ''),
+                    'file': b.get('file', ''),
+                    'line': b.get('line', 0),
+                    'roles': [annotation_name.lower()],
+                    'location': f"{b.get('class', '')} (inherited from class annotation)",
+                    'location_type': 'endpoint',
+                    'httpMethod': 'UNKNOWN'
+                } for b in behaviors]
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Query failed for class-level {annotation_name}: {e}")
+
+        return []
+
+    # ========================================================================
     # PHASE 2: ARCHITECTURE EVALUATION
     # ========================================================================
 
@@ -976,7 +1656,10 @@ Return these EXACT values in JSON:
                 import re
                 match = re.search(r'\{.*\}', response, re.DOTALL)
                 if match:
-                    return json.loads(match.group(0))
+                    metrics = json.loads(match.group(0))
+                    # Store exposures for matrix building
+                    self.discovered_exposures = total_exposures
+                    return metrics
         except Exception as e:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] AI metrics query failed: {e}")
@@ -987,17 +1670,19 @@ Return these EXACT values in JSON:
 
     def _build_evidence(self) -> Dict:
         """Build comprehensive evidence for recommendation generation"""
-        # Use utility to build defense usage matrix (algorithmic route-level coverage)
-        defense_matrix = self.utils.build_defense_usage_matrix(
-            self.all_mechanisms,
-            defense_type='authorization'
-        )
-
         # Analyze roles using utility
         roles = self.utils.analyze_roles(self.all_mechanisms)
 
         # Generate AI-powered metrics that understand the architecture pattern
-        coverage_metrics = self._generate_ai_coverage_metrics(defense_matrix)
+        # Uses self.discovered_exposures from quick discovery
+        coverage_metrics = self._generate_ai_coverage_metrics(None)
+
+        # Build defense usage matrix using discovered exposures
+        defense_matrix = self.utils.build_defense_usage_matrix(
+            exposures=self.discovered_exposures,
+            all_mechanisms=self.all_mechanisms,
+            defense_type='authorization'
+        )
 
         evidence = {
             'mechanisms': self.all_mechanisms,
