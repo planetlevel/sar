@@ -465,6 +465,32 @@ class FrameworkTool:
             annot_value = parts[5]
             http_method = parts[6]
 
+            # Determine location and location_type based on available context
+            # Check if this is a controller class (endpoint layer)
+            is_controller = class_name and (
+                'Controller' in class_name or
+                'Resource' in class_name or
+                'Endpoint' in class_name or
+                'Handler' in class_name
+            )
+
+            # Determine location_type: endpoint, service, code, or unknown
+            if http_method and http_method != 'UNKNOWN':
+                location = f"{http_method} {annot_value}"  # Will be refined below
+                location_type = "endpoint"
+            elif is_controller:
+                location = f'{class_name} (line {line_num})'
+                location_type = "endpoint"
+            elif class_name:
+                location = f'{class_name} (line {line_num})'
+                location_type = "service"
+            elif file_path:
+                location = f'{file_path}:{line_num}'
+                location_type = "code"
+            else:
+                location = "unknown"
+                location_type = "unknown"
+
             behavior = {
                 'framework': framework_id,
                 'category': category,
@@ -474,8 +500,8 @@ class FrameworkTool:
                 'class': class_name,
                 'file': file_path,
                 'line': line_num,
-                'location': f'{class_name} (line {line_num})',
-                'location_type': 'method'
+                'location': location,
+                'location_type': location_type
             }
 
             # Extract roles from annotation value for authorization
@@ -588,6 +614,29 @@ class FrameworkTool:
             file_path = parts[4]
             line_num = int(parts[5]) if parts[5].isdigit() else 0
 
+            # Determine location_type based on available context
+            # Check if this is a controller class (endpoint layer)
+            is_controller = class_name and (
+                'Controller' in class_name or
+                'Resource' in class_name or
+                'Endpoint' in class_name or
+                'Handler' in class_name
+            )
+
+            # Classify location_type: endpoint, service, code, or unknown
+            if is_controller:
+                location = f'{class_name} (line {line_num})'
+                location_type = "endpoint"
+            elif class_name:
+                location = f'{class_name} (line {line_num})'
+                location_type = "service"
+            elif file_path:
+                location = f'{file_path}:{line_num}'
+                location_type = "code"
+            else:
+                location = "unknown"
+                location_type = "unknown"
+
             behavior = {
                 'framework': framework_id,
                 'category': category,
@@ -598,8 +647,8 @@ class FrameworkTool:
                 'class': class_name,
                 'file': file_path,
                 'line': line_num,
-                'location': f'{class_name} (line {line_num})',
-                'location_type': 'method'
+                'location': location,
+                'location_type': location_type
             }
 
             behaviors.append(behavior)
