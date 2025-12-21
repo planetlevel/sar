@@ -160,82 +160,76 @@ class EndpointAuthorizationAgent:
 
     def _discover_standard_mechanisms(self) -> List[Dict]:
         """
-        Algorithmic discovery: Load patterns from framework definitions
-        NO hardcoded patterns - everything comes from frameworks/*.json
+        Discover standard authorization mechanisms using FrameworkTool
 
-        Steps:
-        1. Detect which libraries are present in the project (using deptrast)
-        2. Load framework JSON files for those libraries only
-        3. Extract authorization patterns and query CPG
+        This method now delegates ALL complexity to FrameworkTool:
+        - Framework detection
+        - Pattern loading
+        - Query execution
+        - Result parsing
+
+        Agent just asks: "What authorization patterns exist?" and gets standardized results.
         """
         if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Detecting project libraries...")
+            print(f"[{self.get_agent_id().upper()}] Using FrameworkTool to find authorization patterns...")
 
-        # Step 1: Detect libraries in the project (delegated to utils)
-        present_libraries = self.utils.detect_project_libraries()
+        # Use FrameworkTool centralized pattern searching
+        # This replaces ~80 lines of framework detection, loading, pattern extraction, and query execution
+        from sar.framework_tool import FrameworkTool
+
+        tool = FrameworkTool(
+            project_dir=self.project_dir,
+            cpg_tool=self.cpg_tool
+        )
+
+        # Detect frameworks
+        frameworks = tool.detect_frameworks()
+
+        # Save for later use (needed by other methods)
+        self.matched_frameworks = frameworks
 
         if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Found {len(present_libraries)} libraries in project")
+            print(f"[{self.get_agent_id().upper()}] Detected {len(frameworks)} frameworks")
+            for fw_id, fw_def in frameworks.items():
+                print(f"[{self.get_agent_id().upper()}]   - {fw_id}: {fw_def.name}")
 
-        # Step 2: Load framework definitions for detected libraries only
-        matching_frameworks = self.utils.load_matching_frameworks(present_libraries)
-
-        # Save for later use (needed by _ask_ai_for_metrics)
-        self.matched_frameworks = matching_frameworks
+        # Find all authorization patterns
+        all_behaviors = tool.find_authorization_patterns(frameworks)
 
         if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Matched {len(matching_frameworks)} framework definitions")
+            print(f"[{self.get_agent_id().upper()}] Found {len(all_behaviors)} total authorization behaviors")
 
+        # Group behaviors by framework for mechanism reporting
+        # This preserves the expected data structure for downstream code
+        mechanisms_by_framework = {}
+        for behavior in all_behaviors:
+            fw = behavior.get('framework', 'unknown')
+            if fw not in mechanisms_by_framework:
+                mechanisms_by_framework[fw] = []
+            mechanisms_by_framework[fw].append(behavior)
+
+        # Build mechanism dicts in expected format
         standard_mechanisms = []
+        for framework_name, behaviors in mechanisms_by_framework.items():
+            if behaviors:
+                # Extract patterns from first behavior (they're all from same framework/category)
+                first_behavior = behaviors[0]
 
-        # Step 3: Extract authorization patterns and query
-        for framework_name, framework in matching_frameworks.items():
-            auth_patterns = self.utils.extract_authorization_patterns(framework)
-
-            if not auth_patterns:
-                continue
-
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] Checking {framework_name}: {len(auth_patterns)} pattern objects")
-
-            # Execute queries for each PatternGroup object
-            for idx, pattern_group in enumerate(auth_patterns):
-                # Get pattern description for logging
-                pattern_desc = pattern_group.description or f'pattern_{idx}'
-
-                if self.debug:
-                    print(f"[{self.get_agent_id().upper()}] Executing queries for {framework_name}.{pattern_desc}...")
-
-                behaviors = self.utils.execute_pattern_queries(
-                    framework=framework_name,
-                    category='authorization',
-                    pattern_group=pattern_group
-                )
+                standard_mechanisms.append({
+                    'framework': framework_name,
+                    'category': 'authorization',
+                    'type': 'standard',
+                    'patterns': [],  # Patterns abstracted away in FrameworkTool
+                    'behaviors': behaviors,
+                    'count': len(behaviors),
+                    # Metadata from standardized Behavior format
+                    'pattern_group_target': 'joern',  # All current patterns use joern
+                    'pattern_group_search_type': first_behavior.get('type', 'authorization_annotation'),
+                    'pattern_group_description': f'{framework_name} authorization patterns'
+                })
 
                 if self.debug:
-                    print(f"[{self.get_agent_id().upper()}]   → Got {len(behaviors)} behaviors")
-
-                if behaviors:
-                    if self.debug:
-                        print(f"[{self.get_agent_id().upper()}]   ✓ {framework_name}.{pattern_desc}: {len(behaviors)} behaviors")
-
-                    # Extract pattern for mechanism data
-                    pattern = pattern_group.pattern or pattern_group.signature or []
-                    if isinstance(pattern, str):
-                        pattern = [pattern]
-
-                    standard_mechanisms.append({
-                        'framework': framework_name,
-                        'category': 'authorization',
-                        'type': 'standard',
-                        'patterns': pattern if isinstance(pattern, list) else [],
-                        'behaviors': behaviors,
-                        'count': len(behaviors),
-                        # Store PatternGroup metadata for reporting
-                        'pattern_group_target': pattern_group.target,
-                        'pattern_group_search_type': pattern_group.search_type,
-                        'pattern_group_description': pattern_group.description
-                    })
+                    print(f"[{self.get_agent_id().upper()}]   ✓ {framework_name}: {len(behaviors)} behaviors")
 
         return standard_mechanisms
 
