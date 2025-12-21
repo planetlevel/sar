@@ -196,22 +196,25 @@ class EndpointAuthorizationAgent:
                 continue
 
             if self.debug:
-                print(f"[{self.get_agent_id().upper()}] Checking {framework_name}: {len(auth_patterns)} pattern categories")
+                print(f"[{self.get_agent_id().upper()}] Checking {framework_name}: {len(auth_patterns)} pattern objects")
 
-            # Execute queries for each pattern category
-            for pattern_category, pattern_config in auth_patterns.items():
+            # Execute queries for each pattern object
+            for idx, pattern_config in enumerate(auth_patterns):
                 # Skip if pattern_config is not a dict
                 if not isinstance(pattern_config, dict):
                     if self.debug:
-                        print(f"[{self.get_agent_id().upper()}] Skipping {framework_name}.{pattern_category}: invalid config type")
+                        print(f"[{self.get_agent_id().upper()}] Skipping {framework_name} pattern {idx}: invalid config type")
                     continue
 
+                # Get pattern description for logging
+                pattern_desc = pattern_config.get('description', f'pattern_{idx}')
+
                 if self.debug:
-                    print(f"[{self.get_agent_id().upper()}] Executing queries for {framework_name}.{pattern_category}...")
+                    print(f"[{self.get_agent_id().upper()}] Executing queries for {framework_name}.{pattern_desc}...")
 
                 behaviors = self.utils.execute_pattern_queries(
                     framework=framework_name,
-                    category=pattern_category,
+                    category='authorization',  # All patterns in this array are authorization patterns
                     config=pattern_config
                 )
 
@@ -220,13 +223,18 @@ class EndpointAuthorizationAgent:
 
                 if behaviors:
                     if self.debug:
-                        print(f"[{self.get_agent_id().upper()}]   ✓ {framework_name}.{pattern_category}: {len(behaviors)} behaviors")
+                        print(f"[{self.get_agent_id().upper()}]   ✓ {framework_name}.{pattern_desc}: {len(behaviors)} behaviors")
+
+                    # Extract pattern for mechanism data
+                    pattern = pattern_config.get('pattern', pattern_config.get('signature', []))
+                    if isinstance(pattern, str):
+                        pattern = [pattern]
 
                     standard_mechanisms.append({
                         'framework': framework_name,
-                        'category': pattern_category,
+                        'category': 'authorization',
                         'type': 'standard',
-                        'patterns': pattern_config.get('patterns', []),
+                        'patterns': pattern if isinstance(pattern, list) else [],
                         'behaviors': behaviors,
                         'count': len(behaviors)
                     })

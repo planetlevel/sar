@@ -185,19 +185,20 @@ class AuthorizationUtils:
 
         return frameworks
 
-    def extract_authorization_patterns(self, framework_config: Dict) -> Dict:
+    def extract_authorization_patterns(self, framework_config: Dict) -> List[Dict]:
         """
         Extract authorization patterns from framework definition
 
         Looks for: framework_config['architecture']['security']['authorization']
-        Returns: Dict of pattern categories and their configs
+        Returns: List of pattern objects (each with target, search_type, pattern/signature, description)
         """
         try:
             security = framework_config.get('architecture', {}).get('security', {})
-            authorization = security.get('authorization', {})
-            return authorization
+            authorization = security.get('authorization', [])
+            # authorization is now an array of pattern objects
+            return authorization if isinstance(authorization, list) else []
         except (KeyError, AttributeError):
-            return {}
+            return []
 
     # ========================================================================
     # JOERN QUERY EXECUTION
@@ -206,15 +207,23 @@ class AuthorizationUtils:
     def execute_pattern_queries(self, framework: str, category: str,
                                 config: Dict) -> List[Dict]:
         """
-        Execute queries for authorization patterns based on pattern type
+        Execute queries for authorization patterns based on pattern target
 
         Supports:
         - annotation_name: Find methods with specific annotations
         - method_signature: Find calls to specific methods
         """
-        pattern_type = config.get('type')
+        target = config.get('target')
         search_type = config.get('search_type')
-        patterns = config.get('patterns', [])
+        pattern = config.get('pattern', [])
+
+        # Support both single pattern and array
+        patterns = pattern if isinstance(pattern, list) else [pattern] if pattern else []
+
+        # Also check for signature field (method_signature search_type)
+        if not patterns and search_type == 'method_signature':
+            signature = config.get('signature', [])
+            patterns = signature if isinstance(signature, list) else [signature] if signature else []
 
         if not patterns:
             return []
@@ -223,18 +232,18 @@ class AuthorizationUtils:
 
         try:
             if self.debug:
-                print(f"[UTILS] Pattern type: {pattern_type}, search_type: {search_type}")
+                print(f"[UTILS] Target: {target}, search_type: {search_type}")
                 print(f"[UTILS] Patterns: {patterns}")
 
-            if pattern_type == 'joern' and search_type == 'annotation_name':
+            if target == 'joern' and search_type == 'annotation_name':
                 # Query for methods with specific annotations
                 behaviors = self.query_authorization_annotations(patterns)
-            elif pattern_type == 'joern' and search_type == 'method_signature':
+            elif target == 'joern' and search_type == 'method_signature':
                 # Query for calls to authorization methods
                 behaviors = self.query_authorization_method_calls(patterns)
             else:
                 if self.debug:
-                    print(f"[UTILS] Unsupported pattern type: {pattern_type}/{search_type}")
+                    print(f"[UTILS] Unsupported target/search_type: {target}/{search_type}")
 
         except Exception as e:
             if self.debug:
@@ -466,19 +475,20 @@ class AuthorizationUtils:
                 print(f"[UTILS] Loading routing patterns from {len(matched_frameworks)} framework(s)...")
 
             for framework_name, framework_config in matched_frameworks.items():
-                route_defs = framework_config.get('architecture', {}).get('routing', {}).get('route_definitions', {})
+                route_defs = framework_config.get('architecture', {}).get('routing', {}).get('route_definitions', [])
 
-                # Get annotation patterns
-                if 'annotations' in route_defs:
-                    patterns = route_defs['annotations'].get('patterns', [])
-                    routing_patterns.extend(patterns)
-                    if self.debug:
-                        print(f"[UTILS]   {framework_name}: {len(patterns)} routing patterns")
+                # route_defs is now an array of pattern objects
+                for pattern_obj in route_defs:
+                    if pattern_obj.get('search_type') == 'annotation_name':
+                        # Extract pattern (can be string or array)
+                        pattern = pattern_obj.get('pattern', [])
+                        if isinstance(pattern, str):
+                            routing_patterns.append(pattern)
+                        elif isinstance(pattern, list):
+                            routing_patterns.extend(pattern)
 
-                # Get HTTP method mappings
-                if 'http_methods' in route_defs:
-                    http_methods = route_defs['http_methods'].get('patterns', {})
-                    http_method_mappings.update(http_methods)
+                if self.debug and routing_patterns:
+                    print(f"[UTILS]   {framework_name}: {len(routing_patterns)} routing patterns")
         if not matched_frameworks or not routing_patterns:
             if self.debug:
                 print(f"[UTILS] ERROR: No routing patterns found in frameworks")
