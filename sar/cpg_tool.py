@@ -643,6 +643,49 @@ class CpgTool:
                 return 0
         return 0
 
+    def parse_json_result(self, output: str) -> Any:
+        """
+        Parse JSON from Joern Scala REPL output
+
+        Handles multiple output formats:
+        - val res: String = \"\"\"[...]\"\"\"  (triple-quote)
+        - val res: String = "[...]"       (escaped quotes)
+        - [...]                           (direct JSON)
+
+        Args:
+            output: Raw output from Joern query
+
+        Returns:
+            Parsed JSON (dict, list, or primitive)
+
+        Raises:
+            json.JSONDecodeError: If output is not valid JSON
+
+        Example:
+            result = cpg.query('cpg.method.name.l.toJson')
+            data = cpg.parse_json_result(result.output)
+        """
+        import re
+
+        output = output.strip()
+
+        # Try triple-quote format: val res: String = """[...]"""
+        match = re.search(r'val \w+: \w+ = """(.*)"""', output, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+            return json.loads(json_str)
+
+        # Try single-quote format: val res: String = "[...]"
+        match = re.search(r'val \w+: \w+ = "(.*)"', output, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+            # Unescape the string
+            json_str = json_str.replace('\\"', '"').replace('\\\\', '\\')
+            return json.loads(json_str)
+
+        # Try direct JSON parse
+        return json.loads(output)
+
     def detect_languages(self, max_files: int = 1000) -> Dict[str, int]:
         """
         Detect programming languages in the project
