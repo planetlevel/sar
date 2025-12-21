@@ -238,6 +238,67 @@ class FrameworkTool:
         """List all available framework definitions"""
         return list(self.available_frameworks.keys())
 
+    def list_available_categories(
+        self,
+        frameworks: Union[Dict[str, FrameworkDefinition], FrameworkDefinition]
+    ) -> List[str]:
+        """
+        List all available pattern categories in detected frameworks
+
+        Shows what category paths can be used with search_patterns().
+
+        Args:
+            frameworks: Dict of frameworks or single FrameworkDefinition
+
+        Returns:
+            List of category paths like ['security.authorization', 'routing.route_definitions']
+
+        Example:
+            tool = FrameworkTool(project_dir)
+            frameworks = tool.detect_frameworks()
+            categories = tool.list_available_categories(frameworks)
+            # Returns: ['security.authorization', 'security.authentication',
+            #           'routing.route_definitions', 'database.sql_queries', ...]
+        """
+        # Normalize to dict
+        if isinstance(frameworks, FrameworkDefinition):
+            frameworks = {'framework': frameworks}
+
+        categories = set()
+
+        for fw_id, fw_def in frameworks.items():
+            if not fw_def.architecture:
+                continue
+
+            # Traverse architecture to find all non-empty pattern lists
+            arch = fw_def.architecture
+
+            # Top-level architecture categories
+            arch_categories = {
+                'routing': arch.routing,
+                'database': arch.database,
+                'execution': arch.execution,
+                'communication': arch.communication,
+                'data_flow': arch.data_flow,
+                'security': arch.security,
+                'presentation': arch.presentation,
+                'integration': arch.integration,
+                'ai': arch.ai
+            }
+
+            for top_level, arch_obj in arch_categories.items():
+                if not arch_obj:
+                    continue
+
+                # Get all fields in this architecture object
+                for field_name, field_value in arch_obj:
+                    # field_value should be List[PatternGroup] or None
+                    if field_value and isinstance(field_value, list) and len(field_value) > 0:
+                        # Build category path: 'security.authorization'
+                        category_path = f"{top_level}.{field_name}"
+                        categories.add(category_path)
+
+        return sorted(list(categories))
 
 
     def search_patterns(
