@@ -1,0 +1,130 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring TX",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "ra.xml",
+        "spring-tx*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.transaction.*",
+        "org.springframework.dao.*",
+        "org.springframework.jca.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.transaction",
+          "org.springframework.dao",
+          "org.springframework.jca"
+        ],
+        "depth_4": [
+          "org.springframework.transaction.interceptor",
+          "org.springframework.transaction.support",
+          "org.springframework.transaction.annotation",
+          "org.springframework.transaction.reactive",
+          "org.springframework.transaction.event",
+          "org.springframework.transaction.jta",
+          "org.springframework.jca.endpoint",
+          "org.springframework.transaction.config",
+          "org.springframework.dao.support",
+          "org.springframework.jca.support",
+          "org.springframework.dao.annotation",
+          "org.springframework.dao.CannotAcquireLockException",
+          "org.springframework.dao.CannotSerializeTransactionException",
+          "org.springframework.dao.CleanupFailureDataAccessException",
+          "org.springframework.dao.ConcurrencyFailureException",
+          "org.springframework.dao.DataAccessException",
+          "org.springframework.dao.DataAccessResourceFailureException",
+          "org.springframework.dao.DataIntegrityViolationException",
+          "org.springframework.dao.DataRetrievalFailureException",
+          "org.springframework.dao.DeadlockLoserDataAccessException"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "database": {
+      "orm_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "Transactional"
+          ],
+          "description": "orm_operations.annotations patterns"
+        }
+      ]
+    },
+    "execution": {
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.transaction.interceptor.TransactionInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+            "org.springframework.jca.endpoint.GenericMessageEndpointFactory$GenericMessageEndpoint.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)"
+          ],
+          "description": "reflection.annotations patterns"
+        }
+      ],
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.transaction.interceptor.TransactionAspectSupport$VavrDelegate.evaluateTryFailure:java.lang.Object(java.lang.Object,org.springframework.transaction.interceptor.TransactionAttribute,org.springframework.transaction.TransactionStatus)"
+          ],
+          "description": "expression.annotations patterns"
+        }
+      ]
+    },
+    "data_flow": {
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.transaction.config.AnnotationDrivenBeanDefinitionParser.parse:org.springframework.beans.factory.config.BeanDefinition(org.w3c.dom.Element,org.springframework.beans.factory.xml.ParserContext)"
+          ],
+          "description": "xml_parsing.annotations patterns"
+        }
+      ]
+    },
+    "integration": {
+      "messaging": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.jca.endpoint.GenericMessageEndpointFactory.createEndpoint:jakarta.resource.spi.endpoint.MessageEndpoint(javax.transaction.xa.XAResource)"
+          ],
+          "description": "messaging.annotations patterns"
+        }
+      ]
+    }
+  }
+}

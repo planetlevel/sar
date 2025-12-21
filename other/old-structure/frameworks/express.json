@@ -1,0 +1,19 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Express.js",
+  "languages": [
+    "javascript",
+    "typescript"
+  ],
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "package.json"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {}
+  }
+}

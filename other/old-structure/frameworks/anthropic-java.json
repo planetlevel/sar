@@ -1,0 +1,40 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Anthropic Claude SDK",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "anthropic-java",
+          "library": "Anthropic Claude SDK"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "com.anthropic",
+          "library": "Anthropic"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.anthropic.client.AnthropicClient.messages:com.anthropic.models.Message(com.anthropic.models.MessageCreateParams)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.anthropic.client.AnthropicClient.messagesStream:java.util.stream.Stream(com.anthropic.models.MessageCreateParams)"
+        }
+      ]
+    }
+  }
+}

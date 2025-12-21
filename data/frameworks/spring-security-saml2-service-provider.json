@@ -1,0 +1,353 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-saml2-service-provider",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-security-saml2-service-provider*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.BaseOpenSamlAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Core authentication method that processes SAML authentication requests and validates responses"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "OpenSAML 5 implementation of SAML authentication provider"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.Saml2Authentication.getSaml2Response:java.lang.String()",
+          "description": "Retrieves SAML2 response from authentication context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken.getSaml2Response:java.lang.String()",
+          "description": "Gets SAML2 response from authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken.getAuthenticationRequest:org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest()",
+          "description": "Retrieves SAML2 authentication request from token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.createDefaultResponseValidator:org.springframework.core.convert.converter.Converter()",
+          "description": "Creates validator for SAML authentication responses"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.createDefaultAssertionValidator:org.springframework.core.convert.converter.Converter()",
+          "description": "Creates validator for SAML authentication assertions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider.createDefaultResponseAuthenticationConverter:org.springframework.core.convert.converter.Converter()",
+          "description": "Creates converter for SAML authentication responses"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$ResponseValidator.withDefaults:org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$ResponseValidator()",
+          "description": "Creates default SAML response validator for authentication processing"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$AssertionValidator.withDefaults:org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$AssertionValidator()",
+          "description": "Creates default SAML assertion validator for authentication processing"
+        }
+      ],
+      "crypto": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.core.Saml2X509Credential.encryption:org.springframework.security.saml2.core.Saml2X509Credential(java.security.cert.X509Certificate)",
+          "description": "Creates encryption credentials using X.509 certificate"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.core.Saml2X509Credential.decryption:org.springframework.security.saml2.core.Saml2X509Credential(java.security.PrivateKey,java.security.cert.X509Certificate)",
+          "description": "Creates decryption credentials using private key and X.509 certificate"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.core.Saml2X509Credential.signing:org.springframework.security.saml2.core.Saml2X509Credential(java.security.PrivateKey,java.security.cert.X509Certificate)",
+          "description": "Creates signing credentials using private key and X.509 certificate"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations.withSigningKeys:org.springframework.security.saml2.internal.OpenSamlOperations$SignatureConfigurer(java.util.Collection)",
+          "description": "Configures cryptographic signing keys for SAML operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations.withVerificationKeys:org.springframework.security.saml2.internal.OpenSamlOperations$VerificationConfigurer(java.util.Collection)",
+          "description": "Configures cryptographic verification keys for SAML operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations.withDecryptionKeys:org.springframework.security.saml2.internal.OpenSamlOperations$DecryptionConfigurer(java.util.Collection)",
+          "description": "Configures cryptographic decryption keys for SAML operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.OpenSamlOperations.withDecryptionKeys:org.springframework.security.saml2.provider.service.registration.OpenSamlOperations$DecryptionConfigurer(java.util.Collection)",
+          "description": "Configures decryption keys for SAML operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.OpenSamlOperations.withSigningKeys:org.springframework.security.saml2.provider.service.web.OpenSamlOperations$SignatureConfigurer(java.util.Collection)",
+          "description": "Configures signing keys for SAML operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.OpenSamlOperations.withVerificationKeys:org.springframework.security.saml2.provider.service.web.OpenSamlOperations$VerificationConfigurer(java.util.Collection)",
+          "description": "Configures verification keys for SAML signature validation"
+        }
+      ],
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration$Builder.signingX509Credentials:org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration$Builder(java.util.function.Consumer)",
+          "description": "Configures X.509 credentials used for signing SAML messages"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$AssertionValidator.validate:org.springframework.security.saml2.core.Saml2ResponseValidatorResult(org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$AssertionToken)",
+          "description": "Validates SAML2 assertion for authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$ResponseValidator.convert:org.springframework.security.saml2.core.Saml2ResponseValidatorResult(org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider$ResponseToken)",
+          "description": "Validates SAML2 response during authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration.withRegistrationId:org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration$Builder(java.lang.String)",
+          "description": "Configures registration ID for SAML service provider"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration.withAssertingPartyMetadata:org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration$Builder(org.springframework.security.saml2.provider.service.registration.AssertingPartyMetadata)",
+          "description": "Configures identity provider metadata for SAML service provider"
+        }
+      ]
+    },
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.AssertingPartyMetadataRepository.findByEntityId:org.springframework.security.saml2.provider.service.registration.AssertingPartyMetadata(java.lang.String)",
+          "description": "Repository method to find SAML asserting party metadata by entity ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository.findByRegistrationId:org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration(java.lang.String)",
+          "description": "Repository method to find SAML relying party registration by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.JdbcAssertingPartyMetadataRepository.save:void(org.springframework.security.saml2.provider.service.registration.AssertingPartyMetadata)",
+          "description": "Repository method to save SAML asserting party metadata to database"
+        }
+      ]
+    },
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.CacheSaml2AuthenticationRequestRepository.saveAuthenticationRequest:void(org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest,jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+          "description": "Saves SAML authentication request state to cache"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.HttpSessionSaml2AuthenticationRequestRepository.saveAuthenticationRequest:void(org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest,jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+          "description": "Saves SAML authentication request state to HTTP session"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations.serialize:org.springframework.security.saml2.internal.OpenSamlOperations$SerializationConfigurer(org.opensaml.core.xml.XMLObject)",
+          "description": "Serializes OpenSAML XML objects"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations.deserialize:java.lang.Object(java.lang.String)",
+          "description": "Deserializes SAML2 data from string format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSamlOperations.serialize:org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSamlOperations$SerializationConfigurer(org.w3c.dom.Element)",
+          "description": "Serializes SAML XML elements for logout operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSamlOperations$SerializationConfigurer.serialize:java.lang.String()",
+          "description": "Performs final serialization of SAML objects to string format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSaml5Template.deserialize:java.lang.Object(java.lang.String)",
+          "description": "Deserializes SAML objects from string format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSaml5Template.deserialize:java.lang.Object(java.io.InputStream)",
+          "description": "Deserializes SAML objects from input stream"
+        }
+      ],
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.OpenSamlMetadataUtils$OpenSamlDeserializer.deserialize:org.opensaml.core.xml.XMLObject(java.io.InputStream)",
+          "description": "Deserializes SAML2 metadata from XML format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSaml5Template.build:java.lang.Object(javax.xml.namespace.QName)",
+          "description": "Builds SAML XML objects using OpenSAML library"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.TestCustomOpenSaml5Objects$CustomSamlObjectBuilder.buildObject:org.springframework.security.saml2.provider.service.authentication.TestCustomOpenSaml5Objects$CustomOpenSamlObject(java.lang.String,java.lang.String,java.lang.String)",
+          "description": "Creates custom SAML XML objects for testing"
+        }
+      ]
+    },
+    "communication": {
+      "http": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.OpenSaml5AuthenticationTokenConverter.convert:org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request to SAML2 authentication token"
+        }
+      ]
+    },
+    "integration": {
+      "http_clients": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.OpenSaml5AssertingPartyMetadataRepository.withTrustedMetadataLocation:org.springframework.security.saml2.provider.service.registration.OpenSaml5AssertingPartyMetadataRepository$MetadataLocationRepositoryBuilder(java.lang.String)",
+          "description": "Configures trusted metadata location for SAML identity provider"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.OpenSaml5AssertingPartyMetadataRepository.withMetadataLocation:org.springframework.security.saml2.provider.service.registration.OpenSaml5AssertingPartyMetadataRepository$MetadataLocationRepositoryBuilder(java.lang.String)",
+          "description": "Configures metadata location for SAML identity provider"
+        }
+      ]
+    }
+  }
+}

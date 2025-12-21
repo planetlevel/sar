@@ -1,0 +1,113 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Undertow",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "undertow-core",
+          "library": "Undertow"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "io.undertow",
+          "library": "Undertow"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "io.undertow.server.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestCookies()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getProtocol()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestMethod()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestScheme()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestCharset()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getHostName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getHostAndPort()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestURI()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getRequestURL()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getQueryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getQueryParameters()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.undertow.server.HttpServerExchange.getPathParameters()"
+        }
+      ]
+    }
+  }
+}

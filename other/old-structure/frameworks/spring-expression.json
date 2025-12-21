@@ -1,0 +1,134 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Expression",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-expression*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.expression.spel.*",
+        "org.springframework.expression.common.*",
+        "org.springframework.expression.AccessException.*",
+        "org.springframework.expression.BeanResolver.*",
+        "org.springframework.expression.ConstructorExecutor.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.expression"
+        ],
+        "depth_4": [
+          "org.springframework.expression.spel",
+          "org.springframework.expression.common",
+          "org.springframework.expression.ParserContext",
+          "org.springframework.expression.AccessException",
+          "org.springframework.expression.BeanResolver",
+          "org.springframework.expression.ConstructorExecutor",
+          "org.springframework.expression.ConstructorResolver",
+          "org.springframework.expression.EvaluationContext",
+          "org.springframework.expression.EvaluationException",
+          "org.springframework.expression.Expression",
+          "org.springframework.expression.ExpressionException",
+          "org.springframework.expression.ExpressionInvocationTargetException",
+          "org.springframework.expression.ExpressionParser",
+          "org.springframework.expression.IndexAccessor",
+          "org.springframework.expression.MethodExecutor",
+          "org.springframework.expression.MethodFilter",
+          "org.springframework.expression.MethodResolver",
+          "org.springframework.expression.Operation",
+          "org.springframework.expression.OperatorOverloader",
+          "org.springframework.expression.ParseException"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "execution": {
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.ConstructorExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object[])",
+          "description": "Executes constructor invocation expressions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.MethodExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object,java.lang.Object[])",
+          "description": "Executes method invocation expressions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String)",
+          "description": "Parses string expressions into executable Expression objects"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.ExpressionParser.parseExpression:org.springframework.expression.Expression(java.lang.String,org.springframework.expression.ParserContext)",
+          "description": "Parses string expressions with context into executable Expression objects"
+        }
+      ],
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.spel.support.ReflectiveConstructorExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object[])",
+          "description": "Executes constructors using reflection"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.spel.support.ReflectiveMethodExecutor.execute:org.springframework.expression.TypedValue(org.springframework.expression.EvaluationContext,java.lang.Object,java.lang.Object[])",
+          "description": "Executes methods using reflection"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.spel.support.ReflectivePropertyAccessor.createOptimalAccessor:org.springframework.expression.PropertyAccessor(org.springframework.expression.EvaluationContext,java.lang.Object,java.lang.String)",
+          "description": "Creates property accessors using reflection"
+        }
+      ]
+    },
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.TypeConverter.convertValue:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor,org.springframework.core.convert.TypeDescriptor)",
+          "description": "Converts values between different types"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.expression.common.ExpressionUtils.convertTypedValue:java.lang.Object(org.springframework.expression.EvaluationContext,org.springframework.expression.TypedValue,java.lang.Class)",
+          "description": "Converts typed values to target types"
+        }
+      ]
+    }
+  }
+}

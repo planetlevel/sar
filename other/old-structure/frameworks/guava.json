@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Guava",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "guava",
+          "library": "Google Guava"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "com.google.guava:guava",
+          "library": "Google Guava"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "com.google.common.*"
+      ]
+    }
+  },
+  "architecture": {
+    "security": {
+      "input_validation": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.common.base.Preconditions.checkArgument:void(boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.common.base.Preconditions.checkArgument:void(boolean,java.lang.Object)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.common.base.Preconditions.checkNotNull:java.lang.Object(java.lang.Object)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.common.base.Preconditions.checkNotNull:java.lang.Object(java.lang.Object,java.lang.Object)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.common.base.Preconditions.checkState:void(boolean)"
+        }
+      ]
+    }
+  }
+}

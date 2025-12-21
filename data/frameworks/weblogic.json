@@ -1,0 +1,58 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Weblogic",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "binaries": {
+      "target": "filename",
+      "pattern": [
+        "weblogic.jar"
+      ]
+    },
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "weblogic.xml",
+        "weblogic-application.xml"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "weblogic.servlet.security.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "pattern": "weblogic.servlet.security.Utils.encodeXSS(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

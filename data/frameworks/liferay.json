@@ -1,0 +1,148 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Liferay",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "liferay-plugin-package.properties",
+        "portal-ext.properties"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "com.liferay.portal",
+          "library": "Liferay"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "com.liferay.portal.kernel.util.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "propagators": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "pattern": "com.liferay.portal.kernel.util.URLCodec.decodeURL(java.lang.String,java.lang.String)"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escape(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escape(java.lang.String,int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeHREF(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeCSS(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeJS(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escape(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escape(java.lang.String,int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeHREF(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeCSS(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeJS(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeXPath(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.Html.escapeXPathAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.liferay.portal.kernel.util.URLCodec.encodeURL(java.lang.String,java.lang.String,boolean)"
+        }
+      ]
+    }
+  }
+}

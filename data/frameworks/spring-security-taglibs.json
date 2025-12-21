@@ -1,0 +1,127 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-taglibs",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-security-taglibs*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.TagLibConfig.evalOrSkip:int(boolean)",
+          "description": "Controls authorization evaluation behavior for security tag libraries"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.authz.AbstractAuthorizeTag.authorize:boolean()",
+          "description": "Performs authorization check for security tag evaluation"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.authz.AbstractAuthorizeTag.authorizeUsingAccessExpression:boolean()",
+          "description": "Performs authorization using Spring Security expression language"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.authz.AbstractAuthorizeTag.authorizeUsingUrlCheck:boolean()",
+          "description": "Performs URL-based authorization check"
+        }
+      ],
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.authz.AbstractAuthorizeTag.authorize:boolean()",
+          "description": "Verifies authentication state as part of authorization process"
+        }
+      ]
+    },
+    "execution": {
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.taglibs.authz.AbstractAuthorizeTag.authorizeUsingAccessExpression:boolean()",
+          "description": "Evaluates Spring Security expressions for authorization decisions"
+        }
+      ]
+    }
+  }
+}

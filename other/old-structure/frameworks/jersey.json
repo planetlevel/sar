@@ -1,0 +1,80 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jersey",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "jersey-server",
+          "library": "Jersey"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.glassfish.jersey",
+          "library": "Jersey"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.glassfish.jersey.message.internal.*",
+        "org.glassfish.jersey.uri.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "pattern": "org.glassfish.jersey.message.internal.InboundMessageContext.getHeaderString(java.lang.String)"
+        }
+      ],
+      "propagators": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "pattern": "org.glassfish.jersey.uri.UriComponent.decode(java.lang.String,int)"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.jersey.message.internal.AcceptableMediaType.valueOf(org.glassfish.jersey.message.internal.HttpHeaderReader)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.jersey.uri.UriComponent._encode(java.lang.String,org.glassfish.jersey.uri.UriComponent$Type,boolean,boolean)"
+        }
+      ]
+    }
+  }
+}

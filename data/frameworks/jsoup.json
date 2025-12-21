@@ -1,0 +1,63 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jsoup",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "jsoup",
+          "library": "Jsoup HTML Parser"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.jsoup:jsoup",
+          "library": "Jsoup HTML Parser"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.jsoup.*",
+        "org.jsoup.safety.*"
+      ]
+    }
+  },
+  "architecture": {
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jsoup.Jsoup.clean:java.lang.String(java.lang.String,org.jsoup.safety.Safelist)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jsoup.Jsoup.clean:java.lang.String(java.lang.String,java.lang.String,org.jsoup.safety.Safelist)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jsoup.Jsoup.clean:java.lang.String(java.lang.String,java.lang.String,org.jsoup.safety.Safelist,org.jsoup.nodes.Document$OutputSettings)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jsoup.safety.Cleaner.clean:org.jsoup.nodes.Document(org.jsoup.nodes.Document)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jsoup.safety.Cleaner.isValid:boolean(org.jsoup.nodes.Document)"
+        }
+      ]
+    }
+  }
+}

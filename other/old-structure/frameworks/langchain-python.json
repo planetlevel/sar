@@ -1,0 +1,60 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "LangChain Python",
+  "languages": [
+    "python"
+  ],
+  "extends": "python",
+  "detection": {
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "pattern": "langchain",
+          "library": "LangChain"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "pattern": "langchain",
+          "library": "LangChain"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.ChatOpenAI.__init__.<returnValue>.predict"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.LLM.__init__.<returnValue>.predict"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.Chain.__init__.<returnValue>.run"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.Chain.__init__.<returnValue>.invoke"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.Embeddings.__init__.<returnValue>.embed_documents"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "langchain.py:<module>.Embeddings.__init__.<returnValue>.embed_query"
+        }
+      ]
+    }
+  }
+}

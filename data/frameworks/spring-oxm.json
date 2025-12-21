@@ -1,0 +1,132 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring OXM",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-oxm*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.oxm.mime.*",
+        "org.springframework.oxm.support.*",
+        "org.springframework.oxm.xstream.*",
+        "org.springframework.oxm.GenericMarshaller.*",
+        "org.springframework.oxm.GenericUnmarshaller.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.oxm"
+        ],
+        "depth_4": [
+          "org.springframework.oxm.jaxb",
+          "org.springframework.oxm.support",
+          "org.springframework.oxm.mime",
+          "org.springframework.oxm.xstream",
+          "org.springframework.oxm.config",
+          "org.springframework.oxm.GenericMarshaller",
+          "org.springframework.oxm.GenericUnmarshaller",
+          "org.springframework.oxm.Marshaller",
+          "org.springframework.oxm.MarshallingException",
+          "org.springframework.oxm.MarshallingFailureException",
+          "org.springframework.oxm.UncategorizedMappingException",
+          "org.springframework.oxm.Unmarshaller",
+          "org.springframework.oxm.UnmarshallingFailureException",
+          "org.springframework.oxm.ValidationFailureException",
+          "org.springframework.oxm.XmlMappingException"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.xstream.XStreamMarshaller.marshalOutputStream:void(java.lang.Object,java.io.OutputStream)",
+          "description": "Serializes (marshals) an object to XML and writes to output stream"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.xstream.XStreamMarshaller.marshalOutputStream:void(java.lang.Object,java.io.OutputStream,com.thoughtworks.xstream.converters.DataHolder)",
+          "description": "Serializes (marshals) an object to XML with additional data holder context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.xstream.XStreamMarshaller.unmarshalInputStream:java.lang.Object(java.io.InputStream)",
+          "description": "Deserializes (unmarshals) XML from input stream into an object"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.xstream.XStreamMarshaller.unmarshalInputStream:java.lang.Object(java.io.InputStream,com.thoughtworks.xstream.converters.DataHolder)",
+          "description": "Deserializes (unmarshals) XML from input stream with additional data holder context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.jaxb.Jaxb2Marshaller.createMarshaller:jakarta.xml.bind.Marshaller()",
+          "description": "Creates a JAXB marshaller for XML serialization"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.jaxb.Jaxb2Marshaller.createUnmarshaller:jakarta.xml.bind.Unmarshaller()",
+          "description": "Creates a JAXB unmarshaller for XML deserialization"
+        }
+      ],
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.support.SaxResourceUtils.createInputSource:org.xml.sax.InputSource(org.springframework.core.io.Resource)",
+          "description": "Creates an XML input source from a resource for parsing"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.support.MarshallingSource$MarshallingXMLReader.parse:void(org.xml.sax.InputSource)",
+          "description": "Parses XML content from an input source"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.support.MarshallingSource$MarshallingXMLReader.parse:void(java.lang.String)",
+          "description": "Parses XML content from a system ID string"
+        }
+      ],
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.oxm.jaxb.Jaxb2Marshaller$ByteArrayDataSource.getInputStream:java.io.InputStream()",
+          "description": "Provides input stream access to byte array data source"
+        }
+      ]
+    }
+  }
+}

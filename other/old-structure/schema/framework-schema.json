@@ -1,0 +1,1306 @@
+{
+  "$defs": {
+    "AIArchitecture": {
+      "description": "AI and LLM operation patterns",
+      "properties": {
+        "chat": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Chat"
+        },
+        "completion": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Completion"
+        },
+        "embedding": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Embedding"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Image"
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Audio"
+        },
+        "vision": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Vision"
+        },
+        "function_calling": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Function Calling"
+        },
+        "streaming": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Streaming"
+        },
+        "agents": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Agents"
+        },
+        "fine_tuning": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Fine Tuning"
+        }
+      },
+      "title": "AIArchitecture",
+      "type": "object"
+    },
+    "Architecture": {
+      "description": "All architecture analysis patterns",
+      "properties": {
+        "routing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoutingArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "database": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DatabaseArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "execution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "communication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommunicationArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "data_flow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DataFlowArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "security": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "presentation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PresentationArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "integration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IntegrationArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ai": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AIArchitecture"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Architecture",
+      "type": "object"
+    },
+    "CommunicationArchitecture": {
+      "description": "Network communication patterns",
+      "properties": {
+        "http": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Http"
+        },
+        "socket": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Socket"
+        },
+        "rest": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Rest"
+        },
+        "messaging": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Messaging"
+        }
+      },
+      "title": "CommunicationArchitecture",
+      "type": "object"
+    },
+    "DataFlowArchitecture": {
+      "description": "Data flow and transformation patterns",
+      "properties": {
+        "sources": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sources"
+        },
+        "serialization": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Serialization"
+        },
+        "xml_parsing": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Xml Parsing"
+        },
+        "propagators": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Propagators"
+        }
+      },
+      "title": "DataFlowArchitecture",
+      "type": "object"
+    },
+    "DatabaseArchitecture": {
+      "description": "Database operation patterns",
+      "properties": {
+        "sql_queries": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sql Queries"
+        },
+        "orm_operations": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Orm Operations"
+        },
+        "jpa_operations": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Jpa Operations"
+        },
+        "repository_pattern": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Repository Pattern"
+        },
+        "nosql_operations": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Nosql Operations"
+        },
+        "ldap_queries": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ldap Queries"
+        },
+        "xpath_queries": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Xpath Queries"
+        }
+      },
+      "title": "DatabaseArchitecture",
+      "type": "object"
+    },
+    "DependencyPattern": {
+      "description": "Pattern for detecting dependencies in package files",
+      "properties": {
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern"
+        },
+        "artifact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact"
+        },
+        "library": {
+          "title": "Library",
+          "type": "string"
+        }
+      },
+      "required": [
+        "library"
+      ],
+      "title": "DependencyPattern",
+      "type": "object"
+    },
+    "Detection": {
+      "description": "Framework detection patterns",
+      "properties": {
+        "binaries": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternGroup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "files": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternGroup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dependencies": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "items": {
+                  "$ref": "#/$defs/DependencyPattern"
+                },
+                "type": "array"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dependencies"
+        },
+        "imports": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternGroup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "annotations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternGroup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "code_patterns": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternGroup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "package_hierarchy": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Package Hierarchy"
+        }
+      },
+      "title": "Detection",
+      "type": "object"
+    },
+    "ExecutionArchitecture": {
+      "description": "Code and command execution patterns",
+      "properties": {
+        "native": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Native"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expression"
+        },
+        "reflection": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reflection"
+        },
+        "deserialization": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Deserialization"
+        },
+        "script": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Script"
+        }
+      },
+      "title": "ExecutionArchitecture",
+      "type": "object"
+    },
+    "IntegrationArchitecture": {
+      "description": "External system integration patterns",
+      "properties": {
+        "filesystem": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Filesystem"
+        },
+        "email": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Email"
+        },
+        "http_clients": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Http Clients"
+        },
+        "external_services": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "External Services"
+        }
+      },
+      "title": "IntegrationArchitecture",
+      "type": "object"
+    },
+    "PatternGroup": {
+      "additionalProperties": true,
+      "description": "A pattern group defines what to search for and how to search.\n\nExamples:\n    # Annotation search\n    PatternGroup(\n        target=\"joern\",\n        search_type=\"annotation_name\",\n        pattern=[\"PreAuthorize\", \"Secured\"],\n        description=\"Authorization annotations\"\n    )\n\n    # Method signature search\n    PatternGroup(\n        target=\"joern\",\n        search_type=\"method_signature\",\n        signature=\"java.lang.Runtime.exec:java.lang.Process(java.lang.String)\",\n        description=\"Process execution\"\n    )",
+      "properties": {
+        "target": {
+          "anyOf": [
+            {
+              "enum": [
+                "filename",
+                "filecontent",
+                "joern"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What to search (the target of the search)",
+          "title": "Target"
+        },
+        "search_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "method_signature",
+                "method_name_regex",
+                "class_name_regex",
+                "annotation_name",
+                "annotation_name_regex",
+                "import",
+                "regex",
+                "xml_element",
+                "xpath",
+                "yaml_path",
+                "json_value"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The specific search method to use",
+          "title": "Search Type"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pattern(s) to search for (annotation names, class names, etc.). Can be string, list of strings, or dict of named patterns",
+          "title": "Pattern"
+        },
+        "signature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Method signature(s) for method_signature search_type",
+          "title": "Signature"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable description of what this pattern detects",
+          "title": "Description"
+        }
+      },
+      "title": "PatternGroup",
+      "type": "object"
+    },
+    "PresentationArchitecture": {
+      "description": "Response generation and rendering patterns",
+      "properties": {
+        "template_rendering": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Template Rendering"
+        },
+        "response_output": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Response Output"
+        },
+        "redirects": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Redirects"
+        },
+        "cookies": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cookies"
+        },
+        "headers": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Headers"
+        }
+      },
+      "title": "PresentationArchitecture",
+      "type": "object"
+    },
+    "RepositoryInfo": {
+      "description": "Source repository metadata",
+      "properties": {
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "branch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch"
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commit"
+        },
+        "tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tag"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date"
+        }
+      },
+      "title": "RepositoryInfo",
+      "type": "object"
+    },
+    "RoutingArchitecture": {
+      "description": "HTTP routing patterns",
+      "properties": {
+        "handler_classes": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Handler Classes"
+        },
+        "route_definitions": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Route Definitions"
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parameters"
+        }
+      },
+      "title": "RoutingArchitecture",
+      "type": "object"
+    },
+    "SecurityArchitecture": {
+      "description": "Security control patterns",
+      "properties": {
+        "authentication": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Authentication"
+        },
+        "authorization": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Authorization"
+        },
+        "cryptography": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cryptography"
+        },
+        "input_validation": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Input Validation"
+        },
+        "sanitization": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Sanitization"
+        },
+        "output_encoding": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Output Encoding"
+        },
+        "cookie_security": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cookie Security"
+        },
+        "logging": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Logging"
+        },
+        "secrets": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Secrets"
+        },
+        "privacy": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/PatternGroup"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Privacy"
+        }
+      },
+      "title": "SecurityArchitecture",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "description": "Complete framework definition.\n\nThis is the root model - load JSON files into this.",
+  "properties": {
+    "$schema": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "JSON schema reference",
+      "title": "$Schema"
+    },
+    "name": {
+      "description": "Framework name",
+      "title": "Name",
+      "type": "string"
+    },
+    "extends": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Base framework/language this extends",
+      "title": "Extends"
+    },
+    "languages": {
+      "description": "Supported languages",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Languages",
+      "type": "array"
+    },
+    "repository": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RepositoryInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "detection": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Detection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "metadata": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metadata"
+    },
+    "architecture": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Architecture"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "name",
+    "languages"
+  ],
+  "title": "FrameworkDefinition",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://compass.schema.json"
+}

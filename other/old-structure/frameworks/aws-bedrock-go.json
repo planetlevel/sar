@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "AWS SDK Go Bedrock",
+  "languages": [
+    "go"
+  ],
+  "detection": {
+    "dependencies": {
+      "go.mod": [
+        {
+          "pattern": "github.com/aws/aws-sdk-go-v2/service/bedrock",
+          "library": "AWS Bedrock Go"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "Client.InvokeModel"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "Client.InvokeModelWithResponseStream"
+        }
+      ]
+    }
+  }
+}

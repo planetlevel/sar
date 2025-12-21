@@ -1,0 +1,866 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Python",
+  "languages": [
+    "python"
+  ],
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "requirements.txt",
+        "setup.py",
+        "pyproject.toml",
+        "Pipfile"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "cli_entry_points": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "*.main"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "click.command"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "click.group"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "argparse.ArgumentParser"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "argparse.ArgumentParser.parse_args"
+        }
+      ]
+    },
+    "database": {
+      "sql_queries": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Connection.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Connection.executemany"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Connection.executescript"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Cursor.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Cursor.executemany"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlite3.Cursor.executescript"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "psycopg2.connect"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "psycopg2.extensions.cursor.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "psycopg2.extensions.cursor.executemany"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pymysql.connect"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pymysql.cursors.Cursor.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pymysql.cursors.Cursor.executemany"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "mysql.connector.connect"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "mysql.connector.cursor.MySQLCursor.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "mysql.connector.cursor.MySQLCursor.executemany"
+        }
+      ],
+      "orm_operations": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlalchemy.orm.Session.query"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlalchemy.orm.Session.execute"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlalchemy.orm.Session.add"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlalchemy.orm.Session.delete"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "sqlalchemy.orm.Session.commit"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.QuerySet.filter"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.QuerySet.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.QuerySet.create"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.QuerySet.update"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.QuerySet.delete"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.Model.save"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.db.models.Model.delete"
+        }
+      ]
+    },
+    "execution": {
+      "native": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.system"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.popen"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execl"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execle"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execlp"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execlpe"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execv"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execve"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execvp"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.execvpe"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnl"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnle"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnlp"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnlpe"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnv"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnve"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnvp"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.spawnvpe"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.run"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.call"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.check_call"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.check_output"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.Popen"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.getoutput"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "subprocess.getstatusoutput"
+        }
+      ],
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "eval"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "exec"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "compile"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "__import__"
+        }
+      ],
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "getattr"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "setattr"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "hasattr"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "delattr"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "vars"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dir"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "type"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "isinstance"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "issubclass"
+        }
+      ]
+    },
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pickle.dumps"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pickle.dump"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pickle.loads"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pickle.load"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "json.dumps"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "json.dump"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "json.loads"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "json.load"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "yaml.dump"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "yaml.safe_dump"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "yaml.load"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "yaml.safe_load"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "marshal.dumps"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "marshal.dump"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "marshal.loads"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "marshal.load"
+        }
+      ],
+      "file_operations": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "open"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.open"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pathlib.Path.open"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pathlib.Path.read_text"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pathlib.Path.write_text"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pathlib.Path.read_bytes"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "pathlib.Path.write_bytes"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.open"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.read"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "os.write"
+        }
+      ]
+    },
+    "integration": {
+      "xpath_queries": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "lxml.etree._Element.xpath"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "lxml.etree._ElementTree.xpath"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "xml.etree.ElementTree.Element.find"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "xml.etree.ElementTree.Element.findall"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "xml.etree.ElementTree.Element.findtext"
+        }
+      ],
+      "ldap_queries": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "ldap.initialize"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "ldap.ldapobject.SimpleLDAPObject.search"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "ldap.ldapobject.SimpleLDAPObject.search_s"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "ldap.ldapobject.SimpleLDAPObject.search_st"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "ldap3.Connection.search"
+        }
+      ],
+      "http_clients": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.post"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.put"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.delete"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.patch"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "requests.request"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "urllib.request.urlopen"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "urllib.request.urlretrieve"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "urllib.request.Request"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "httpx.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "httpx.post"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "httpx.Client.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "httpx.Client.post"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "aiohttp.ClientSession.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "aiohttp.ClientSession.post"
+        }
+      ]
+    },
+    "communication": {
+      "http_server": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "flask.Flask.route"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "flask.Flask.add_url_rule"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "fastapi.FastAPI.get"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "fastapi.FastAPI.post"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "fastapi.FastAPI.put"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "fastapi.FastAPI.delete"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.urls.path"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.urls.re_path"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "http.server.BaseHTTPRequestHandler.do_GET"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "http.server.BaseHTTPRequestHandler.do_POST"
+        }
+      ]
+    },
+    "logging": {
+      "logging_operations": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.debug"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.info"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.warning"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.error"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.critical"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.log"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.Logger.debug"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.Logger.info"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.Logger.warning"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.Logger.error"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "logging.Logger.critical"
+        }
+      ]
+    },
+    "security": {
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "jwt.encode"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "jwt.decode"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "jose.jwt.encode"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "jose.jwt.decode"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "cryptography.fernet.Fernet.encrypt"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "cryptography.fernet.Fernet.decrypt"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "hashlib.md5"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "hashlib.sha1"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "hashlib.sha256"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "hashlib.sha512"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "bcrypt.hashpw"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "bcrypt.checkpw"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "passlib.hash.bcrypt.hash"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "passlib.hash.bcrypt.verify"
+        }
+      ],
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "flask_login.login_required"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.contrib.auth.decorators.login_required"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "django.contrib.auth.decorators.permission_required"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "fastapi.Depends"
+        }
+      ]
+    }
+  }
+}

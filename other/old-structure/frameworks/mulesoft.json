@@ -1,0 +1,142 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Mulesoft",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.mule.extension.http.api.*",
+        "org.mule.runtime.http.api.domain.message.*",
+        "org.mule.runtime.http.api.domain.message.request.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValue(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValueIgnoreCase(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValues(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderValuesIgnoreCase(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaders()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getHeaderNames()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.HttpMessage.getEntity()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.request.HttpRequest.getPath()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.request.HttpRequest.getUri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.runtime.http.api.domain.message.request.HttpRequest.getQueryParams()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpAttributes.getHeaders()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.BaseHttpRequestAttributes.getQueryParams()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.BaseHttpRequestAttributes.getUriParams()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.BaseHttpRequestAttributes.getRequestPath()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getRelativePath()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getRawRequestPath()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getMaskedRequestPath()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getRequestUri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getRawRequestUri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.mule.extension.http.api.HttpRequestAttributes.getQueryString()"
+        }
+      ]
+    }
+  }
+}

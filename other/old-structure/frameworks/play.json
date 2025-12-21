@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Play",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "conf/application.conf",
+        "conf/routes"
+      ]
+    },
+    "dependencies": {
+      "build.sbt": [
+        {
+          "pattern": "com.typesafe.play",
+          "library": "Play Framework"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "play.api.mvc.*",
+        "play.core.parsers.*",
+        "play.data.*",
+        "play.mvc.*",
+        "play.utils.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.data.Form.bindFromRequest(java.lang.String[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.data.Form.bindFromRequest(play.mvc.Http$Request,java.lang.String[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.data.Form.bindFromRequest(java.util.Map,java.lang.String[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.data.Form.bind(com.fasterxml.jackson.databind.JsonNode,java.lang.String[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.data.Form.bind(java.util.Map,java.lang.String[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.queryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.getQueryString(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.headers()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.getHeader(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.cookies()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestHeader.cookie(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asText()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asXml()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asJson()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asRaw()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asFormUrlEncoded()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.asMultipartFormData()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$MultipartFormData$FilePart.getContentType()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$MultipartFormData$FilePart.getFile()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$MultipartFormData$FilePart.getFileName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$MultipartFormData$FilePart.getKey()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$RequestBody.as(java.lang.Class)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$Request.path()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$Request.uri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.Request.body()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.queryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.getQueryString(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.rawQueryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.uri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.path()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.headers()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.MultipartFormData$FilePart.contentType()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.MultipartFormData$FilePart.ref()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.MultipartFormData$FilePart.fileName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.MultipartFormData$FilePart.key()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.core.parsers.Multipart$FileInfo.partName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.core.parsers.Multipart$FileInfo.fileName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.api.mvc.RequestHeader.cookies()"
+        }
+      ],
+      "propagators": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.utils.UriEncoding$.decodePath(java.lang.String,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.utils.UriEncoding$.decodePathSegment(java.lang.String,java.lang.String)"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "pattern": "play.utils.UriEncoding$.encodePathSegment(java.lang.String,java.lang.String)"
+        }
+      ],
+      "cookie_security": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$Cookie.<init>:void(java.lang.String,java.lang.String,java.lang.Integer,java.lang.String,java.lang.String,boolean,boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "play.mvc.Http$Cookie.<init>:void(java.lang.String,java.lang.String,java.lang.Integer,java.lang.String,java.lang.String,boolean,boolean,play.mvc.Http$Cookie$SameSite)"
+        }
+      ]
+    }
+  }
+}

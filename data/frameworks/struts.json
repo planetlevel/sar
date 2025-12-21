@@ -1,0 +1,152 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Struts",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "struts.xml",
+        "struts-config.xml"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "struts2-core",
+          "library": "Struts 2"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.apache.struts",
+          "library": "Struts"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "com.opensymphony.xwork2.interceptor.*",
+        "org.apache.struts.taglib.*",
+        "org.apache.struts.util.*",
+        "org.apache.struts2.interceptor.*",
+        "webwork.util.*"
+      ]
+    }
+  },
+  "architecture": {
+    "routing": {
+      "route_definitions": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name_regex",
+          "pattern": [
+            "Action",
+            "Actions",
+            "Namespace"
+          ],
+          "description": "route_definitions.annotations patterns"
+        }
+      ],
+      "parameters": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name_regex",
+          "pattern": ".*Param"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "set.*"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "set.*"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "set.*"
+        }
+      ],
+      "handler_classes": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Action"
+        }
+      ]
+    },
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.opensymphony.xwork2.interceptor.ParametersInterceptor.acceptableName(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts2.interceptor.CookieInterceptor.isAcceptableName(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "webwork.util.TextUtil.escapeHTML(java.lang.String,boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.util.ResponseUtils.filter(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.taglib.TagUtils.filter(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.util.ResponseUtils.encodeURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.util.ResponseUtils.encodeURL(java.lang.String,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.taglib.TagUtils.encodeURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.apache.struts.taglib.TagUtils.encodeURL(java.lang.String,java.lang.String)"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Hugging Face",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "huggingface",
+          "library": "Hugging Face"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "co.huggingface",
+          "library": "Hugging Face"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "co.huggingface.HfApi.inference:co.huggingface.InferenceOutput(java.lang.String,co.huggingface.InferenceInput)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "co.huggingface.transformers.Pipeline.predict:java.lang.Object(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

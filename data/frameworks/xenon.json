@@ -1,0 +1,70 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Xenon",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "com.vmware.xenon.common.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getUri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getBodyRaw()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getBody(java.lang.Class)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getRequestHeader(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getRequestHeaderAsIs(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.vmware.xenon.common.Operation.getCookies()"
+        }
+      ]
+    }
+  }
+}

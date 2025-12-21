@@ -1,0 +1,134 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Jboss_Netty",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "netty-all",
+          "library": "Netty"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "io.netty",
+          "library": "Netty"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.jboss.netty.handler.codec.http.*",
+        "org.jboss.netty.handler.codec.http.multipart.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpRequest.getUri()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpHeaders.get(java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpHeaders.getAll(java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpHeaders.get(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpHeaders.getAll(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpHeaders.entries()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.InterfaceHttpData.getName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.HttpData.get()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.HttpData.getString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.HttpData.getString(java.nio.charset.Charset)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.FileUpload.getContentTransferEncoding()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.FileUpload.getContentType()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.FileUpload.getFilename()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.Attribute.getValue()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.multipart.FileUpload.getFile()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.netty.handler.codec.http.HttpContent.content()"
+        }
+      ]
+    }
+  }
+}

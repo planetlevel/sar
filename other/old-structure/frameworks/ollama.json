@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Ollama",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "ollama4j",
+          "library": "Ollama4j"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "io.github.ollama4j",
+          "library": "Ollama"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.github.ollama4j.OllamaAPI.generate:io.github.ollama4j.models.OllamaResult(java.lang.String,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.github.ollama4j.OllamaAPI.chat:io.github.ollama4j.models.OllamaResult(java.lang.String,java.util.List)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.github.ollama4j.OllamaAPI.listModels:java.util.List()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "io.github.ollama4j.OllamaAPI.generateWithImageFiles:io.github.ollama4j.models.OllamaResult(java.lang.String,java.lang.String,java.util.List)"
+        }
+      ]
+    }
+  }
+}

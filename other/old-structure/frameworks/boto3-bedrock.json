@@ -1,0 +1,40 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "AWS Boto3 Bedrock",
+  "languages": [
+    "python"
+  ],
+  "extends": "python",
+  "detection": {
+    "dependencies": {
+      "requirements.txt": [
+        {
+          "pattern": "boto3",
+          "library": "AWS Boto3"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "pattern": "boto3",
+          "library": "AWS Boto3"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "boto3.py:<module>.<returnValue>.<member>(bedrock-runtime).invoke_model"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "boto3.py:<module>.<returnValue>.<member>(bedrock-runtime).invoke_model_with_response_stream"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://compass.contrastsecurity.com/schema/defense-report/1.0",
+  "title": "Compass Defense Analysis Report",
+  "description": "CycloneDX-style schema for Compass defense analysis findings and recommendations",
+  "type": "object",
+  "required": ["bomFormat", "metadata", "results"],
+  "properties": {
+    "bomFormat": {
+      "type": "string",
+      "enum": ["CompassDefenseReport"],
+      "description": "Specifies the format of the BOM"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the analysis execution",
+      "required": ["timestamp", "tools", "component"],
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the report was generated"
+        },
+        "tools": {
+          "type": "array",
+          "description": "Tools used to generate this report",
+          "items": {
+            "type": "object",
+            "required": ["vendor", "name", "version"],
+            "properties": {
+              "vendor": {
+                "type": "string",
+                "description": "Vendor/organization that created the tool",
+                "examples": ["Contrast Security"]
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the tool",
+                "examples": ["Compass Defense Analyzer"]
+              },
+              "version": {
+                "type": "string",
+                "description": "Version of the tool",
+                "examples": ["1.0.0"]
+              }
+            }
+          }
+        },
+        "component": {
+          "type": "object",
+          "description": "The application/project being analyzed",
+          "required": ["type", "name"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["application", "framework", "library", "container", "file"],
+              "description": "Type of the component being analyzed"
+            },
+            "name": {
+              "type": "string",
+              "description": "Name of the project/application"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the project"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the project"
+            },
+            "purl": {
+              "type": "string",
+              "description": "Package URL (purl) identifier"
+            },
+            "properties": {
+              "type": "array",
+              "description": "Additional properties about the component",
+              "items": {
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "examples": ["project_directory", "language", "framework", "endpoints_count"]
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "type": "array",
+          "description": "Additional metadata properties",
+          "items": {
+            "type": "object",
+            "required": ["name", "value"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "examples": ["cpg_path", "debug_mode", "analysis_duration_ms"]
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "description": "Array of defense analysis results from agents",
+      "items": {
+        "type": "object",
+        "required": ["agent_id", "agent_name", "defense_metadata", "recommendation"],
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "description": "Unique identifier for the agent",
+            "examples": ["endpoint_authorization", "data_authorization", "injection_defense"]
+          },
+          "agent_name": {
+            "type": "string",
+            "description": "Human-readable name of the agent",
+            "examples": ["Endpoint Authorization (Route-Level Access Control)", "Input Validation Analysis"]
+          },
+          "defense_metadata": {
+            "type": "object",
+            "description": "Metadata about the defense mechanisms discovered",
+            "required": ["defense_name", "defense_type", "defense_mechanism"],
+            "properties": {
+              "defense_name": {
+                "type": "string",
+                "description": "Name of the defense (e.g., Spring Security annotation, BouncyCastle encryption)",
+                "examples": ["Spring Security @PreAuthorize", "@Superadmin meta-annotation", "Hibernate Parameterized Queries"]
+              },
+              "defense_type": {
+                "type": "string",
+                "enum": ["standard", "custom", "N/A"],
+                "description": "Whether the defense is a standard framework pattern or custom implementation"
+              },
+              "defense_mechanism": {
+                "type": "string",
+                "description": "Type of mechanism used for defense",
+                "examples": ["annotation", "method", "configuration", "filter", "interceptor", "framework_json_definitions"]
+              },
+              "defense_patterns": {
+                "type": "array",
+                "description": "Patterns or signatures used to identify the defense",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "description": "Pattern string (annotation name, method signature, etc.)"
+                    },
+                    {
+                      "type": "object",
+                      "description": "Structured pattern definition",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["annotation", "method_call", "method_signature", "regex", "joern_query"]
+                        },
+                        "pattern": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "recommendation": {
+            "type": "object",
+            "description": "Strategic recommendation for improving defenses",
+            "required": ["title", "summary", "design_recommendation", "implementation_recommendation", "rationale"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Short title for the recommendation",
+                "examples": ["Consider Implementing Route-Level Authorization", "Add Input Validation to User Endpoints"]
+              },
+              "summary": {
+                "type": "string",
+                "description": "Brief summary of the finding and recommendation (2-4 sentences)"
+              },
+              "design_recommendation": {
+                "type": "string",
+                "description": "High-level architectural guidance for addressing the gap"
+              },
+              "implementation_recommendation": {
+                "type": "string",
+                "description": "Specific, actionable implementation steps"
+              },
+              "rationale": {
+                "type": "string",
+                "description": "Explanation of why this recommendation is important and how it improves security posture"
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics about the analysis",
+      "properties": {
+        "agents_ran": {
+          "type": "integer",
+          "description": "Number of agents that successfully ran",
+          "minimum": 0
+        },
+        "agents_skipped": {
+          "type": "integer",
+          "description": "Number of agents that were skipped",
+          "minimum": 0
+        },
+        "total_results": {
+          "type": "integer",
+          "description": "Total number of results generated",
+          "minimum": 0
+        },
+        "overall_coverage": {
+          "type": "number",
+          "description": "Overall defense coverage percentage (weighted average)",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    }
+  }
+}

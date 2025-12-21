@@ -1,0 +1,180 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Security Crypto",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-security-crypto*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.security.crypto.encrypt.*",
+        "org.springframework.security.crypto.password.*",
+        "org.springframework.security.crypto.password4j.*",
+        "org.springframework.security.crypto.keygen.*",
+        "org.springframework.security.crypto.bcrypt.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.security"
+        ],
+        "depth_4": [
+          "org.springframework.security.crypto"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "defense": {
+      "crypto": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.AesBytesEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BouncyCastleAesCbcBytesEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BouncyCastleAesGcmBytesEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BytesEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.TextEncryptor.encrypt:java.lang.String(java.lang.String):java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.RsaRawEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.RsaSecretEncryptor.encrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.AesBytesEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BouncyCastleAesCbcBytesEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BouncyCastleAesGcmBytesEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.BytesEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.TextEncryptor.decrypt:java.lang.String(java.lang.String):java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.RsaRawEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.encrypt.RsaSecretEncryptor.decrypt:byte[](byte[]):byte[](byte[])"
+        }
+      ],
+      "secrets": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.bcrypt.BCrypt.hashpw:java.lang.String(java.lang.String,java.lang.String):java.lang.String(java.lang.String,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.bcrypt.BCrypt.hashpw:java.lang.String(byte[],java.lang.String):java.lang.String(byte[],java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.password.AbstractValidatingPasswordEncoder.encode:java.lang.String(java.lang.CharSequence):java.lang.String(java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.password.Md4PasswordEncoder.encodeNonNullPassword:java.lang.String(java.lang.String):java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.password.PasswordEncoder.encode:java.lang.String(java.lang.CharSequence):java.lang.String(java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.factory.PasswordEncoderFactories.createDelegatingPasswordEncoder:org.springframework.security.crypto.password.PasswordEncoder():org.springframework.security.crypto.password.PasswordEncoder()"
+        }
+      ]
+    },
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.codec.Hex.encode:char[](byte[]):char[](byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.codec.Utf8.encode:byte[](java.lang.CharSequence):byte[](java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.codec.Hex.decode:byte[](java.lang.CharSequence):byte[](java.lang.CharSequence)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.crypto.codec.Utf8.decode:java.lang.String(byte[]):java.lang.String(byte[])"
+        }
+      ]
+    }
+  }
+}

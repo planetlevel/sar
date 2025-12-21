@@ -1,0 +1,298 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-data-jpa",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-data-jpa",
+    "branch": "main",
+    "commit": "7332f29b2b5b26e2ad93895c6bf86c27066b2d67",
+    "date": "2025-10-31"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "aop.xml",
+        "spring-data-jpa*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-data-jpa",
+          "library": "spring-data-jpa"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.data.jpa.*",
+        "org.springframework.data.envers.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.data"
+        ],
+        "depth_4": [
+          "org.springframework.data.jpa",
+          "org.springframework.data.envers"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "database": {
+      "orm_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.JpaRepository.saveAndFlush:java.lang.Object(java.lang.Object)",
+          "description": "Saves an entity and immediately flushes changes to the database"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.JpaRepository.saveAllAndFlush:java.util.List(java.lang.Iterable)",
+          "description": "Saves multiple entities and immediately flushes changes to the database"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.save:java.lang.Object(java.lang.Object)",
+          "description": "Saves a given entity in the database"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.saveAll:java.util.List(java.lang.Iterable)",
+          "description": "Saves all given entities in the database"
+        }
+      ],
+      "jpa_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.provider.PersistenceProvider.executeQueryWithResultStream:org.springframework.data.util.CloseableIterator(jakarta.persistence.Query)",
+          "description": "Executes a JPA query and returns results as a stream"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute:java.lang.Object(java.lang.Object[])",
+          "description": "Executes a JPA query with given parameters"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.JpaQueryExecution.execute:java.lang.Object(org.springframework.data.jpa.repository.query.AbstractJpaQuery,org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor)",
+          "description": "Executes a JPA query with parameter accessor"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.mapping.JpaPersistentEntityImpl.verify:void():void()",
+          "description": "Verifies JPA entity configuration and mappings"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.QuerydslRepositorySupport.validate:void():void()",
+          "description": "Validates JPA repository configuration and setup"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.DefaultQueryHints.withFetchGraphs:org.springframework.data.jpa.repository.support.QueryHints(jakarta.persistence.EntityManager)",
+          "description": "Configures JPA fetch graph hints for optimizing entity loading behavior"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.MutableQueryHints.withFetchGraphs:org.springframework.data.jpa.repository.support.QueryHints(jakarta.persistence.EntityManager)",
+          "description": "Adds JPA fetch graph hints to a mutable query hints collection"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.QueryHints.withFetchGraphs:org.springframework.data.jpa.repository.support.QueryHints(jakarta.persistence.EntityManager)",
+          "description": "Interface method for applying JPA fetch graph hints to queries"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.QueryHints$NoHints.withFetchGraphs:org.springframework.data.jpa.repository.support.QueryHints(jakarta.persistence.EntityManager)",
+          "description": "No-op implementation for JPA fetch graph hints when no hints are needed"
+        }
+      ],
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById:java.util.Optional(java.lang.Object)",
+          "description": "Retrieves an entity by its ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findAll:java.util.List()",
+          "description": "Retrieves all entities"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.deleteById:void(java.lang.Object)",
+          "description": "Deletes an entity by its ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.delete:void(java.lang.Object)",
+          "description": "Deletes a given entity"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.JpaQueryMethodFactory.build:org.springframework.data.jpa.repository.query.JpaQueryMethod(java.lang.reflect.Method,org.springframework.data.repository.core.RepositoryMetadata,org.springframework.data.projection.ProjectionFactory):org.springframework.data.jpa.repository.query.JpaQueryMethod(java.lang.reflect.Method,org.springframework.data.repository.core.RepositoryMetadata,org.springframework.data.projection.ProjectionFactory)",
+          "description": "Builds JPA repository query methods from method metadata"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor.postProcessBeanFactory:void(org.springframework.beans.factory.config.ConfigurableListableBeanFactory):void(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)",
+          "description": "Processes and registers EntityManager beans for repositories"
+        }
+      ],
+      "sql_queries": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.JpaQueryCreator$PredicateBuilder.build:org.springframework.data.jpa.repository.query.JpqlQueryBuilder$Predicate():org.springframework.data.jpa.repository.query.JpqlQueryBuilder$Predicate()",
+          "description": "Builds JPQL query predicates for database queries"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.QueryUtils.createCountQueryFor:java.lang.String(java.lang.String,java.lang.String,boolean):java.lang.String(java.lang.String,java.lang.String,boolean)",
+          "description": "Creates SQL COUNT query from original query string"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.ParameterBinding$Indexed.withPosition:org.springframework.data.jpa.repository.query.ParameterBinding$BindingIdentifier(int)",
+          "description": "Creates positional parameter binding for JPA queries"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.ParameterBinding$NamedAndIndexed.withPosition:org.springframework.data.jpa.repository.query.ParameterBinding$BindingIdentifier(int)",
+          "description": "Creates combined named and positional parameter binding for JPA queries"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.QueryTransformers$CountSelectionTokenStream.withoutConstructorExpression:org.springframework.data.jpa.repository.query.QueryTransformers$CountSelectionTokenStream()",
+          "description": "Transforms JPA query tokens by removing constructor expressions for count queries"
+        }
+      ]
+    },
+    "data_flow": {
+      "data_accessors": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.JpaRepository.getOne:java.lang.Object(java.lang.Object)",
+          "description": "Repository method to get entity reference by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.JpaRepository.getById:java.lang.Object(java.lang.Object)",
+          "description": "Repository method to get entity by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.JpaRepository.getReferenceById:java.lang.Object(java.lang.Object)",
+          "description": "Repository method to get entity reference by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById:java.util.Optional(java.lang.Object)",
+          "description": "Repository implementation method to find entity by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getOne:java.lang.Object(java.lang.Object)",
+          "description": "Repository implementation method to get entity reference by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getById:java.lang.Object(java.lang.Object)",
+          "description": "Repository implementation method to get entity by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.getReferenceById:java.lang.Object(java.lang.Object)",
+          "description": "Repository implementation method to get entity reference by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.data.jpa.repository.support.SimpleJpaRepository.findAllById:java.util.List(java.lang.Iterable)",
+          "description": "Repository implementation method to find multiple entities by IDs"
+        }
+      ],
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.aot.AotQueries$AotQueryMetadata.serialize:java.util.Map():java.util.Map()",
+          "description": "Serializes AOT query metadata to a map representation"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.aot.JpaRepositoryContributor$StoredProcedureMetadata.serialize:java.util.Map():java.util.Map()",
+          "description": "Serializes stored procedure metadata to a map representation"
+        }
+      ]
+    },
+    "execution": {
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.HqlQueryRenderer.visitTruncFunction:org.springframework.data.jpa.repository.query.QueryTokenStream(org.springframework.data.jpa.repository.query.QueryTokens.TruncFunctionContext)",
+          "description": "Evaluates and renders a TRUNC function expression in HQL"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.HqlOrderExpressionVisitor.visitTruncFunction:jakarta.persistence.criteria.Expression(java.time.format.DateTimeFormatter.TruncFunctionContext)",
+          "description": "Evaluates a TRUNC function in an ORDER BY expression"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.data.jpa.repository.query.QueryEnhancer.create:org.springframework.data.jpa.repository.query.QueryEnhancer(org.springframework.data.jpa.repository.query.DeclaredQuery):org.springframework.data.jpa.repository.query.QueryEnhancer(org.springframework.data.jpa.repository.query.DeclaredQuery)",
+          "description": "Creates query enhancer for evaluating and modifying JPQL expressions"
+        }
+      ]
+    }
+  }
+}

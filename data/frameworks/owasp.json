@@ -1,0 +1,420 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Owasp",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.owasp.encoder.*",
+        "org.owasp.esapi.*",
+        "org.owasp.esapi.codecs.*",
+        "org.owasp.html.*",
+        "org.owasp.validator.html.*",
+        "org.owasp.validator.html.scan.*"
+      ]
+    }
+  },
+  "architecture": {
+    "data_flow": {
+      "propagators": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.decode(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.decode(java.lang.String,int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.decode(byte[],int,int,int)"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Validator.isValidDirectoryPath(java.lang.String,java.lang.String,java.io.File,boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Validator.isValidFileName(java.lang.String,java.lang.String,java.util.List,boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.validator.html.scan.AbstractAntiSamyScanner.scan(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.validator.html.CleanResults.getCleanHTML()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.validator.html.CleanResults.getCleanXMLDocumentFragment()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForXML(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForXMLAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForHTML(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.decodeForHTML(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForHTMLAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.decodeFromURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForXPath(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForLDAP(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForOS(org.owasp.esapi.codecs.Codec,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForSQL(org.owasp.esapi.codecs.Codec,java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForBase64(byte[],boolean)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.decodeFromBase64(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForCSS(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForJavaScript(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.Encoder.encodeForVBScript(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.html.PolicyFactory.sanitize(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtml(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlContent(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlUnquotedAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXml(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlComment(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlContent(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUri(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUriComponent(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScript(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptAttribute(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptBlock(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptSource(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssString(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssUrl(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.encodeBytes(byte[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int,int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.esapi.codecs.Base64.encodeBytes(byte[],int,int,int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtml:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlContent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScript:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptBlock:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptSource:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssString:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssUrl:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUri:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUriComponent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXml:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlContent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlComment:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.html.PolicyFactory.sanitize:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.html.HtmlPolicyBuilder.toFactory:org.owasp.html.PolicyFactory()"
+        }
+      ],
+      "output_encoding": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtml:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forHtmlContent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScript:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptBlock:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forJavaScriptSource:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssString:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forCssUrl:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUri:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forUriComponent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXml:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlAttribute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlContent:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.owasp.encoder.Encode.forXmlComment:java.lang.String(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,856 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Thymeleaf",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/thymeleaf/thymeleaf",
+    "branch": "3.1-master",
+    "commit": "804d5be1979950a2b83886f1a8eb979429ffa3c0",
+    "date": "2025-05-27"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "thymeleaf.properties",
+        "thymeleaf*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "thymeleaf",
+          "library": "Thymeleaf"
+        },
+        {
+          "artifact": "thymeleaf-spring4",
+          "library": "Thymeleaf"
+        },
+        {
+          "artifact": "thymeleaf-spring5",
+          "library": "Thymeleaf"
+        },
+        {
+          "artifact": "thymeleaf-spring6",
+          "library": "Thymeleaf"
+        },
+        {
+          "artifact": "spring-boot-starter-thymeleaf",
+          "library": "Thymeleaf"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.thymeleaf:thymeleaf",
+          "library": "Thymeleaf"
+        },
+        {
+          "pattern": "org.thymeleaf:thymeleaf-spring4",
+          "library": "Thymeleaf"
+        },
+        {
+          "pattern": "org.thymeleaf:thymeleaf-spring5",
+          "library": "Thymeleaf"
+        },
+        {
+          "pattern": "org.thymeleaf:thymeleaf-spring6",
+          "library": "Thymeleaf"
+        },
+        {
+          "pattern": "org.springframework.boot:spring-boot-starter-thymeleaf",
+          "library": "Thymeleaf"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.thymeleaf.*",
+        "org.thymeleaf.context.*",
+        "org.thymeleaf.spring4.*",
+        "org.thymeleaf.spring5.*",
+        "org.thymeleaf.spring6.*",
+        "org.thymeleaf.templateresolver.*",
+        "org.thymeleaf.templatemode.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.thymeleaf"
+        ],
+        "depth_3": [
+          "org.thymeleaf.examples",
+          "org.thymeleaf.standard",
+          "org.thymeleaf.spring5",
+          "org.thymeleaf.spring6",
+          "org.thymeleaf.engine",
+          "org.thymeleaf.util",
+          "org.thymeleaf.templateparser",
+          "org.thymeleaf.extras",
+          "org.thymeleaf.processor",
+          "org.thymeleaf.context",
+          "org.thymeleaf.expression",
+          "org.thymeleaf.model",
+          "org.thymeleaf.web",
+          "org.thymeleaf.cache",
+          "org.thymeleaf.templateresolver",
+          "org.thymeleaf.exceptions",
+          "org.thymeleaf.dialect",
+          "org.thymeleaf.templateresource",
+          "org.thymeleaf.linkbuilder",
+          "org.thymeleaf.messageresolver"
+        ],
+        "depth_4": [
+          "org.thymeleaf.standard.expression",
+          "org.thymeleaf.standard.processor",
+          "org.thymeleaf.examples.spring5",
+          "org.thymeleaf.examples.spring6",
+          "org.thymeleaf.examples.springboot2",
+          "org.thymeleaf.examples.springboot3",
+          "org.thymeleaf.examples.core",
+          "org.thymeleaf.extras.springsecurity5",
+          "org.thymeleaf.extras.springsecurity6",
+          "org.thymeleaf.spring5.expression",
+          "org.thymeleaf.spring6.expression",
+          "org.thymeleaf.templateparser.text",
+          "org.thymeleaf.spring5.processor",
+          "org.thymeleaf.spring6.processor",
+          "org.thymeleaf.spring5.context",
+          "org.thymeleaf.spring6.context",
+          "org.thymeleaf.templateparser.markup",
+          "org.thymeleaf.web.servlet",
+          "org.thymeleaf.processor.element",
+          "org.thymeleaf.spring5.util"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "execution": {
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.Expression.execute:java.lang.Object(org.thymeleaf.context.IExpressionContext)",
+          "description": "Executes a Thymeleaf expression within given context and returns result"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.Expression.execute:java.lang.Object(org.thymeleaf.context.IExpressionContext,org.thymeleaf.standard.expression.StandardExpressionExecutionContext)",
+          "description": "Executes a Thymeleaf expression with additional execution context parameters"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.IStandardExpression.execute:java.lang.Object(org.thymeleaf.context.IExpressionContext)",
+          "description": "Interface method for executing standard Thymeleaf expressions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.IStandardExpression.execute:java.lang.Object(org.thymeleaf.context.IExpressionContext,org.thymeleaf.standard.expression.StandardExpressionExecutionContext)",
+          "description": "Interface method for executing standard Thymeleaf expressions with execution context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.testing.templateengine.context.ITestContextExpression.evaluate:java.lang.Object(java.util.Map,java.util.Locale)",
+          "description": "Evaluates test context expressions with given context map and locale"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.testing.templateengine.context.OgnlTestContextExpression.evaluate:java.lang.Object(java.util.Map,java.util.Locale)",
+          "description": "Evaluates OGNL expressions in test context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring5.expression.SPELVariableExpressionEvaluator.evaluate:java.lang.Object(org.thymeleaf.context.IExpressionContext,org.thymeleaf.standard.expression.IStandardVariableExpression,org.thymeleaf.standard.expression.StandardExpressionExecutionContext)",
+          "description": "Evaluates Spring Expression Language (SpEL) expressions in Spring 5"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring6.expression.SPELVariableExpressionEvaluator.evaluate:java.lang.Object(org.thymeleaf.context.IExpressionContext,org.thymeleaf.standard.expression.IStandardVariableExpression,org.thymeleaf.standard.expression.StandardExpressionExecutionContext)",
+          "description": "Evaluates Spring Expression Language (SpEL) expressions in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.EngineEventUtils.computeAttributeExpression:org.thymeleaf.standard.expression.IStandardExpression(org.thymeleaf.context.ITemplateContext,org.thymeleaf.model.IProcessableElementTag,org.thymeleaf.engine.AttributeName,java.lang.String)",
+          "description": "Evaluates and computes template expressions within HTML attribute values"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.AbstractStandardConversionService.convert:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.Object,java.lang.Class)",
+          "description": "Converts expression results between types"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.FragmentExpression.createExecutedFragmentExpression:org.thymeleaf.standard.expression.FragmentExpression$ExecutedFragmentExpression(org.thymeleaf.context.IExpressionContext,org.thymeleaf.standard.expression.FragmentExpression)",
+          "description": "Creates an executed fragment expression for template fragment evaluation"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.expression.StandardExpressionObjectFactory.buildObject:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.String)",
+          "description": "Builds expression objects for standard Thymeleaf expressions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring5.expression.SpringStandardExpressionObjectFactory.buildObject:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.String)",
+          "description": "Builds Spring-specific expression objects for template evaluation"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring6.expression.SpringStandardExpressionObjectFactory.buildObject:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.String)",
+          "description": "Builds Spring 6 expression objects for template evaluation"
+        }
+      ],
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.ClassLoaderUtils.findClass:java.lang.Class(java.lang.String)",
+          "description": "Dynamically loads a class using reflection"
+        }
+      ]
+    },
+    "data_flow": {
+      "data_accessors": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.CustomerRepository.findById:Customer(Integer)",
+          "description": "Repository method to find customer by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.OrderRepository.findById:Order(Integer)",
+          "description": "Repository method to find order by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.OrderRepository.findByCustomerId:List(Integer)",
+          "description": "Repository method to find orders by customer ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.ProductRepository.findById:Product(Integer)",
+          "description": "Repository method to find product by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.services.CustomerService.findById:Customer(Integer)",
+          "description": "Service method to find customer by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.services.OrderService.findById:Order(Integer)",
+          "description": "Service method to find order by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.services.OrderService.findByCustomerId:List(Integer)",
+          "description": "Service method to find orders by customer ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.core.gtvg.jakarta.business.services.ProductService.findById:Product(Integer)",
+          "description": "Service method to find product by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.spring5.stsm.business.entities.repositories.VarietyRepository.findById:Variety(Integer)",
+          "description": "Repository method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.spring5.stsm.business.services.VarietyService.findById:Variety(Integer)",
+          "description": "Service method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.spring6.stsm.business.entities.repositories.VarietyRepository.findById:Variety(Integer)",
+          "description": "Repository method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.spring6.stsm.business.services.VarietyService.findById:Variety(Integer)",
+          "description": "Service method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.springboot2.stsm.mvc.business.entities.repositories.VarietyRepository.findById:Variety(Integer)",
+          "description": "Repository method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.springboot2.stsm.mvc.business.services.VarietyService.findById:Variety(Integer)",
+          "description": "Service method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.springboot2.stsm.webflux.business.entities.repositories.VarietyRepository.findById:Mono(Integer)",
+          "description": "Reactive repository method to find variety by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.thymeleaf.examples.springboot2.stsm.webflux.business.services.VarietyService.findById:Mono(Integer)",
+          "description": "Reactive service method to find variety by ID"
+        }
+      ],
+      "file_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring5.web.webflux.SpringWebFluxWebApplication.getResourceAsStream:java.io.InputStream(java.lang.String):java.io.InputStream(java.lang.String)",
+          "description": "Opens input stream for reading application resources"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring6.web.webflux.SpringWebFluxWebApplication.getResourceAsStream:java.io.InputStream(java.lang.String):java.io.InputStream(java.lang.String)",
+          "description": "Opens input stream for reading application resources in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.IWebApplication.getResourceAsStream:java.io.InputStream(java.lang.String)",
+          "description": "Reads application resource files as input streams"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.servlet.IServletWebApplication.getResource:java.net.URL(java.lang.String)",
+          "description": "Retrieves application resources as URLs"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.testing.templateengine.util.ResourceUtils.createTempFile:java.io.File(java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
+          "description": "Creates a temporary file with specified content and encoding"
+        }
+      ],
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.templateparser.ITemplateParser.parseStandalone:void(org.thymeleaf.IEngineConfiguration,java.lang.String,java.lang.String,java.util.Set,org.thymeleaf.templateresource.ITemplateResource,org.thymeleaf.templatemode.TemplateMode,boolean,org.thymeleaf.engine.ITemplateHandler)",
+          "description": "Parses standalone template content into processable template events"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.templateparser.ITemplateParser.parseString:void(org.thymeleaf.IEngineConfiguration,java.lang.String,java.lang.String,int,int,org.thymeleaf.templatemode.TemplateMode,org.thymeleaf.engine.ITemplateHandler)",
+          "description": "Parses template string content with position tracking"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.templateparser.markup.AbstractMarkupTemplateParser.parseStandalone:void(org.thymeleaf.IEngineConfiguration,java.lang.String,java.lang.String,java.util.Set,org.thymeleaf.templateresource.ITemplateResource,org.thymeleaf.templatemode.TemplateMode,boolean,org.thymeleaf.engine.ITemplateHandler)",
+          "description": "Parses markup template content into template events"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.templateparser.markup.AbstractMarkupTemplateParser.parseString:void(org.thymeleaf.IEngineConfiguration,java.lang.String,java.lang.String,int,int,org.thymeleaf.templatemode.TemplateMode,org.thymeleaf.engine.ITemplateHandler)",
+          "description": "Parses markup string content into template events"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createXMLDeclaration:org.thymeleaf.model.IXMLDeclaration(java.lang.String,java.lang.String,java.lang.String)",
+          "description": "Creates an XML declaration node with version, encoding and standalone attributes"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.model.IModelFactory.createXMLDeclaration:org.thymeleaf.model.IXMLDeclaration(java.lang.String,java.lang.String,java.lang.String)",
+          "description": "Creates an XML declaration node with version, encoding and standalone attributes"
+        }
+      ],
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.IWebRequest.getRequestPath:java.lang.String()",
+          "description": "Retrieves the request path from incoming HTTP request"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.IWebRequest.getRequestURL:java.lang.String()",
+          "description": "Retrieves the full request URL from incoming HTTP request"
+        }
+      ],
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.serializer.IStandardCSSSerializer.serializeValue:void(java.lang.Object,java.io.Writer)",
+          "description": "Serializes an object to CSS format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.serializer.IStandardJavaScriptSerializer.serializeValue:void(java.lang.Object,java.io.Writer)",
+          "description": "Serializes an object to JavaScript format"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.standard.serializer.StandardJavaScriptSerializer.serializeValue:void(java.lang.Object,java.io.Writer)",
+          "description": "Standard implementation for serializing objects to JavaScript"
+        }
+      ]
+    },
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.CustomerRepository.findAll:java.util.List()",
+          "description": "Retrieves all customers from repository"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.OrderRepository.findAll:java.util.List()",
+          "description": "Retrieves all orders from repository"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.ProductRepository.findAll:java.util.List()",
+          "description": "Retrieves all products from repository"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.core.gtvg.jakarta.business.entities.repositories.OrderRepository.findByCustomerId:java.util.List(java.lang.Integer)",
+          "description": "Retrieves orders for a specific customer from repository"
+        }
+      ]
+    },
+    "defense": {
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.AclAuthUtils.authorizeUsingAccessControlList:boolean(org.thymeleaf.context.IExpressionContext,java.lang.Object,org.springframework.context.ApplicationContext,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Performs access control list authorization check for a domain object using Spring Security"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.AuthUtils.authorizeUsingAccessExpression:boolean(org.thymeleaf.context.IExpressionContext,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Evaluates Spring Security access expression to determine authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.AuthUtils.authorizeUsingUrlCheck:boolean(org.thymeleaf.context.IExpressionContext,java.lang.String,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Checks if user is authorized to access specific URL with given HTTP method"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.AclAuthUtils.authorizeUsingAccessControlList:boolean(org.thymeleaf.context.IExpressionContext,java.lang.Object,org.springframework.context.ApplicationContext,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Performs access control list authorization check for Spring Security 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.AuthUtils.authorizeUsingAccessExpression:boolean(org.thymeleaf.context.IExpressionContext,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Evaluates Spring Security 6 access expression for authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.AuthUtils.authorizeUsingUrlCheck:boolean(org.thymeleaf.context.IExpressionContext,java.lang.String,java.lang.String,org.springframework.security.core.Authentication)",
+          "description": "Checks URL access authorization for Spring Security 6"
+        }
+      ],
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.AclAuthorization.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Retrieves the current Authentication object from Spring Security context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.AuthUtils.getAuthenticationObject:org.springframework.security.core.Authentication(org.thymeleaf.context.IExpressionContext):org.springframework.security.core.Authentication(org.thymeleaf.context.IExpressionContext)",
+          "description": "Gets Authentication object from expression context for security operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.auth.Authorization.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Retrieves Authentication object for authorization decisions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.AclAuthorization.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets Authentication object for ACL-based authorization in Spring Security 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.AuthUtils.getAuthenticationObject:org.springframework.security.core.Authentication(org.thymeleaf.context.IExpressionContext):org.springframework.security.core.Authentication(org.thymeleaf.context.IExpressionContext)",
+          "description": "Retrieves Authentication object from context in Spring Security 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.auth.Authorization.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets current Authentication for authorization in Spring Security 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.dialect.expression.SpringSecurityExpressionObjectFactory.buildObject:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.String)",
+          "description": "Creates security expression objects for Spring Security 5 authentication/authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.dialect.expression.SpringSecurityExpressionObjectFactory.buildObject:java.lang.Object(org.thymeleaf.context.IExpressionContext,java.lang.String)",
+          "description": "Creates security expression objects for Spring Security 6 authentication/authorization"
+        }
+      ],
+      "output_encoding": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.EscapedAttributeUtils.escapeAttribute:java.lang.String(org.thymeleaf.templatemode.TemplateMode,java.lang.String)",
+          "description": "Escapes attribute values based on template mode"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.StringUtils.escapeXml:java.lang.String(java.lang.Object)",
+          "description": "Escapes special characters for XML output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.StringUtils.escapeJavaScript:java.lang.String(java.lang.Object)",
+          "description": "Escapes special characters for JavaScript output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.StringUtils.escapeJava:java.lang.String(java.lang.Object)",
+          "description": "Escapes special characters for Java string output"
+        }
+      ]
+    },
+    "integration": {
+      "email": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.business.service.EmailService.sendTextMail:void(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends plain text email using Spring Mail"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.business.service.EmailService.sendSimpleMail:void(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends simple email using Spring Mail"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.business.service.EmailService.sendMailWithAttachment:void(java.lang.String,java.lang.String,java.lang.String,byte[],java.lang.String,java.util.Locale)",
+          "description": "Sends email with file attachment using Spring Mail"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.business.service.EmailService.sendMailWithInline:void(java.lang.String,java.lang.String,java.lang.String,byte[],java.lang.String,java.util.Locale)",
+          "description": "Sends email with inline content using Spring Mail"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.business.service.EmailService.sendEditableMail:void(java.lang.String,java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends editable email template using Spring Mail"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.business.service.EmailService.sendTextMail:void(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends plain text email using Spring Mail 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.business.service.EmailService.sendSimpleMail:void(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends simple email using Spring Mail 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.business.service.EmailService.sendMailWithAttachment:void(java.lang.String,java.lang.String,java.lang.String,byte[],java.lang.String,java.util.Locale)",
+          "description": "Sends email with file attachment using Spring Mail 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.business.service.EmailService.sendMailWithInline:void(java.lang.String,java.lang.String,java.lang.String,byte[],java.lang.String,java.util.Locale)",
+          "description": "Sends email with inline content using Spring Mail 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.business.service.EmailService.sendEditableMail:void(java.lang.String,java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Sends editable email template using Spring Mail 6"
+        }
+      ],
+      "filesystem": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.ClassLoaderUtils.findResource:java.net.URL(java.lang.String)",
+          "description": "Locates a resource file in the classpath"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.util.ClassLoaderUtils.findResourceAsStream:java.io.InputStream(java.lang.String)",
+          "description": "Opens an input stream to a classpath resource"
+        }
+      ],
+      "http_clients": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.IWebExchange.transformURL:java.lang.String(java.lang.String)",
+          "description": "Transforms URLs for web request handling"
+        }
+      ]
+    },
+    "routing": {
+      "handler_classes": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.web.controller.SendingController.sendTextMail:java.lang.String(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Controller handler for sending text email"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.web.controller.SendingController.sendSimpleMail:java.lang.String(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Controller handler for sending simple email"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.web.controller.SendingController.sendMailWithAttachment:java.lang.String(java.lang.String,java.lang.String,org.springframework.web.multipart.MultipartFile,java.util.Locale)",
+          "description": "Controller handler for sending email with attachment"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring5.springmail.web.controller.SendingController.sendMailWithInline:java.lang.String(java.lang.String,java.lang.String,org.springframework.web.multipart.MultipartFile,java.util.Locale)",
+          "description": "Controller handler for sending email with inline content"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.web.controller.SendingController.sendTextMail:java.lang.String(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Controller handler for sending text email in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.web.controller.SendingController.sendSimpleMail:java.lang.String(java.lang.String,java.lang.String,java.util.Locale)",
+          "description": "Controller handler for sending simple email in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.web.controller.SendingController.sendMailWithAttachment:java.lang.String(java.lang.String,java.lang.String,org.springframework.web.multipart.MultipartFile,java.util.Locale)",
+          "description": "Controller handler for sending email with attachment in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.examples.spring6.springmail.web.controller.SendingController.sendMailWithInline:java.lang.String(java.lang.String,java.lang.String,org.springframework.web.multipart.MultipartFile,java.util.Locale)",
+          "description": "Controller handler for sending email with inline content in Spring 6"
+        }
+      ],
+      "parameters": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring5.context.IThymeleafRequestContext.getContextPath:java.lang.String():java.lang.String()",
+          "description": "Gets context path for URL construction"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring6.context.IThymeleafRequestContext.getContextPath:java.lang.String():java.lang.String()",
+          "description": "Gets context path for URL construction in Spring 6"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring5.expression.Mvc$MethodArgumentBuilderWrapper.buildAndExpand:java.lang.String(java.lang.Object[])",
+          "description": "Builds and expands URL patterns with route parameters for Spring MVC 5"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.spring6.expression.Mvc$MethodArgumentBuilderWrapper.buildAndExpand:java.lang.String(java.lang.Object[])",
+          "description": "Builds and expands URL patterns with route parameters for Spring MVC 6"
+        }
+      ]
+    },
+    "communication": {
+      "http": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.util.ISpringVersionSpecificUtility.getHttpServletRequest:javax.servlet.http.HttpServletRequest(org.thymeleaf.context.IContext):javax.servlet.http.HttpServletRequest(org.thymeleaf.context.IContext)",
+          "description": "Retrieves HTTP request object from context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity5.util.ISpringVersionSpecificUtility.getHttpServletResponse:javax.servlet.http.HttpServletResponse(org.thymeleaf.context.IContext):javax.servlet.http.HttpServletResponse(org.thymeleaf.context.IContext)",
+          "description": "Retrieves HTTP response object from context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.util.ISpringVersionSpecificUtility.getHttpServletRequest:jakarta.servlet.http.HttpServletRequest(org.thymeleaf.context.IContext):jakarta.servlet.http.HttpServletRequest(org.thymeleaf.context.IContext)",
+          "description": "Gets HTTP request object using Jakarta EE APIs"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.extras.springsecurity6.util.ISpringVersionSpecificUtility.getHttpServletResponse:jakarta.servlet.http.HttpServletResponse(org.thymeleaf.context.IContext):jakarta.servlet.http.HttpServletResponse(org.thymeleaf.context.IContext)",
+          "description": "Gets HTTP response object using Jakarta EE APIs"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.IWebExchange.getRequest:org.thymeleaf.web.IWebRequest()",
+          "description": "Accesses the HTTP request object from web exchange"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.servlet.IServletWebExchange.getNativeRequestObject:java.lang.Object()",
+          "description": "Retrieves the underlying native HTTP request object"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.servlet.IServletWebExchange.getNativeResponseObject:java.lang.Object()",
+          "description": "Retrieves the underlying native HTTP response object"
+        }
+      ],
+      "http_server": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.servlet.JakartaServletWebApplication.buildExchange:org.thymeleaf.web.servlet.IServletWebExchange(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+          "description": "Creates a web exchange object from HTTP request/response for Jakarta Servlet environment"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.web.servlet.JavaxServletWebApplication.buildExchange:org.thymeleaf.web.servlet.IServletWebExchange(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)",
+          "description": "Creates a web exchange object from HTTP request/response for Javax Servlet environment"
+        }
+      ]
+    },
+    "presentation": {
+      "response_output": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.TemplateManager.parseAndProcess:void(org.thymeleaf.TemplateSpec,org.thymeleaf.context.IContext,java.io.Writer)",
+          "description": "Processes template and writes output to response writer"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createText:org.thymeleaf.model.IText(java.lang.CharSequence)",
+          "description": "Creates a text node for template output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createCDATASection:org.thymeleaf.model.ICDATASection(java.lang.CharSequence)",
+          "description": "Creates a CDATA section for template output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createComment:org.thymeleaf.model.IComment(java.lang.CharSequence)",
+          "description": "Creates an HTML/XML comment node for template output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createDocType:org.thymeleaf.model.IDocType(java.lang.String,java.lang.String)",
+          "description": "Creates a DOCTYPE declaration for template output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.engine.StandardModelFactory.createHTML5DocType:org.thymeleaf.model.IDocType()",
+          "description": "Creates an HTML5 DOCTYPE declaration for template output"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.context.ITemplateContext.buildLink:java.lang.String(java.lang.String,java.util.Map)",
+          "description": "Builds template output links with parameters for web responses"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.thymeleaf.linkbuilder.StandardLinkBuilder.buildLink:java.lang.String(org.thymeleaf.context.IExpressionContext,java.lang.String,java.util.Map)",
+          "description": "Constructs URL links for template output responses"
+        }
+      ]
+    }
+  }
+}

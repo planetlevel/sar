@@ -1,0 +1,172 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Beans",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "ConcurrentBeanFactoryBenchmark-context.xml",
+        "spring-beans*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.beans.factory.*",
+        "org.springframework.beans.propertyeditors.*",
+        "org.springframework.beans.support.*",
+        "org.springframework.beans.AbstractNestablePropertyAccessor.*",
+        "org.springframework.beans.AbstractPropertyAccessor.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.beans"
+        ],
+        "depth_4": [
+          "org.springframework.beans.factory",
+          "org.springframework.beans.propertyeditors",
+          "org.springframework.beans.support",
+          "org.springframework.beans.SimpleBeanInfoFactory",
+          "org.springframework.beans.AbstractNestablePropertyAccessor$PropertyHandler",
+          "org.springframework.beans.AbstractNestablePropertyAccessor$PropertyTokenHolder",
+          "org.springframework.beans.AbstractNestablePropertyAccessor",
+          "org.springframework.beans.AbstractPropertyAccessor",
+          "org.springframework.beans.BeanInfoFactory",
+          "org.springframework.beans.BeanInstantiationException",
+          "org.springframework.beans.BeanMetadataAttribute",
+          "org.springframework.beans.BeanMetadataAttributeAccessor",
+          "org.springframework.beans.BeanMetadataElement",
+          "org.springframework.beans.BeanUtils$KotlinDelegate",
+          "org.springframework.beans.BeanUtils",
+          "org.springframework.beans.BeanUtilsRuntimeHints",
+          "org.springframework.beans.BeanWrapper",
+          "org.springframework.beans.BeanWrapperImpl$BeanPropertyHandler",
+          "org.springframework.beans.BeanWrapperImpl",
+          "org.springframework.beans.BeansException"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "execution": {
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods:void(java.lang.Object,java.lang.String)",
+            "org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeDestroyMethods:void(java.lang.Object,java.lang.String)",
+            "org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke:void(java.lang.Object)",
+            "org.springframework.beans.factory.config.AbstractFactoryBean$EarlySingletonInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.beans.factory.config.ServiceLocatorFactoryBean$ServiceLocatorInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+            "org.springframework.beans.BeanUtils.findPrimaryConstructor:java.lang.reflect.Constructor(java.lang.Class)",
+            "org.springframework.beans.BeanUtils.findMethod:java.lang.reflect.Method(java.lang.Class,java.lang.String,java.lang.Class[])",
+            "org.springframework.beans.BeanUtils.findDeclaredMethod:java.lang.reflect.Method(java.lang.Class,java.lang.String,java.lang.Class[])",
+            "org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean:java.lang.Object(java.lang.Class)",
+            "org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean:java.lang.Object(java.lang.Class,int,boolean)",
+            "org.springframework.beans.factory.support.CglibSubclassingInstantiationStrategy$CglibSubclassCreator.createEnhancedSubclass:java.lang.Class(org.springframework.beans.factory.support.RootBeanDefinition)"
+          ],
+          "description": "reflection.annotations patterns"
+        }
+      ],
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.beans.factory.config.BeanExpressionResolver.evaluate:java.lang.Object(java.lang.String,org.springframework.beans.factory.config.BeanExpressionContext)",
+            "org.springframework.beans.factory.support.ConstructorResolver$ConstructorPropertiesChecker.evaluate:java.lang.String[](java.lang.reflect.Constructor,int)"
+          ],
+          "description": "expression.annotations patterns"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_validation": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.beans.factory.support.AbstractBeanDefinition.validate:void()",
+            "org.springframework.beans.factory.support.ChildBeanDefinition.validate:void()"
+          ],
+          "description": "input_validation.annotations patterns"
+        }
+      ],
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.beans.factory.xml.XmlBeanDefinitionReader.createReaderContext:org.springframework.beans.factory.xml.XmlReaderContext(org.springframework.core.io.Resource)"
+          ],
+          "description": "xml_parsing.annotations patterns"
+        }
+      ],
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "Value"
+          ],
+          "description": "input_sources.annotations patterns"
+        }
+      ]
+    },
+    "integration": {
+      "filesystem": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "org.springframework.beans.factory.support.BeanDefinitionResource.getInputStream:java.io.InputStream()",
+            "org.springframework.beans.factory.xml.XmlBeanDefinitionReader.createReaderContext:org.springframework.beans.factory.xml.XmlReaderContext(org.springframework.core.io.Resource)"
+          ],
+          "description": "filesystem.annotations patterns"
+        }
+      ]
+    },
+    "database": {
+      "orm_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "Autowired"
+          ],
+          "description": "orm_operations.annotations patterns"
+        }
+      ],
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "Qualifier"
+          ],
+          "description": "repository_pattern.annotations patterns"
+        }
+      ]
+    }
+  }
+}

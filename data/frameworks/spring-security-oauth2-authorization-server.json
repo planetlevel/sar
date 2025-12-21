@@ -1,0 +1,289 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "spring-security-oauth2-authorization-server",
+  "languages": [
+    "java"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "spring-security-oauth2-authorization-server*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "defense": {
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.ClientSecretAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 clients using client secret credentials"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 clients using JWT assertions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 authorization code grant requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientCredentialsAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 client credentials grant requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.OAuth2DeviceCodeAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 device code grant requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.OAuth2RefreshTokenAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates OAuth2 refresh token grant requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder.getContext:org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContext()",
+          "description": "Retrieves the current authorization server security context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.web.authentication.ClientSecretBasicAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request into client authentication token using Basic auth credentials"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.web.authentication.ClientSecretPostAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request into client authentication token using POST parameters"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.web.authentication.JwtClientAssertionAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request into client authentication token using JWT assertion"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUri:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.lang.String)",
+          "description": "Sets the OAuth2 redirect URI for client authentication flow"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUris:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.util.function.Consumer)",
+          "description": "Configures multiple OAuth2 redirect URIs for client authentication flow"
+        }
+      ],
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService.findById:org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent(java.lang.String,java.lang.String)",
+          "description": "Retrieves OAuth2 authorization consent by client and principal IDs"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService.findById:org.springframework.security.oauth2.server.authorization.OAuth2Authorization(java.lang.String)",
+          "description": "Retrieves OAuth2 authorization by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.OAuth2Authorization$Builder.authorizedScopes:org.springframework.security.oauth2.server.authorization.OAuth2Authorization$Builder(java.util.Set)",
+          "description": "Sets authorized scopes for an OAuth2 authorization"
+        }
+      ],
+      "crypto": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.authentication.JwtClientAssertionDecoderFactory.createDecoder:org.springframework.security.oauth2.jwt.JwtDecoder(org.springframework.security.oauth2.server.authorization.client.RegisteredClient)",
+          "description": "Creates JWT decoder for validating client assertions"
+        }
+      ]
+    },
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository.findById:org.springframework.security.oauth2.server.authorization.client.RegisteredClient(java.lang.String)",
+          "description": "Retrieves registered OAuth2 client by ID from repository"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository.findByClientId:org.springframework.security.oauth2.server.authorization.client.RegisteredClient(java.lang.String)",
+          "description": "Retrieves registered OAuth2 client by client ID from repository"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository.save:void(org.springframework.security.oauth2.server.authorization.client.RegisteredClient)",
+          "description": "Saves registered OAuth2 client to repository"
+        }
+      ],
+      "jpa_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService.save:void(org.springframework.security.oauth2.server.authorization.OAuth2Authorization)",
+          "description": "Persists OAuth2 authorization to JDBC database"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService.save:void(org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent)",
+          "description": "Persists OAuth2 authorization consent to JDBC database"
+        }
+      ]
+    },
+    "data_flow": {
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.jackson.OAuth2AuthorizationRequestDeserializer.deserialize:org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+          "description": "Deserializes OAuth2 authorization request from JSON"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationRequestDeserializer.deserialize:org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest(com.fasterxml.jackson.core.JsonParser,com.fasterxml.jackson.databind.DeserializationContext)",
+          "description": "Deserializes OAuth2 authorization request using Jackson 2"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.jackson2.UnmodifiableMapDeserializer.deserialize:java.util.Map(com.fasterxml.jackson.core.JsonParser,com.fasterxml.jackson.databind.DeserializationContext)",
+          "description": "Deserializes unmodifiable map structure from JSON"
+        }
+      ],
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2AuthorizationCodeRequestAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts authorization code request parameters from HTTP request"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.web.authentication.OAuth2TokenIntrospectionAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts token introspection request parameters from HTTP request"
+        }
+      ]
+    },
+    "routing": {
+      "parameters": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUri:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.lang.String)",
+          "description": "Defines the callback URL parameter for OAuth2 authentication flow"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUris:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.util.function.Consumer)",
+          "description": "Defines multiple callback URL parameters for OAuth2 authentication flow"
+        }
+      ]
+    },
+    "presentation": {
+      "redirects": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUri:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.lang.String)",
+          "description": "Configures OAuth2 redirect destination for authentication completion"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder.redirectUris:org.springframework.security.oauth2.server.authorization.client.RegisteredClient$Builder(java.util.function.Consumer)",
+          "description": "Configures multiple OAuth2 redirect destinations for authentication completion"
+        }
+      ]
+    }
+  }
+}

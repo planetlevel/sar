@@ -1,0 +1,74 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Seam",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "components.xml",
+        "seam.properties"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "jboss-seam",
+          "library": "JBoss Seam"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.jboss.seam.web.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.seam.web.MultipartRequest.getFileBytes(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.seam.web.MultipartRequest.getFileInputStream(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.seam.web.MultipartRequest.getFileContentType(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.jboss.seam.web.MultipartRequest.getFileName(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

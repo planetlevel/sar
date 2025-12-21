@@ -1,0 +1,75 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Google Vertex AI",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "google-cloud-aiplatform",
+          "library": "Google Cloud AI Platform"
+        },
+        {
+          "artifact": "google-cloud-vertexai",
+          "library": "Google Vertex AI"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "com.google.cloud.aiplatform",
+          "library": "Google Vertex AI"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.aiplatform.v1.PredictionServiceClient.predict:com.google.cloud.aiplatform.v1.PredictResponse(com.google.cloud.aiplatform.v1.EndpointName,java.util.List,com.google.protobuf.Value)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.aiplatform.v1.PredictionServiceClient.predict:com.google.cloud.aiplatform.v1.PredictResponse(com.google.cloud.aiplatform.v1.PredictRequest)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.VertexAI.getGenerativeModel:com.google.cloud.vertexai.generativeai.GenerativeModel(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.generativeai.GenerativeModel.generateContent:com.google.cloud.vertexai.api.GenerateContentResponse(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.generativeai.GenerativeModel.generateContent:com.google.cloud.vertexai.api.GenerateContentResponse(java.util.List)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.generativeai.GenerativeModel.generateContentStream:java.util.stream.Stream(java.util.List)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.generativeai.ChatSession.sendMessage:com.google.cloud.vertexai.api.GenerateContentResponse(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "com.google.cloud.vertexai.generativeai.ChatSession.sendMessageStream:java.util.stream.Stream(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

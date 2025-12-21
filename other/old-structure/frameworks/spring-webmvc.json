@@ -1,0 +1,162 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring WebMVC",
+  "languages": [
+    "ruby",
+    "python",
+    "javascript",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-framework",
+    "branch": "main",
+    "commit": "5e213b2407bc211aee4bfa02f5e1909128860f2f",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "DispatcherServlet.properties",
+        "spring-webmvc*.jar"
+      ]
+    },
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "spring-webmvc",
+          "library": "Spring WebMVC"
+        },
+        {
+          "artifact": "spring-boot-starter-web",
+          "library": "Spring WebMVC"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "org.springframework:spring-webmvc",
+          "library": "Spring WebMVC"
+        }
+      ],
+      "requirements.txt": [
+        {
+          "artifact": "spring_webmvc",
+          "library": "Spring WebMVC"
+        }
+      ],
+      "pyproject.toml": [
+        {
+          "artifact": "spring_webmvc",
+          "library": "Spring WebMVC"
+        }
+      ],
+      "setup.py": [
+        {
+          "artifact": "spring_webmvc",
+          "library": "Spring WebMVC"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.web.servlet.mvc.*",
+        "org.springframework.web.servlet.view.*",
+        "org.springframework.web.servlet.tags.*",
+        "org.springframework.web.servlet.config.*",
+        "org.springframework.web.servlet.resource.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework"
+        ],
+        "depth_3": [
+          "org.springframework.web"
+        ],
+        "depth_4": [
+          "org.springframework.web.servlet"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "execution": {
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder$ControllerMethodInvocationInterceptor.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+          "description": "Uses reflection to invoke controller methods dynamically"
+        }
+      ],
+      "native": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter$MvcSimpleAsyncTaskExecutor.execute:void(java.lang.Runnable)",
+          "description": "Executes a Runnable task asynchronously"
+        }
+      ]
+    },
+    "routing": {
+      "handler_classes": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport.requestMappingHandlerMapping:org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping(org.springframework.web.accept.ContentNegotiationManager,org.springframework.web.accept.ApiVersionStrategy,org.springframework.format.support.FormattingConversionService,org.springframework.web.servlet.resource.ResourceUrlProvider)",
+          "description": "Creates handler mapping for processing HTTP requests"
+        }
+      ]
+    },
+    "presentation": {
+      "response_output": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter.send:void(java.lang.Object)",
+          "description": "Sends response body data to the client"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.mvc.method.annotation.SseEmitter.send:void(java.lang.Object)",
+          "description": "Sends Server-Sent Events data to the client"
+        }
+      ],
+      "redirects": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.function.DefaultServerRequest$CheckNotModifiedResponse.sendRedirect:void(java.lang.String)",
+          "description": "Sends an HTTP redirect response to a specified location"
+        }
+      ]
+    },
+    "data_flow": {
+      "file_operations": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.resource.VersionResourceResolver$FileNameVersionedResource.getInputStream:java.io.InputStream()",
+          "description": "Gets input stream for reading versioned resource files"
+        }
+      ]
+    },
+    "defense": {
+      "input_validation": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport$NoOpValidator.validate:void(java.lang.Object,org.springframework.validation.Errors)",
+          "description": "Performs validation on input objects and collects validation errors"
+        }
+      ]
+    }
+  }
+}

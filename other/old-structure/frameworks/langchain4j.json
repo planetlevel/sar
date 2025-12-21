@@ -1,0 +1,90 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "LangChain4j",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {
+      "pom.xml": [
+        {
+          "artifact": "langchain4j",
+          "library": "LangChain4j"
+        },
+        {
+          "artifact": "langchain4j-open-ai",
+          "library": "LangChain4j OpenAI"
+        }
+      ],
+      "build.gradle": [
+        {
+          "pattern": "dev.langchain4j",
+          "library": "LangChain4j"
+        }
+      ]
+    }
+  },
+  "architecture": {
+    "integration": {
+      "ai_services": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.chat.ChatLanguageModel.generate:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.chat.ChatLanguageModel.generate:dev.langchain4j.data.message.AiMessage(java.util.List)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.chat.ChatLanguageModel.generate:dev.langchain4j.model.output.Response(dev.langchain4j.data.message.ChatMessage[])"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.chat.StreamingChatLanguageModel.generate:void(java.lang.String,dev.langchain4j.model.output.StreamingResponseHandler)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.chat.StreamingChatLanguageModel.generate:void(java.util.List,dev.langchain4j.model.output.StreamingResponseHandler)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.embedding.EmbeddingModel.embed:dev.langchain4j.data.embedding.Embedding(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.embedding.EmbeddingModel.embedAll:java.util.List(java.util.List)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.model.image.ImageModel.generate:dev.langchain4j.data.image.Image(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.chain.ConversationalChain.execute:java.lang.String(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.memory.ChatMemory.add:void(dev.langchain4j.data.message.ChatMessage)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "dev.langchain4j.service.AiServices.create:java.lang.Object(java.lang.Class,dev.langchain4j.model.chat.ChatLanguageModel)"
+        }
+      ]
+    }
+  }
+}

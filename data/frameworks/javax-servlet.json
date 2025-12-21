@@ -1,0 +1,195 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Javax Servlet",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "javax.servlet.*",
+        "javax.servlet.http.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getPart(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getParts()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getHeader(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getHeaderNames()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getHeaders(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getInputStream()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getName()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.Part.getContentType()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getCookies()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getQueryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getRequestedSessionId()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getParameter(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getParameterNames()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getParameterValues(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getParameterMap()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getHeader(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getHeaderNames()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getHeaders(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getRequestURI()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getRequestURL()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getPathInfo()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.getWriter()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.getOutputStream()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletRequest.getContentType()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getInputStream()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.ServletRequest.getReader()"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.encodeUrl(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.encodeURL(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.encodeRedirectUrl(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "javax.servlet.http.HttpServletResponse.encodeRedirectURL(java.lang.String)"
+        }
+      ]
+    }
+  }
+}

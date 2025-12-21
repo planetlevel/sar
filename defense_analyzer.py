@@ -43,7 +43,7 @@ class DefenseAnalyzer:
 
         # Initialize AI client if not provided
         if ai_client is None:
-            from compass.ai_client import AIClient
+            from sar.ai_client import AIClient
             self.ai = AIClient(debug=debug)
         else:
             self.ai = ai_client
@@ -54,7 +54,7 @@ class DefenseAnalyzer:
 
     def _register_agents(self):
         """Register all available agents"""
-        from agents import EndpointsAgent, LibrariesAgent, EndpointAuthorizationAgent
+        from sar.agents import EndpointsAgent, LibrariesAgent, EndpointAuthorizationAgent
 
         agent_classes = [
             EndpointsAgent,
@@ -233,7 +233,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     project_dir = os.path.abspath(sys.argv[1])
-    reports_dir = os.path.join(os.path.dirname(__file__), 'reports')
+    reports_dir = os.path.join(os.path.dirname(__file__), 'output', 'reports')
 
     print(f"Target: {project_dir}")
     print(f"Reports: {reports_dir}\n")
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     os.makedirs(reports_dir, exist_ok=True)
 
     print("Initializing CPG...")
-    from compass.cpg_tool import CpgTool
+    from sar.cpg_tool import CpgTool
     cpg_tool = CpgTool(cpg_path='auto', project_dir=project_dir, auto_generate=False)
 
     print("Initializing analyzer...\n")

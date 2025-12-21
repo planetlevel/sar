@@ -1,0 +1,1354 @@
+{
+  "name": "Hibernate",
+  "languages": [
+    "shell",
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/hibernate/hibernate-orm",
+    "branch": "main",
+    "commit": "44ee3089c13aeb8c0e850db7facb562410a57613",
+    "date": "2025-10-13"
+  },
+  "detection": {
+    "files": {
+      "type": "filename",
+      "patterns": [
+        "persistence.xml",
+        "hibernate-orm*.jar"
+      ]
+    },
+    "dependencies": {},
+    "imports": {
+      "type": "joern",
+      "search_type": "import",
+      "patterns": [
+        "java.util.*",
+        "org.hibernate.engine.spi.*",
+        "org.checkerframework.checker.nullness.qual.*",
+        "org.hibernate.type.spi.*",
+        "org.hibernate.type.descriptor.java.*",
+        "org.hibernate.dialect.*",
+        "org.hibernate.*",
+        "java.sql.*",
+        "org.hibernate.sql.ast.spi.*",
+        "org.hibernate.sql.ast.tree.expression.*"
+      ]
+    },
+    "package_hierarchy": {
+      "type": "analysis",
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.hibernate",
+          "java.util",
+          "jakarta.persistence",
+          "java.lang",
+          "java.sql",
+          "java.io",
+          "org.jboss",
+          "org.checkerframework",
+          "java.time",
+          "org.gradle",
+          "net.bytebuddy",
+          "org.junit",
+          "javax.lang",
+          "jdk.jfr",
+          "java.net",
+          "javax.xml",
+          "org.geolatte",
+          "jakarta.transaction",
+          "java.math",
+          "org.antlr"
+        ],
+        "depth_3": [
+          "org.hibernate.sql",
+          "org.hibernate.query",
+          "org.hibernate.type",
+          "org.hibernate.boot",
+          "org.hibernate.metamodel",
+          "org.hibernate.engine",
+          "org.hibernate.dialect",
+          "org.hibernate.internal",
+          "java.lang.annotation",
+          "java.util.List",
+          "org.hibernate.envers",
+          "java.util.Map",
+          "org.hibernate.mapping",
+          "java.util.function",
+          "org.hibernate.models",
+          "org.jboss.logging",
+          "org.hibernate.tool",
+          "org.hibernate.persister",
+          "org.checkerframework.checker",
+          "org.hibernate.annotations"
+        ],
+        "depth_4": [
+          "org.hibernate.sql.ast",
+          "org.hibernate.query.sqm",
+          "org.hibernate.type.descriptor",
+          "org.hibernate.metamodel.mapping",
+          "org.hibernate.engine.spi",
+          "org.hibernate.sql.results",
+          "org.hibernate.boot.model",
+          "org.hibernate.internal.util",
+          "org.hibernate.type.SqlTypes",
+          "org.hibernate.engine.jdbc",
+          "org.hibernate.boot.models",
+          "org.hibernate.boot.jaxb",
+          "org.hibernate.metamodel.model",
+          "org.hibernate.sql.model",
+          "org.hibernate.envers.internal",
+          "org.hibernate.sql.exec",
+          "org.hibernate.models.spi",
+          "org.hibernate.tool.schema",
+          "org.checkerframework.checker.nullness",
+          "org.hibernate.type.spi"
+        ]
+      }
+    }
+  },
+  "architecture": {
+    "database": {
+      "sql_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.agroal.internal.AgroalConnectionProvider.getConnection:java.sql.Connection():java.sql.Connection()",
+            "description": "Gets a database connection from the Agroal connection pool"
+          },
+          {
+            "signature": "org.hibernate.c3p0.internal.C3P0ConnectionProvider.getConnection:java.sql.Connection():java.sql.Connection()",
+            "description": "Gets a database connection from the C3P0 connection pool"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.CacheDialect.getQuerySequencesString:java.lang.String():java.lang.String()",
+            "description": "Gets SQL query string for retrieving sequence information from the database"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.FirebirdDialect.getQuerySequencesString:java.lang.String():java.lang.String()",
+            "description": "Gets SQL query string for retrieving sequence information from Firebird database"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.H2LegacyDialect.getQuerySequencesString:java.lang.String():java.lang.String()",
+            "description": "Gets SQL query string for retrieving sequence information from H2 database"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.HANALegacyDialect.getQuerySequencesString:java.lang.String():java.lang.String()",
+            "description": "Gets SQL query string for retrieving sequence information from HANA database"
+          },
+          {
+            "signature": "org.hibernate.Session.createStoredProcedureCall:org.hibernate.procedure.ProcedureCall(java.lang.String)",
+            "description": "Creates a call to a stored procedure"
+          },
+          {
+            "signature": "org.hibernate.Session.createQuery:org.hibernate.query.Query(java.lang.String)",
+            "description": "Creates an HQL query from a query string"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getNamedNativeQueryMapping:org.hibernate.boot.query.NamedNativeQueryDefinition(java.lang.String)",
+            "description": "Retrieves a named native SQL query definition"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.NamedNativeQueryDefinitionImpl.getSqlQueryString:java.lang.String()",
+            "description": "Gets the SQL string for a named native query"
+          },
+          {
+            "signature": "org.hibernate.boot.model.source.internal.hbm.MappingDocument.processNamedQueries:void()",
+            "description": "Processes named SQL queries defined in mapping documents"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.HQLSelectAnnotation.query:java.lang.String()",
+            "description": "Gets HQL/SQL query string from annotation"
+          },
+          {
+            "signature": "org.hibernate.dialect.MySQLDialect.buildSQLExceptionConversionDelegate:org.hibernate.exception.spi.SQLExceptionConversionDelegate()",
+            "description": "Creates a delegate for converting MySQL-specific SQL exceptions into Hibernate exceptions"
+          },
+          {
+            "signature": "org.hibernate.dialect.OracleDialect.buildSQLExceptionConversionDelegate:org.hibernate.exception.spi.SQLExceptionConversionDelegate()",
+            "description": "Creates a delegate for converting Oracle-specific SQL exceptions into Hibernate exceptions"
+          },
+          {
+            "signature": "org.hibernate.dialect.PostgreSQLDialect.buildSQLExceptionConversionDelegate:org.hibernate.exception.spi.SQLExceptionConversionDelegate()",
+            "description": "Creates a delegate for converting PostgreSQL-specific SQL exceptions into Hibernate exceptions"
+          },
+          {
+            "signature": "org.hibernate.dialect.function.SqlFunction.render:void(org.hibernate.sql.ast.spi.SqlAppender,java.util.List,org.hibernate.metamodel.model.domain.ReturnableType,org.hibernate.sql.ast.SqlAstTranslator)",
+            "description": "Renders SQL function syntax into the query being built"
+          },
+          {
+            "signature": "org.hibernate.dialect.pagination.LimitHandler.processSql:java.lang.String(java.lang.String,org.hibernate.query.spi.Limit)",
+            "description": "Processes SQL query to add pagination/limit clauses"
+          },
+          {
+            "signature": "org.hibernate.dialect.pagination.OffsetFetchLimitHandler.processSql:java.lang.String(java.lang.String,int,org.hibernate.sql.ast.spi.ParameterMarkerStrategy,org.hibernate.query.spi.QueryOptions)",
+            "description": "Adds OFFSET/FETCH pagination syntax to SQL queries"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.batch.internal.BatchImpl.execute:void()",
+            "description": "Executes a batch of SQL statements"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.batch.spi.Batch.execute:void()",
+            "description": "Executes a batch of prepared SQL statements"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.createNativeQuery:org.hibernate.query.sql.spi.NativeQueryImplementor(java.lang.String)",
+            "description": "Creates a native SQL query"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.getNamedNativeQuery:org.hibernate.query.sql.spi.NativeQueryImplementor(java.lang.String)",
+            "description": "Retrieves a named native SQL query"
+          },
+          {
+            "signature": "org.hibernate.id.enhanced.TableGenerator$NextValueCallback.execute:org.hibernate.id.IntegralDataTypeHolder(java.sql.Connection)",
+            "description": "Executes SQL to get next value from a generator table"
+          },
+          {
+            "signature": "org.hibernate.internal.ContextualJdbcConnectionAccess.obtainConnection:java.sql.Connection()",
+            "description": "Obtains a JDBC connection from the connection pool"
+          },
+          {
+            "signature": "org.hibernate.jdbc.Work.execute:void(java.sql.Connection)",
+            "description": "Executes SQL operations using a JDBC connection"
+          },
+          {
+            "signature": "org.hibernate.jdbc.ReturningWork.execute:java.lang.Object(java.sql.Connection)",
+            "description": "Executes SQL operations that return results using JDBC"
+          },
+          {
+            "signature": "org.hibernate.procedure.ProcedureCall.execute:boolean()",
+            "description": "Executes a stored procedure call and returns success status"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.sql:org.hibernate.query.criteria.JpaExpression(java.lang.String,java.lang.Class,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a native SQL expression with parameters"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.sql:org.hibernate.query.criteria.JpaExpression(java.lang.String,java.lang.Class,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a native SQL expression within a criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.internal.NamedObjectRepositoryImpl.getNativeQueryMemento:org.hibernate.query.sql.spi.NamedNativeQueryMemento(java.lang.String)",
+            "description": "Retrieves the memento for executing a native SQL query"
+          },
+          {
+            "signature": "org.hibernate.query.spi.AbstractQuery.executeUpdate:int()",
+            "description": "Executes an update or delete SQL statement and returns affected row count"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SqmCriteriaNodeBuilder.sql:org.hibernate.query.sqm.tree.expression.SqmFunction(java.lang.String,java.lang.Class,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a native SQL function expression with the given pattern and arguments"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.BaseSemanticQueryWalker.visitSelectStatement:java.lang.Object(org.hibernate.query.sqm.tree.select.SqmSelectStatement)",
+            "description": "Processes a SQL SELECT statement during query building"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.BaseSemanticQueryWalker.visitUpdateStatement:java.lang.Object(org.hibernate.query.sqm.tree.update.SqmUpdateStatement)",
+            "description": "Processes a SQL UPDATE statement during query building"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.BaseSemanticQueryWalker.visitDeleteStatement:java.lang.Object(org.hibernate.query.sqm.tree.delete.SqmDeleteStatement)",
+            "description": "Processes a SQL DELETE statement during query building"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.BaseSemanticQueryWalker.visitInsertSelectStatement:java.lang.Object(org.hibernate.query.sqm.tree.insert.SqmInsertSelectStatement)",
+            "description": "Processes a SQL INSERT SELECT statement during query building"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.BaseSemanticQueryWalker.visitInsertValuesStatement:java.lang.Object(org.hibernate.query.sqm.tree.insert.SqmInsertValuesStatement)",
+            "description": "Processes a SQL INSERT VALUES statement during query building"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.select.AbstractSqmSelectQuery.from:org.hibernate.query.sqm.tree.from.SqmRoot(java.lang.Class)",
+            "description": "Creates a FROM clause in SQL query model"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.predicate.SqmWhereClause.applyPredicate:void(org.hibernate.query.sqm.tree.predicate.SqmPredicate)",
+            "description": "Applies a predicate to WHERE clause in SQL query model"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.predicate.SqmInListPredicate.addExpression:void(org.hibernate.query.sqm.tree.expression.SqmExpression)",
+            "description": "Adds an expression to IN clause predicate in SQL query model"
+          },
+          {
+            "signature": "org.hibernate.sql.Delete.toStatementString:java.lang.String():java.lang.String()",
+            "description": "Generates SQL DELETE statement string"
+          },
+          {
+            "signature": "org.hibernate.sql.Insert.toStatementString:java.lang.String():java.lang.String()",
+            "description": "Generates SQL INSERT statement string"
+          },
+          {
+            "signature": "org.hibernate.sql.SimpleSelect.toStatementString:java.lang.String():java.lang.String()",
+            "description": "Generates SQL SELECT statement string"
+          },
+          {
+            "signature": "org.hibernate.sql.Update.toStatementString:java.lang.String():java.lang.String()",
+            "description": "Generates SQL UPDATE statement string"
+          },
+          {
+            "signature": "org.hibernate.sql.exec.spi.JdbcParameterBinder.bindParameterValue:void(java.sql.PreparedStatement,int,org.hibernate.sql.exec.spi.JdbcParameterBindings,org.hibernate.sql.exec.spi.ExecutionContext)",
+            "description": "Binds parameter values to a prepared SQL statement"
+          },
+          {
+            "signature": "org.hibernate.tool.schema.extract.spi.ExtractionContext.getQueryResults:java.lang.Object(java.lang.String,java.lang.Object[],org.hibernate.tool.schema.extract.spi.ExtractionContext$ResultSetProcessor)",
+            "description": "Executes a SQL query with parameters and processes results using a ResultSetProcessor"
+          },
+          {
+            "signature": "org.hibernate.type.internal.ConvertedBasicTypeImpl.nullSafeSet:void(java.sql.PreparedStatement,java.lang.Object,int,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Sets a parameter value on a PreparedStatement handling null values"
+          },
+          {
+            "signature": "org.hibernate.type.internal.ConvertedBasicTypeImpl.extract:java.lang.Object(java.sql.CallableStatement,int,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Extracts a value from a CallableStatement result"
+          },
+          {
+            "signature": "org.hibernate.tool.hbm2ddl.DatabaseExporter.export:void(java.lang.String)",
+            "description": "Exports SQL statements to a database"
+          },
+          {
+            "signature": "org.hibernate.tool.hbm2ddl.SchemaExport.drop:void(java.util.EnumSet,org.hibernate.boot.Metadata)",
+            "description": "Executes SQL DROP statements to remove database schema objects"
+          },
+          {
+            "signature": "org.hibernate.tool.hbm2ddl.SchemaExport.create:void(java.util.EnumSet,org.hibernate.boot.Metadata)",
+            "description": "Executes SQL CREATE statements to create database schema objects"
+          }
+        ]
+      },
+      "orm_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.agroal.internal.AgroalConnectionProvider.closeConnection:void(java.sql.Connection):void(java.sql.Connection)",
+            "description": "Closes a database connection and returns it to the Agroal connection pool"
+          },
+          {
+            "signature": "org.hibernate.c3p0.internal.C3P0ConnectionProvider.closeConnection:void(java.sql.Connection):void(java.sql.Connection)",
+            "description": "Closes a database connection and returns it to the C3P0 connection pool"
+          },
+          {
+            "signature": "org.hibernate.Session.persist:void(java.lang.Object)",
+            "description": "Persists a new entity instance to the database"
+          },
+          {
+            "signature": "org.hibernate.Session.merge:java.lang.Object(java.lang.Object)",
+            "description": "Merges changes made to a detached entity instance"
+          },
+          {
+            "signature": "org.hibernate.Session.remove:void(java.lang.Object)",
+            "description": "Removes/deletes an entity instance from the database"
+          },
+          {
+            "signature": "org.hibernate.Session.refresh:void(java.lang.Object)",
+            "description": "Refreshes entity state from database"
+          },
+          {
+            "signature": "org.hibernate.Session.find:java.lang.Object(java.lang.Class,java.lang.Object)",
+            "description": "Finds and loads an entity by its ID and class"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.InFlightMetadataCollectorImpl.addEntityBinding:void(org.hibernate.mapping.PersistentClass)",
+            "description": "Adds an entity mapping to the ORM metadata collection"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.InFlightMetadataCollectorImpl.addCollectionBinding:void(org.hibernate.mapping.Collection)",
+            "description": "Adds a collection mapping to the ORM metadata collection"
+          },
+          {
+            "signature": "org.hibernate.boot.model.source.internal.hbm.ModelBinder.bindEntityHierarchy:void(org.hibernate.boot.model.source.internal.hbm.EntityHierarchySourceImpl)",
+            "description": "Binds entity hierarchy metadata for ORM mapping"
+          },
+          {
+            "signature": "org.hibernate.boot.model.source.internal.hbm.ModelBinder.bindOneToOne:void(org.hibernate.boot.model.source.internal.hbm.MappingDocument,org.hibernate.boot.model.source.spi.SingularAttributeSourceOneToOne,org.hibernate.mapping.OneToOne)",
+            "description": "Binds one-to-one relationship mappings between entities"
+          },
+          {
+            "signature": "org.hibernate.boot.query.NamedQueryDefinition.resolve:org.hibernate.query.named.NamedQueryMemento(org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Resolves a named query definition into an executable ORM query memento"
+          },
+          {
+            "signature": "org.hibernate.boot.query.NamedNativeQueryDefinition.resolve:org.hibernate.query.sql.spi.NamedNativeQueryMemento(org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Resolves a named native SQL query definition into an executable query memento"
+          },
+          {
+            "signature": "org.hibernate.collection.spi.PersistentCollection.beforeInitialize:void(org.hibernate.persister.collection.CollectionPersister,int)",
+            "description": "Initializes a persistent collection before loading data from database"
+          },
+          {
+            "signature": "org.hibernate.collection.spi.AbstractPersistentCollection.initializeFromCache:void(org.hibernate.persister.collection.CollectionPersister,java.lang.Object,java.lang.Object)",
+            "description": "Initializes a collection from second-level cache data"
+          },
+          {
+            "signature": "org.hibernate.collection.spi.PersistentBag.injectLoadedState:void(org.hibernate.metamodel.mapping.PluralAttributeMapping,java.util.List)",
+            "description": "Populates a persistent collection with loaded database state"
+          },
+          {
+            "signature": "org.hibernate.dialect.PostgreSQLDialect.createOptionalTableUpdateOperation:org.hibernate.sql.model.MutationOperation(org.hibernate.persister.entity.mutation.EntityMutationTarget,org.hibernate.sql.model.internal.OptionalTableUpdate,org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Creates an ORM update operation for PostgreSQL that handles optional table updates"
+          },
+          {
+            "signature": "org.hibernate.dialect.MySQLDialect.createOptionalTableUpdateOperation:org.hibernate.sql.model.MutationOperation(org.hibernate.persister.entity.mutation.EntityMutationTarget,org.hibernate.sql.model.internal.OptionalTableUpdate,org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Creates an ORM update operation for MySQL that handles optional table updates"
+          },
+          {
+            "signature": "org.hibernate.dialect.OracleDialect.createOptionalTableUpdateOperation:org.hibernate.sql.model.MutationOperation(org.hibernate.persister.entity.mutation.EntityMutationTarget,org.hibernate.sql.model.internal.OptionalTableUpdate,org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Creates an ORM update operation for Oracle that handles optional table updates"
+          },
+          {
+            "signature": "org.hibernate.dialect.lock.LockingStrategy.lock:void(java.lang.Object,java.lang.Object,java.lang.Object,int,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Implements database row locking strategy for ORM operations"
+          },
+          {
+            "signature": "org.hibernate.dialect.lock.OptimisticLockingStrategy.lock:void(java.lang.Object,java.lang.Object,java.lang.Object,int,org.hibernate.event.spi.EventSource)",
+            "description": "Implements optimistic locking for ORM entities"
+          },
+          {
+            "signature": "org.hibernate.engine.internal.StatisticalLoggingSessionEventListener.flushStart:void()",
+            "description": "Begins the process of flushing ORM session changes to the database"
+          },
+          {
+            "signature": "org.hibernate.engine.internal.StatisticalLoggingSessionEventListener.flushEnd:void(int,int)",
+            "description": "Completes the ORM session flush operation with statistics"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.persist:void(java.lang.Object)",
+            "description": "Persists a new entity instance to the database"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.merge:java.lang.Object(java.lang.Object)",
+            "description": "Merges the state of a detached entity instance with the current persistence context"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.remove:void(java.lang.Object)",
+            "description": "Removes/deletes an entity instance from the database"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.refresh:void(java.lang.Object)",
+            "description": "Refreshes the state of an entity from the database"
+          },
+          {
+            "signature": "org.hibernate.event.internal.DefaultDeleteEventListener.onDelete:void(org.hibernate.event.spi.DeleteEvent)",
+            "description": "Handles entity deletion in the ORM layer"
+          },
+          {
+            "signature": "org.hibernate.event.internal.DefaultMergeEventListener.onMerge:void(org.hibernate.event.spi.MergeEvent)",
+            "description": "Handles entity merge operations in the ORM layer"
+          },
+          {
+            "signature": "org.hibernate.event.internal.DefaultPersistEventListener.onPersist:void(org.hibernate.event.spi.PersistEvent)",
+            "description": "Handles entity persistence operations in the ORM layer"
+          },
+          {
+            "signature": "org.hibernate.id.IncrementGenerator.generate:java.lang.Object(org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Generates incremental ID values for entity persistence"
+          },
+          {
+            "signature": "org.hibernate.id.UUIDGenerator.generate:java.lang.Object(org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Generates UUID values for entity persistence"
+          },
+          {
+            "signature": "org.hibernate.id.enhanced.SequenceStyleGenerator.generate:java.lang.Object(org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Generates sequential ID values using database sequences"
+          },
+          {
+            "signature": "org.hibernate.jpa.HibernatePersistenceProvider.createEntityManagerFactory:jakarta.persistence.EntityManagerFactory(java.lang.String,java.util.Map)",
+            "description": "Creates an EntityManagerFactory instance for ORM operations"
+          },
+          {
+            "signature": "org.hibernate.jpa.HibernatePersistenceProvider.createContainerEntityManagerFactory:jakarta.persistence.EntityManagerFactory(jakarta.persistence.spi.PersistenceUnitInfo,java.util.Map)",
+            "description": "Creates a container-managed EntityManagerFactory for ORM operations"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.internal.GeneratedValuesProcessor.processGeneratedValues:void(java.lang.Object,java.lang.Object,java.lang.Object[],org.hibernate.generator.values.GeneratedValues,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Processes generated values for entity attributes during persistence operations"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.insert:void(java.lang.Object,java.lang.Object[],java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Performs an ORM entity insert operation with the given values and session"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.delete:void(java.lang.Object,java.lang.Object,java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Performs an ORM entity delete operation for the given entity instance"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.update:void(java.lang.Object,java.lang.Object[],int[],boolean,java.lang.Object[],java.lang.Object,java.lang.Object,java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Performs an ORM entity update operation with modified fields"
+          },
+          {
+            "signature": "org.hibernate.query.internal.NamedObjectRepositoryImpl.registerNamedQuery:void(java.lang.String,jakarta.persistence.Query)",
+            "description": "Registers a named query in the ORM system for later execution"
+          },
+          {
+            "signature": "org.hibernate.query.internal.NamedObjectRepositoryImpl.registerNamedQuery:jakarta.persistence.TypedQueryReference(java.lang.String,jakarta.persistence.TypedQuery)",
+            "description": "Registers a typed named query in the ORM system with return type information"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SimpleNonSelectQueryPlan.executeUpdate:int(org.hibernate.query.spi.DomainQueryExecutionContext)",
+            "description": "Executes an ORM update operation and returns the number of affected entities"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.executeQuery:java.lang.Object(org.hibernate.query.spi.DomainQueryExecutionContext,org.hibernate.sql.results.spi.ResultsConsumer)",
+            "description": "Executes an ORM select query and processes results with the given consumer"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.performList:java.util.List(org.hibernate.query.spi.DomainQueryExecutionContext)",
+            "description": "Executes an ORM query and returns results as a list"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy.executeUpdate:int(org.hibernate.query.sqm.tree.update.SqmUpdateStatement,org.hibernate.query.sqm.internal.DomainParameterXref,org.hibernate.query.spi.DomainQueryExecutionContext)",
+            "description": "Executes a multi-table UPDATE operation in the ORM"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy.executeDelete:int(org.hibernate.query.sqm.tree.delete.SqmDeleteStatement,org.hibernate.query.sqm.internal.DomainParameterXref,org.hibernate.query.spi.DomainQueryExecutionContext)",
+            "description": "Executes a multi-table DELETE operation in the ORM"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.from.SqmFrom.join:org.hibernate.query.sqm.tree.domain.SqmSingularJoin(jakarta.persistence.metamodel.SingularAttribute,jakarta.persistence.criteria.JoinType)",
+            "description": "Creates a JOIN clause for a single-valued association in ORM query"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.from.SqmFrom.joinCollection:org.hibernate.query.sqm.tree.domain.SqmBagJoin(java.lang.String)",
+            "description": "Creates a JOIN clause for a collection-valued association in ORM query"
+          },
+          {
+            "signature": "org.hibernate.sql.ast.SqlAstTranslator.translate:org.hibernate.sql.exec.spi.JdbcOperation(org.hibernate.sql.exec.spi.JdbcParameterBindings,org.hibernate.query.spi.QueryOptions):org.hibernate.sql.exec.spi.JdbcOperation(org.hibernate.sql.exec.spi.JdbcParameterBindings,org.hibernate.query.spi.QueryOptions)",
+            "description": "Translates ORM operations into JDBC operations"
+          },
+          {
+            "signature": "org.hibernate.sql.exec.spi.JdbcSelectExecutor.executeQuery:java.lang.Object(org.hibernate.sql.exec.spi.JdbcSelect,org.hibernate.sql.exec.spi.JdbcParameterBindings,org.hibernate.sql.exec.spi.ExecutionContext,org.hibernate.sql.results.spi.RowTransformer,java.lang.Class,org.hibernate.sql.exec.spi.JdbcSelectExecutor$StatementCreator,org.hibernate.sql.results.spi.ResultsConsumer)",
+            "description": "Executes a JDBC SELECT query and transforms results into domain objects"
+          },
+          {
+            "signature": "org.hibernate.sql.exec.spi.JdbcMutationExecutor.execute:int(org.hibernate.sql.exec.spi.JdbcOperationQueryMutation,org.hibernate.sql.exec.spi.JdbcParameterBindings,java.util.function.Function,java.util.function.BiConsumer,org.hibernate.sql.exec.spi.ExecutionContext)",
+            "description": "Executes a database mutation operation (insert/update/delete)"
+          },
+          {
+            "signature": "org.hibernate.type.BagType.instantiate:org.hibernate.collection.spi.PersistentCollection(org.hibernate.engine.spi.SharedSessionContractImplementor,org.hibernate.persister.collection.CollectionPersister,java.lang.Object)",
+            "description": "Creates a new persistent collection instance for bag-type relationships"
+          },
+          {
+            "signature": "org.hibernate.type.ArrayType.instantiate:org.hibernate.collection.spi.PersistentCollection(org.hibernate.engine.spi.SharedSessionContractImplementor,org.hibernate.persister.collection.CollectionPersister,java.lang.Object)",
+            "description": "Creates a new persistent collection instance for array-type relationships"
+          },
+          {
+            "signature": "org.hibernate.envers.internal.reader.AuditReaderImpl.find:java.lang.Object(java.lang.Class,java.lang.Object,java.lang.Number)",
+            "description": "Loads an audited entity instance for a given class, primary key and revision number"
+          },
+          {
+            "signature": "org.hibernate.envers.internal.reader.AuditReaderImpl.find:java.lang.Object(java.lang.Class,java.lang.Object,java.util.Date)",
+            "description": "Retrieves an entity version that was valid at the specified date"
+          },
+          {
+            "signature": "org.hibernate.envers.internal.reader.AuditReaderImpl.find:java.lang.Object(java.lang.Class,java.lang.String,java.lang.Object,java.lang.Number)",
+            "description": "Loads an audited entity by entity name, primary key and revision"
+          },
+          {
+            "signature": "org.hibernate.spatial.predicate.GeolatteSpatialPredicates.eq:jakarta.persistence.criteria.Predicate(jakarta.persistence.criteria.CriteriaBuilder,jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates an ORM predicate to check spatial equality between two geometries"
+          },
+          {
+            "signature": "org.hibernate.spatial.predicate.GeolatteSpatialPredicates.within:jakarta.persistence.criteria.Predicate(jakarta.persistence.criteria.CriteriaBuilder,jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates an ORM predicate to check if one geometry is within another"
+          }
+        ]
+      },
+      "jpa_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.community.dialect.CockroachLegacyDialect.contributeTypes:void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry):void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry)",
+            "description": "Registers custom database types for CockroachDB in JPA"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.DerbyDialect.contributeTypes:void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry):void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry)",
+            "description": "Registers custom database types for Derby in JPA"
+          },
+          {
+            "signature": "org.hibernate.community.dialect.MariaDBLegacyDialect.contributeTypes:void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry):void(org.hibernate.boot.model.TypeContributions,org.hibernate.service.ServiceRegistry)",
+            "description": "Registers custom database types for MariaDB in JPA"
+          },
+          {
+            "signature": "org.hibernate.Session.createQuery:org.hibernate.query.Query(jakarta.persistence.criteria.CriteriaQuery)",
+            "description": "Creates a JPA criteria query"
+          },
+          {
+            "signature": "org.hibernate.SessionFactory.createEntityManager:org.hibernate.Session()",
+            "description": "Creates a JPA EntityManager instance"
+          },
+          {
+            "signature": "org.hibernate.Session.createNamedQuery:org.hibernate.query.Query(java.lang.String)",
+            "description": "Creates a JPA named query"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.MetadataImpl.buildSessionFactory:org.hibernate.engine.spi.SessionFactoryImplementor()",
+            "description": "Creates a new JPA SessionFactory from metadata"
+          },
+          {
+            "signature": "org.hibernate.boot.internal.SessionFactoryBuilderImpl.build:org.hibernate.SessionFactory()",
+            "description": "Builds a JPA SessionFactory with configured options"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.JoinColumnJpaAnnotation.apply:void(org.hibernate.boot.jaxb.mapping.spi.JaxbJoinColumnImpl,org.hibernate.boot.models.xml.spi.XmlDocumentContext)",
+            "description": "Applies JPA join column configuration from annotations"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.JoinTableJpaAnnotation.apply:void(org.hibernate.boot.jaxb.mapping.spi.JaxbJoinTableImpl,org.hibernate.boot.models.xml.spi.XmlDocumentContext)",
+            "description": "Applies JPA join table configuration from annotations"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.ManyToManyJpaAnnotation.targetEntity:java.lang.Class()",
+            "description": "Gets target entity class for JPA many-to-many relationship"
+          },
+          {
+            "signature": "org.hibernate.cfg.Configuration.buildSessionFactory:org.hibernate.SessionFactory()",
+            "description": "Creates a SessionFactory for database operations"
+          },
+          {
+            "signature": "org.hibernate.cfg.Configuration.buildSessionFactory:org.hibernate.SessionFactory(org.hibernate.service.ServiceRegistry)",
+            "description": "Creates a SessionFactory with custom service registry"
+          },
+          {
+            "signature": "org.hibernate.dialect.lock.LockingStrategy.lock:void(java.lang.Object,java.lang.Object,java.lang.Object,jakarta.persistence.Timeout,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Implements JPA-compliant locking operations with timeout support"
+          },
+          {
+            "signature": "org.hibernate.engine.internal.Versioning.seedVersion:boolean(java.lang.Object,java.lang.Object[],org.hibernate.persister.entity.EntityPersister,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Seeds initial version values for versioned entities during JPA entity persistence"
+          },
+          {
+            "signature": "org.hibernate.engine.internal.Versioning.incrementVersion:java.lang.Object(java.lang.Object,java.lang.Object,org.hibernate.persister.entity.EntityPersister,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Increments version numbers for optimistic locking in JPA entities"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.find:java.lang.Object(java.lang.Class,java.lang.Object)",
+            "description": "Retrieves an entity instance by its primary key using JPA"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.createQuery:org.hibernate.query.spi.QueryImplementor(java.lang.String)",
+            "description": "Creates a JPA query instance from a JPQL query string"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.createNamedQuery:org.hibernate.query.spi.QueryImplementor(java.lang.String)",
+            "description": "Creates a JPA query from a named query definition"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.createQuery:org.hibernate.query.spi.QueryImplementor(jakarta.persistence.criteria.CriteriaDelete)",
+            "description": "Creates a JPA criteria delete query"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.createSelectionQuery:org.hibernate.query.SelectionQuery(jakarta.persistence.criteria.CriteriaQuery)",
+            "description": "Creates a JPA criteria selection query"
+          },
+          {
+            "signature": "org.hibernate.internal.AbstractSharedSessionContract.createSelectionQuery:org.hibernate.query.SelectionQuery(java.lang.String)",
+            "description": "Creates a JPA selection query from HQL string"
+          },
+          {
+            "signature": "org.hibernate.internal.AbstractSharedSessionContract.createMutationQuery:org.hibernate.query.MutationQuery(java.lang.String)",
+            "description": "Creates a JPA mutation query from HQL string"
+          },
+          {
+            "signature": "org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build:jakarta.persistence.EntityManagerFactory()",
+            "description": "Builds and returns a JPA EntityManagerFactory instance"
+          },
+          {
+            "signature": "org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.generateSchema:void()",
+            "description": "Generates database schema based on JPA entity mappings"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.EntityMappingType.loadByUniqueKey:java.lang.Object(java.lang.String,java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Loads an entity instance by a unique key property value"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.EntityMappingType.createRootGraph:org.hibernate.graph.spi.RootGraphImplementor(org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Creates an entity graph for specifying fetch plans in JPA queries"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.loadByUniqueKey:java.lang.Object(java.lang.String,java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Loads an entity by a unique key value using JPA semantics"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.AbstractEntityPersister.lock:void(java.lang.Object,java.lang.Object,java.lang.Object,org.hibernate.LockMode,org.hibernate.event.spi.EventSource)",
+            "description": "Applies a JPA lock mode to an entity instance"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.JpaCriteriaDelete.from:org.hibernate.query.criteria.JpaRoot(java.lang.Class)",
+            "description": "Creates a DELETE query root for a JPA entity class"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.JpaCriteriaBase.subquery:org.hibernate.query.criteria.JpaSubQuery(java.lang.Class)",
+            "description": "Creates a subquery for a JPA entity class"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.internal.NamedCriteriaQueryMementoImpl.toSelectionQuery:org.hibernate.query.sqm.SqmSelectionQuery(java.lang.Class,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Converts a named criteria query to a JPA selection query"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createQuery:org.hibernate.query.criteria.JpaCriteriaQuery()",
+            "description": "Creates an empty JPA criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createQuery:org.hibernate.query.criteria.JpaCriteriaQuery(java.lang.Class)",
+            "description": "Creates a typed JPA criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createQuery:org.hibernate.query.criteria.JpaCriteriaQuery(java.lang.String,java.lang.Class)",
+            "description": "Creates a JPA criteria query from HQL string with result type"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createCriteriaUpdate:org.hibernate.query.criteria.JpaCriteriaUpdate(java.lang.Class)",
+            "description": "Creates a JPA criteria update query for an entity"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createCriteriaDelete:org.hibernate.query.criteria.JpaCriteriaDelete(java.lang.Class)",
+            "description": "Creates a JPA criteria delete query for an entity"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createCriteriaInsertValues:org.hibernate.query.criteria.JpaCriteriaInsertValues(java.lang.Class)",
+            "description": "Creates a JPA criteria insert query with direct values"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.createCriteriaInsertSelect:org.hibernate.query.criteria.JpaCriteriaInsertSelect(java.lang.Class)",
+            "description": "Creates a JPA criteria insert query from a select"
+          },
+          {
+            "signature": "org.hibernate.query.specification.SelectionSpecification.createQuery:org.hibernate.query.SelectionQuery(jakarta.persistence.EntityManager)",
+            "description": "Creates a JPA selection query using the entity manager"
+          },
+          {
+            "signature": "org.hibernate.query.specification.ProjectionSpecification.createQuery:org.hibernate.query.SelectionQuery(jakarta.persistence.EntityManager)",
+            "description": "Creates a JPA projection query using the entity manager"
+          },
+          {
+            "signature": "org.hibernate.query.specification.MutationSpecification.createQuery:org.hibernate.query.MutationQuery(org.hibernate.Session)",
+            "description": "Creates a JPA mutation query for data modifications"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SqmCriteriaNodeBuilder.createQuery:org.hibernate.query.sqm.tree.select.SqmSelectStatement(java.lang.Class)",
+            "description": "Creates a JPA criteria query for the given result class type"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SqmCriteriaNodeBuilder.createCriteriaUpdate:org.hibernate.query.sqm.tree.update.SqmUpdateStatement(java.lang.Class)",
+            "description": "Creates a JPA criteria update statement for the given entity class"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SqmCriteriaNodeBuilder.createCriteriaDelete:org.hibernate.query.sqm.tree.delete.SqmDeleteStatement(java.lang.Class)",
+            "description": "Creates a JPA criteria delete statement for the given entity class"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.domain.AbstractSqmFrom.join:org.hibernate.query.sqm.tree.domain.SqmSingularJoin(jakarta.persistence.metamodel.SingularAttribute)",
+            "description": "Creates a JPA singular join based on a singular attribute"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.domain.AbstractSqmFrom.join:org.hibernate.query.sqm.tree.domain.SqmListJoin(jakarta.persistence.metamodel.ListAttribute)",
+            "description": "Creates a JPA list join based on a list attribute"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.domain.AbstractSqmFrom.join:org.hibernate.query.sqm.tree.domain.SqmSetJoin(jakarta.persistence.metamodel.SetAttribute)",
+            "description": "Creates a JPA set join based on a set attribute"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.domain.AbstractSqmFrom.join:org.hibernate.query.sqm.tree.domain.SqmMapJoin(jakarta.persistence.metamodel.MapAttribute)",
+            "description": "Creates a JPA map join based on a map attribute"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.insert.SqmInsertStatement.copy:org.hibernate.query.sqm.tree.insert.SqmInsertStatement(org.hibernate.query.sqm.tree.SqmCopyContext)",
+            "description": "Copies an INSERT statement in JPA query model"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.insert.SqmInsertSelectStatement.select:org.hibernate.query.sqm.tree.insert.SqmInsertSelectStatement(jakarta.persistence.criteria.CriteriaQuery)",
+            "description": "Creates an INSERT INTO SELECT statement using JPA criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.insert.SqmInsertValuesStatement.values:org.hibernate.query.sqm.tree.insert.SqmInsertValuesStatement(java.util.List)",
+            "description": "Sets the values for an INSERT statement in JPA query model"
+          },
+          {
+            "signature": "org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.begin:void():void()",
+            "description": "Begins a JPA transaction"
+          },
+          {
+            "signature": "org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit:void():void()",
+            "description": "Commits a JPA transaction"
+          },
+          {
+            "signature": "org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.rollback:void():void()",
+            "description": "Rolls back a JPA transaction"
+          },
+          {
+            "signature": "org.hibernate.sql.results.graph.entity.internal.EntityInitializerImpl.initializeInstance:void(org.hibernate.sql.results.graph.entity.internal.EntityInitializerImpl$EntityInitializerData)",
+            "description": "Initializes a JPA entity instance with loaded data"
+          },
+          {
+            "signature": "org.hibernate.sql.results.graph.entity.EntityInitializer.resolveEntityKeyOnly:org.hibernate.engine.spi.EntityKey(org.hibernate.sql.results.jdbc.spi.RowProcessingState)",
+            "description": "Resolves the entity identifier from database results"
+          },
+          {
+            "signature": "org.hibernate.type.CollectionType.nullSafeSet:void(java.sql.PreparedStatement,java.lang.Object,int,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Safely sets collection values in a JDBC PreparedStatement handling null values"
+          },
+          {
+            "signature": "org.hibernate.type.ComponentType.nullSafeSet:void(java.sql.PreparedStatement,java.lang.Object,int,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Safely sets component/embedded object values in a JDBC PreparedStatement"
+          },
+          {
+            "signature": "org.hibernate.spatial.criteria.SpatialCriteriaBuilder.distanceWithin:jakarta.persistence.criteria.Predicate(jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression,double)",
+            "description": "Creates a JPA criteria predicate for spatial distance comparison"
+          },
+          {
+            "signature": "org.hibernate.spatial.criteria.SpatialCriteriaBuilder.havingSRID:jakarta.persistence.criteria.Predicate(jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a JPA criteria predicate to filter by spatial reference system ID"
+          }
+        ]
+      },
+      "cache_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.cache.spi.Region.clear:void()",
+            "description": "Clears all cache entries in a region"
+          },
+          {
+            "signature": "org.hibernate.cache.spi.QueryResultsCache.clear:void()",
+            "description": "Clears the query results cache"
+          },
+          {
+            "signature": "org.hibernate.cache.spi.access.CachedDomainDataAccess.evictAll:void()",
+            "description": "Evicts all cached domain data"
+          }
+        ]
+      },
+      "repository_pattern": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.engine.jdbc.connections.spi.ConnectionProvider.getConnection:java.sql.Connection()",
+            "description": "Provides database connections following repository pattern"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.connections.spi.ConnectionProvider.closeConnection:void(java.sql.Connection)",
+            "description": "Releases database connections back to the connection pool"
+          },
+          {
+            "signature": "org.hibernate.internal.util.cache.InternalCache.put:void(java.lang.Object,java.lang.Object)",
+            "description": "Caches an object in the internal repository"
+          },
+          {
+            "signature": "org.hibernate.internal.util.cache.InternalCache.computeIfAbsent:java.lang.Object(java.lang.Object,java.util.function.Function)",
+            "description": "Retrieves or computes a cached value from the repository"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.EntityMappingType.getNaturalIdLoader:org.hibernate.loader.ast.spi.NaturalIdLoader()",
+            "description": "Gets a loader for fetching entities by natural ID"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.EntityMappingType.getMultiNaturalIdLoader:org.hibernate.loader.ast.spi.MultiNaturalIdLoader()",
+            "description": "Gets a loader for batch fetching entities by natural IDs"
+          },
+          {
+            "signature": "org.hibernate.persister.spi.PersisterFactory.createEntityPersister:org.hibernate.persister.entity.EntityPersister(org.hibernate.mapping.PersistentClass,org.hibernate.cache.spi.access.EntityDataAccess,org.hibernate.cache.spi.access.NaturalIdDataAccess,org.hibernate.metamodel.spi.RuntimeModelCreationContext)",
+            "description": "Creates a repository/persister implementation for an entity class"
+          },
+          {
+            "signature": "org.hibernate.query.named.NamedObjectRepository.registerNamedQuery:void(java.lang.String,jakarta.persistence.Query)",
+            "description": "Repository method to register a named query for reuse"
+          },
+          {
+            "signature": "org.hibernate.query.named.NamedObjectRepository.getSqmQueryMemento:org.hibernate.query.sqm.spi.NamedSqmQueryMemento(java.lang.String)",
+            "description": "Repository method to retrieve a stored query definition"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.DelegatingSqmSelectionQueryImplementor.list:java.util.List()",
+            "description": "Executes a query and returns results as a List following repository pattern"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.DelegatingSqmSelectionQueryImplementor.uniqueResult:java.lang.Object()",
+            "description": "Executes a query and returns a single unique result following repository pattern"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.spi.DelegatingSqmSelectionQueryImplementor.uniqueResultOptional:java.util.Optional()",
+            "description": "Executes a query and returns an Optional result following repository pattern"
+          },
+          {
+            "signature": "org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.getPhysicalConnection:java.sql.Connection():java.sql.Connection()",
+            "description": "Retrieves the physical database connection from connection pool"
+          },
+          {
+            "signature": "org.hibernate.resource.jdbc.internal.LogicalConnectionManagedImpl.close:java.sql.Connection():java.sql.Connection()",
+            "description": "Closes and returns database connection to the pool"
+          },
+          {
+            "signature": "org.hibernate.tool.schema.extract.internal.DatabaseInformationImpl.locateSequenceInformation:org.hibernate.tool.schema.extract.spi.SequenceInformation(org.hibernate.boot.model.relational.QualifiedSequenceName)",
+            "description": "Retrieves database sequence metadata information"
+          },
+          {
+            "signature": "org.hibernate.tool.schema.extract.internal.DatabaseInformationImpl.locatePrimaryKeyInformation:org.hibernate.tool.schema.extract.spi.PrimaryKeyInformation(org.hibernate.boot.model.relational.QualifiedTableName)",
+            "description": "Retrieves primary key metadata information for a table"
+          },
+          {
+            "signature": "org.hibernate.tool.hbm2ddl.ConnectionHelper.getConnection:java.sql.Connection()",
+            "description": "Retrieves a database connection following repository pattern"
+          },
+          {
+            "signature": "org.hibernate.tool.hbm2ddl.ConnectionHelper.prepare:void(boolean)",
+            "description": "Prepares database connection resources in repository pattern style"
+          }
+        ]
+      },
+      "nosql_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.createNativeQuery:org.hibernate.query.sql.spi.NativeQueryImplementor(java.lang.String)",
+            "description": "Creates a native SQL query that can target NoSQL databases"
+          }
+        ]
+      },
+      "xpath_queries": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.xmlquery:org.hibernate.query.criteria.JpaExpression(java.lang.String,jakarta.persistence.criteria.Expression)",
+            "description": "Executes an XML query against an XML document"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.xmlexists:org.hibernate.query.criteria.JpaExpression(java.lang.String,jakarta.persistence.criteria.Expression)",
+            "description": "Tests if an XML query matches an XML document"
+          }
+        ]
+      }
+    },
+    "execution": {
+      "reflection": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.community.dialect.CommunityDatabase.createDialect:org.hibernate.dialect.Dialect(org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo):org.hibernate.dialect.Dialect(org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo)",
+            "description": "Creates a dialect instance dynamically based on database information using reflection"
+          },
+          {
+            "signature": "org.hibernate.Hibernate.unproxy:java.lang.Object(java.lang.Object)",
+            "description": "Uses reflection to unproxy a Hibernate proxy object"
+          },
+          {
+            "signature": "org.hibernate.Hibernate.initialize:void(java.lang.Object)",
+            "description": "Uses reflection to initialize a lazy-loaded proxy"
+          },
+          {
+            "signature": "org.hibernate.boot.registry.classloading.spi.ClassLoaderService.classForName:java.lang.Class(java.lang.String)",
+            "description": "Loads a Java class by name using reflection"
+          },
+          {
+            "signature": "org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl.generateProxy:java.lang.Object(java.lang.reflect.InvocationHandler,java.lang.Class[])",
+            "description": "Generates dynamic proxy instances using reflection"
+          },
+          {
+            "signature": "org.hibernate.dialect.type.OracleReflectionStructJdbcType.resolveAggregateJdbcType:org.hibernate.type.descriptor.jdbc.AggregateJdbcType(org.hibernate.metamodel.mapping.EmbeddableMappingType,java.lang.String,org.hibernate.metamodel.spi.RuntimeModelCreationContext)",
+            "description": "Uses reflection to resolve Oracle STRUCT type mappings"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SessionDelegatorBaseImpl.createStoredProcedureQuery:org.hibernate.procedure.ProcedureCall(java.lang.String)",
+            "description": "Creates a procedure call using reflection to invoke stored procedures"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.internalLoad:java.lang.Object(java.lang.String,java.lang.Object,boolean,boolean)",
+            "description": "Dynamically loads an entity using reflection"
+          },
+          {
+            "signature": "org.hibernate.internal.EmptyInterceptor.onLoad:boolean(java.lang.Object,java.lang.Object,java.lang.Object[],java.lang.String[],org.hibernate.type.Type[])",
+            "description": "Intercepts entity loading using reflection"
+          },
+          {
+            "signature": "org.hibernate.internal.EmptyInterceptor.onSave:boolean(java.lang.Object,java.lang.Object,java.lang.Object[],java.lang.String[],org.hibernate.type.Type[])",
+            "description": "Intercepts entity saving using reflection"
+          },
+          {
+            "signature": "org.hibernate.internal.util.ReflectHelper.classForName:java.lang.Class(java.lang.String)",
+            "description": "Loads a class by name using reflection"
+          },
+          {
+            "signature": "org.hibernate.internal.util.ReflectHelper.reflectedPropertyClass:java.lang.Class(java.lang.String,java.lang.String,org.hibernate.boot.registry.classloading.spi.ClassLoaderService)",
+            "description": "Gets a property type using reflection"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.internal.InFlightEntityMappingType.linkWithSuperType:void(org.hibernate.metamodel.mapping.internal.MappingModelCreationProcess)",
+            "description": "Links entity mappings with their supertypes using reflection"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.internal.InFlightEntityMappingType.linkWithSubType:void(org.hibernate.metamodel.mapping.EntityMappingType,org.hibernate.metamodel.mapping.internal.MappingModelCreationProcess)",
+            "description": "Links entity mappings with their subtypes using reflection"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.instantiate:java.lang.Object(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Creates a new instance of an entity class using reflection"
+          },
+          {
+            "signature": "org.hibernate.proxy.AbstractLazyInitializer.initialize:void()",
+            "description": "Initializes a lazy-loaded proxy object using reflection"
+          },
+          {
+            "signature": "org.hibernate.sql.results.graph.instantiation.internal.DynamicInstantiation.createDomainResult:org.hibernate.sql.results.graph.DomainResult(java.lang.String,org.hibernate.sql.results.graph.DomainResultCreationState)",
+            "description": "Dynamically creates domain objects using reflection"
+          },
+          {
+            "signature": "org.hibernate.envers.internal.entities.mapper.relation.lazy.ToOneDelegateSessionImplementor.doImmediateLoad:java.lang.Object(java.lang.String)",
+            "description": "Dynamically loads an entity using reflection-based proxy initialization"
+          },
+          {
+            "signature": "org.hibernate.envers.internal.entities.mapper.relation.lazy.initializor.AbstractCollectionInitializor.initialize:java.lang.Object()",
+            "description": "Initializes a lazy-loaded collection through reflection"
+          }
+        ]
+      },
+      "expression": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.dialect.function.AvgFunction.render:void(org.hibernate.sql.ast.spi.SqlAppender,java.util.List,org.hibernate.metamodel.model.domain.ReturnableType,org.hibernate.sql.ast.SqlAstTranslator)",
+            "description": "Renders an AVG function expression in SQL"
+          },
+          {
+            "signature": "org.hibernate.dialect.function.CastFunction.render:void(org.hibernate.sql.ast.spi.SqlAppender,java.util.List,org.hibernate.metamodel.model.domain.ReturnableType,org.hibernate.sql.ast.SqlAstTranslator)",
+            "description": "Renders a CAST function expression in SQL"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.function:org.hibernate.query.criteria.JpaFunction(java.lang.String,java.lang.Class,jakarta.persistence.criteria.Expression)",
+            "description": "Evaluates a database function with the given arguments"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.jsonValue:org.hibernate.query.criteria.JpaJsonValueExpression(jakarta.persistence.criteria.Expression,java.lang.String)",
+            "description": "Evaluates a JSON path expression against a JSON document"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.function:org.hibernate.query.criteria.JpaFunction(java.lang.String,java.lang.Class,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a function expression in a criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.spi.HibernateCriteriaBuilderDelegate.windowFunction:org.hibernate.query.criteria.JpaExpression(java.lang.String,java.lang.Class,org.hibernate.query.criteria.JpaWindow,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a window function expression in a criteria query"
+          },
+          {
+            "signature": "org.hibernate.query.restriction.Restriction.toPredicate:jakarta.persistence.criteria.Predicate(jakarta.persistence.criteria.Root,jakarta.persistence.criteria.CriteriaBuilder)",
+            "description": "Converts a restriction into a predicate expression for query filtering"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.NodeBuilder.and:org.hibernate.query.sqm.tree.predicate.SqmPredicate(jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a logical AND expression between two predicates"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.NodeBuilder.or:org.hibernate.query.sqm.tree.predicate.SqmPredicate(jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a logical OR expression between two predicates"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.NodeBuilder.not:org.hibernate.query.sqm.tree.predicate.SqmPredicate(jakarta.persistence.criteria.Expression)",
+            "description": "Creates a logical NOT expression for the given predicate"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.internal.SqmCriteriaNodeBuilder.between:org.hibernate.query.sqm.tree.predicate.SqmPredicate(jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression,jakarta.persistence.criteria.Expression)",
+            "description": "Creates a BETWEEN expression checking if a value is within a range"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.predicate.SqmPredicateCollection.applyPredicates:void(org.hibernate.query.sqm.tree.predicate.SqmPredicate[])",
+            "description": "Evaluates and applies multiple predicate expressions in query"
+          },
+          {
+            "signature": "org.hibernate.query.sqm.tree.predicate.SqmInSubQueryPredicate.accept:java.lang.Object(org.hibernate.query.sqm.SemanticQueryWalker)",
+            "description": "Evaluates subquery expression in IN predicate"
+          }
+        ]
+      }
+    },
+    "data_flow": {
+      "serialization": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.Hibernate$LobHelperImpl.createBlob:java.sql.Blob(byte[])",
+            "description": "Serializes byte array to BLOB"
+          },
+          {
+            "signature": "org.hibernate.Hibernate$LobHelperImpl.createClob:java.sql.Clob(java.lang.String)",
+            "description": "Serializes String to CLOB"
+          },
+          {
+            "signature": "org.hibernate.boot.jaxb.internal.CacheableFileXmlSource.fromCacheableFile:org.hibernate.boot.jaxb.spi.Binding(java.io.File,java.io.File,boolean,org.hibernate.boot.jaxb.internal.MappingBinder)",
+            "description": "Creates a binding from a cacheable XML mapping file"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.ConvertJpaAnnotation.converter:<unresolvedSignature>(0)",
+            "description": "Gets converter class for transforming between entity and database representations"
+          },
+          {
+            "signature": "org.hibernate.boot.models.annotations.internal.ConverterJpaAnnotation.autoApply:boolean()",
+            "description": "Determines if type converter should be automatically applied during serialization"
+          },
+          {
+            "signature": "org.hibernate.boot.models.xml.internal.XmlAnnotationHelper.applyGeneratedValue:void(org.hibernate.boot.jaxb.mapping.spi.JaxbGeneratedValueImpl,org.hibernate.models.spi.MutableMemberDetails,org.hibernate.boot.models.xml.spi.XmlDocumentContext)",
+            "description": "Applies JAXB-deserialized generated value configuration to entity mapping"
+          },
+          {
+            "signature": "org.hibernate.collection.spi.PersistentBag.disassemble:java.lang.Object(org.hibernate.persister.collection.CollectionPersister)",
+            "description": "Converts persistent collection to serializable form for caching"
+          },
+          {
+            "signature": "org.hibernate.dialect.Dialect.STREAM_XFER_LOB_MERGE_STRATEGY.LobMergeStrategy$1.mergeClob:java.sql.Clob(java.sql.Clob,java.sql.Clob,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Merges two CLOB objects using stream transfer strategy"
+          },
+          {
+            "signature": "org.hibernate.dialect.Dialect.STREAM_XFER_LOB_MERGE_STRATEGY.LobMergeStrategy$1.mergeNClob:java.sql.NClob(java.sql.NClob,java.sql.NClob,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Merges two NCLOB objects using stream transfer strategy"
+          },
+          {
+            "signature": "org.hibernate.dialect.Dialect.NEW_LOCATOR_LOB_MERGE_STRATEGY.LobMergeStrategy$2.mergeBlob:java.sql.Blob(java.sql.Blob,java.sql.Blob,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Merges two BLOB objects using locator strategy"
+          },
+          {
+            "signature": "org.hibernate.dialect.type.MySQLCastingJsonJdbcType.resolveAggregateJdbcType:org.hibernate.type.descriptor.jdbc.AggregateJdbcType(org.hibernate.metamodel.mapping.EmbeddableMappingType,java.lang.String,org.hibernate.metamodel.spi.RuntimeModelCreationContext)",
+            "description": "Resolves JSON type mapping for MySQL serialization"
+          },
+          {
+            "signature": "org.hibernate.dialect.type.PostgreSQLCastingJsonJdbcType.resolveAggregateJdbcType:org.hibernate.type.descriptor.jdbc.AggregateJdbcType(org.hibernate.metamodel.mapping.EmbeddableMappingType,java.lang.String,org.hibernate.metamodel.spi.RuntimeModelCreationContext)",
+            "description": "Resolves JSON type mapping for PostgreSQL serialization"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.LobCreator.createBlob:java.sql.Blob(byte[])",
+            "description": "Creates a binary large object (BLOB) from a byte array"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.LobCreator.createClob:java.sql.Clob(java.lang.String)",
+            "description": "Creates a character large object (CLOB) from a string"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.PersistenceContext.unproxy:java.lang.Object(java.lang.Object)",
+            "description": "Unproxies a potentially proxy object to get its actual instance"
+          },
+          {
+            "signature": "org.hibernate.engine.spi.SharedSessionDelegatorBaseImpl.initializeCollection:void(org.hibernate.collection.spi.PersistentCollection,boolean)",
+            "description": "Initializes a lazy-loaded collection by deserializing its contents"
+          },
+          {
+            "signature": "org.hibernate.internal.util.SerializationHelper.serialize:void(java.io.Serializable,java.io.OutputStream)",
+            "description": "Serializes an object to an output stream"
+          },
+          {
+            "signature": "org.hibernate.internal.util.SerializationHelper.deserialize:java.lang.Object(java.io.InputStream)",
+            "description": "Deserializes an object from an input stream"
+          },
+          {
+            "signature": "org.hibernate.internal.util.SerializationHelper.serialize:byte[](java.io.Serializable)",
+            "description": "Serializes an object to a byte array"
+          },
+          {
+            "signature": "org.hibernate.internal.util.SerializationHelper.deserialize:java.lang.Object(byte[])",
+            "description": "Deserializes an object from a byte array"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.EntityValuedModelPart.disassemble:java.lang.Object(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Disassembles an entity instance into a serializable format"
+          },
+          {
+            "signature": "org.hibernate.metamodel.mapping.internal.AbstractEmbeddableMapping.disassemble:java.lang.Object(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Disassembles an embeddable object into a serializable format"
+          },
+          {
+            "signature": "org.hibernate.persister.entity.EntityPersister.disassemble:java.lang.Object(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor)",
+            "description": "Converts an entity instance into a serialized form"
+          },
+          {
+            "signature": "org.hibernate.query.results.ResultSetMapping.resolveResultSetMapping:org.hibernate.query.results.ResultSetMapping(java.lang.String,org.hibernate.engine.spi.SessionFactoryImplementor)",
+            "description": "Maps database result sets to object structures"
+          },
+          {
+            "signature": "org.hibernate.sql.results.caching.QueryCachePutManager.registerJdbcRow:void(java.lang.Object)",
+            "description": "Caches query result row data for later retrieval"
+          },
+          {
+            "signature": "org.hibernate.type.ComponentType.disassemble:java.io.Serializable(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Converts a component/embedded object into its serializable form for caching"
+          },
+          {
+            "signature": "org.hibernate.type.ComponentType.assemble:java.lang.Object(java.io.Serializable,org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Reconstructs a component/embedded object from its serialized form"
+          },
+          {
+            "signature": "org.hibernate.type.CustomType.assemble:java.lang.Object(java.io.Serializable,org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Reconstructs a custom type object from its serialized form"
+          },
+          {
+            "signature": "org.hibernate.type.internal.ConvertedBasicTypeImpl.disassemble:java.io.Serializable(java.lang.Object,org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Converts an object to its serializable form for caching"
+          },
+          {
+            "signature": "org.hibernate.type.internal.ConvertedBasicTypeImpl.assemble:java.lang.Object(java.io.Serializable,org.hibernate.engine.spi.SharedSessionContractImplementor,java.lang.Object)",
+            "description": "Reconstructs an object from its cached serializable form"
+          }
+        ]
+      },
+      "file_operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.Hibernate$LobHelperImpl.createBlob:java.sql.Blob(java.io.InputStream,long)",
+            "description": "Creates BLOB from input stream"
+          },
+          {
+            "signature": "org.hibernate.Hibernate$LobHelperImpl.createClob:java.sql.Clob(java.io.Reader,long)",
+            "description": "Creates CLOB from reader"
+          },
+          {
+            "signature": "org.hibernate.boot.jaxb.internal.FileXmlSource.fromFile:org.hibernate.boot.jaxb.spi.Binding(java.io.File,org.hibernate.boot.jaxb.internal.MappingBinder)",
+            "description": "Reads and processes an XML mapping file"
+          },
+          {
+            "signature": "org.hibernate.boot.jaxb.internal.InputStreamXmlSource.fromStream:org.hibernate.boot.jaxb.spi.Binding(java.io.InputStream,org.hibernate.boot.jaxb.internal.MappingBinder)",
+            "description": "Reads and processes XML mappings from an input stream"
+          },
+          {
+            "signature": "org.hibernate.cfg.Configuration.configure:org.hibernate.cfg.Configuration(java.io.File)",
+            "description": "Configures Hibernate from an XML configuration file"
+          },
+          {
+            "signature": "org.hibernate.cfg.Configuration.addFile:org.hibernate.cfg.Configuration(java.io.File)",
+            "description": "Adds a mapping file to the configuration"
+          },
+          {
+            "signature": "org.hibernate.cfg.Configuration.addInputStream:org.hibernate.cfg.Configuration(java.io.InputStream)",
+            "description": "Adds mapping configuration from an input stream"
+          }
+        ]
+      },
+      "xml_parsing": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.boot.jaxb.internal.AbstractBinder.bind:org.hibernate.boot.jaxb.spi.Binding(java.io.InputStream,org.hibernate.boot.jaxb.Origin)",
+            "description": "Binds XML input stream to mapping objects using JAXB"
+          },
+          {
+            "signature": "org.hibernate.boot.jaxb.internal.AbstractBinder.bind:org.hibernate.boot.jaxb.spi.Binding(javax.xml.transform.Source,org.hibernate.boot.jaxb.Origin)",
+            "description": "Binds XML source to mapping objects using JAXB"
+          },
+          {
+            "signature": "org.hibernate.boot.model.source.internal.hbm.MappingDocument.prepare:void()",
+            "description": "Prepares XML mapping document for processing"
+          },
+          {
+            "signature": "org.hibernate.boot.model.source.internal.hbm.MappingDocument.processTypeDefinitions:void()",
+            "description": "Processes type definitions from XML mapping"
+          },
+          {
+            "signature": "org.hibernate.boot.models.xml.spi.XmlProcessor.processXml:org.hibernate.boot.models.xml.spi.XmlProcessingResult(org.hibernate.boot.models.xml.spi.XmlPreProcessingResult,org.hibernate.boot.models.xml.spi.PersistenceUnitMetadata,java.util.function.BiConsumer,org.hibernate.models.spi.ModelsContext,org.hibernate.boot.spi.BootstrapContext,org.hibernate.boot.internal.RootMappingDefaults)",
+            "description": "Processes XML mapping documents into Hibernate metadata"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.xmlquery:org.hibernate.query.criteria.JpaExpression(java.lang.String,jakarta.persistence.criteria.Expression)",
+            "description": "Parses and queries XML content"
+          },
+          {
+            "signature": "org.hibernate.query.criteria.HibernateCriteriaBuilder.xmlexists:org.hibernate.query.criteria.JpaExpression(java.lang.String,jakarta.persistence.criteria.Expression)",
+            "description": "Parses XML and checks for matching content"
+          }
+        ]
+      }
+    },
+    "integration": {
+      "filesystem": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.boot.internal.StandardResourceLocator.locateResource:java.net.URL(java.lang.String)",
+            "description": "Locates a resource file in the filesystem or classpath"
+          },
+          {
+            "signature": "org.hibernate.boot.registry.StandardServiceRegistryBuilder.loadProperties:org.hibernate.boot.registry.StandardServiceRegistryBuilder(java.io.File)",
+            "description": "Loads Hibernate properties from a filesystem configuration file"
+          },
+          {
+            "signature": "org.hibernate.boot.registry.classloading.spi.ClassLoaderService.locateResourceStream:java.io.InputStream(java.lang.String)",
+            "description": "Locates and opens a resource file from the classpath or filesystem"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.LobCreator.createBlob:java.sql.Blob(java.io.InputStream,long)",
+            "description": "Creates a BLOB from an input stream"
+          },
+          {
+            "signature": "org.hibernate.engine.jdbc.LobCreator.createClob:java.sql.Clob(java.io.Reader,long)",
+            "description": "Creates a CLOB from a reader"
+          },
+          {
+            "signature": "org.hibernate.tool.enhance.EnhancementTask.addFileset:void(org.apache.tools.ant.types.FileSet)",
+            "description": "Adds a set of files for bytecode enhancement processing"
+          },
+          {
+            "signature": "org.hibernate.orm.post.IndexerTask.createIndex:void()",
+            "description": "Creates filesystem indexes for documentation/resources"
+          }
+        ]
+      },
+      "http_clients": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.engine.config.internal.ConfigurationServiceImpl.injectServices:void(org.hibernate.service.spi.ServiceRegistryImplementor)",
+            "description": "Injects external service dependencies into Hibernate configuration"
+          }
+        ]
+      }
+    },
+    "logging": {
+      "operations": {
+        "type": "joern",
+        "search_type": "method_signature",
+        "signatures": [
+          {
+            "signature": "org.hibernate.engine.internal.StatisticalLoggingSessionEventListener.cacheGetStart:void()",
+            "description": "Logs the start of a cache retrieval operation"
+          },
+          {
+            "signature": "org.hibernate.engine.internal.StatisticalLoggingSessionEventListener.cacheGetEnd:void(boolean)",
+            "description": "Logs the completion of a cache retrieval operation with hit/miss status"
+          },
+          {
+            "signature": "org.hibernate.event.internal.EventListenerLogging.persisting:void(java.lang.String)",
+            "description": "Logs persistence operations"
+          },
+          {
+            "signature": "org.hibernate.event.internal.EventListenerLogging.deleting:void(java.lang.String)",
+            "description": "Logs deletion operations"
+          },
+          {
+            "signature": "org.hibernate.internal.CoreMessageLogger.beginningTransaction:void()",
+            "description": "Logs the start of a transaction"
+          },
+          {
+            "signature": "org.hibernate.internal.CoreMessageLogger.committingTransaction:void()",
+            "description": "Logs transaction commit"
+          },
+          {
+            "signature": "org.hibernate.internal.CoreMessageLogger.rollingBackTransaction:void()",
+            "description": "Logs transaction rollback"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Grizzly",
+  "languages": [
+    "java"
+  ],
+  "extends": "java",
+  "detection": {
+    "dependencies": {},
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.glassfish.grizzly.http.server.*",
+        "org.glassfish.grizzly.http.util.*"
+      ]
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "class_name_regex",
+          "pattern": ".*Repository.*|.*DAO.*"
+        }
+      ],
+      "operation_methods": [
+        {
+          "target": "joern",
+          "search_type": "method_name_regex",
+          "pattern": "save|persist|find.*|delete.*"
+        }
+      ]
+    },
+    "data_flow": {
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getAuthorization()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getHeader(org.glassfish.grizzly.http.util.Header)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getHeader(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getHeaderNames()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getHeaders(org.glassfish.grizzly.http.util.Header)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getHeaders(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getInputBuffer()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getNIOInputStream()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getNIOReader()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getParameter(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getParameterMap()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getParameters()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getParameterValues(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getPathInfo()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getPostBody(int)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getQueryString()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getCookies()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getRequestURL()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getRequestURI()"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.server.Request.getParameterNames()"
+        }
+      ]
+    },
+    "security": {
+      "sanitization": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.util.HttpUtils.filter(java.lang.String)"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.glassfish.grizzly.http.util.HttpUtils.filter(org.glassfish.grizzly.http.util.DataChunk)"
+        }
+      ]
+    }
+  }
+}

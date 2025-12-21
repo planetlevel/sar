@@ -1,0 +1,888 @@
+{
+  "$schema": "../schema/framework-schema.json",
+  "name": "Spring Security",
+  "languages": [
+    "java",
+    "kotlin"
+  ],
+  "repository": {
+    "url": "https://github.com/spring-projects/spring-security",
+    "branch": "main",
+    "commit": "5662e173706d437bcc23b65466abdb18733db277",
+    "date": "2025-11-04"
+  },
+  "detection": {
+    "files": {
+      "target": "filename",
+      "pattern": [
+        "config.xml",
+        "repository.xml",
+        "spring-security*.jar"
+      ]
+    },
+    "dependencies": {
+      "build.gradle": [
+        {
+          "pattern": "org.springframework.security",
+          "library": "Spring Security"
+        }
+      ],
+      "pom.xml": [
+        {
+          "artifact": "spring-boot-starter-security",
+          "library": "Spring Security"
+        },
+        {
+          "artifact": "spring-security-core",
+          "library": "Spring Security"
+        }
+      ]
+    },
+    "imports": {
+      "search_type": "import",
+      "target": "joern",
+      "pattern": [
+        "org.springframework.*",
+        "lock.GlobalLockPlugin.*",
+        "lock.GlobalLockTask.*",
+        "s101.S101Configure.*",
+        "s101.S101Configurer.*"
+      ]
+    },
+    "package_hierarchy": {
+      "description": "Packages used in the framework organized by depth level",
+      "levels": {
+        "depth_2": [
+          "org.springframework",
+          "lock.GlobalLockTask",
+          "lock.GlobalLockPlugin",
+          "s101.S101Configure",
+          "s101.S101Configurer",
+          "s101.S101Install",
+          "s101.S101Plugin",
+          "s101.S101PluginExtension",
+          "trang.RncToXsd",
+          "trang.TrangPlugin"
+        ],
+        "depth_3": [
+          "org.springframework.security",
+          "org.springframework.gradle",
+          "lock.GlobalLockTask.lock",
+          "lock.GlobalLockTask.writeLocksFor"
+        ],
+        "depth_4": [
+          "org.springframework.security.oauth2",
+          "org.springframework.security.web",
+          "org.springframework.security.config",
+          "org.springframework.security.saml2",
+          "org.springframework.security.authorization",
+          "org.springframework.security.authentication",
+          "org.springframework.security.core",
+          "org.springframework.security.access",
+          "org.springframework.security.ldap",
+          "org.springframework.security.acls",
+          "org.springframework.security.crypto",
+          "org.springframework.security.messaging",
+          "org.springframework.security.kerberos",
+          "org.springframework.security.rsocket",
+          "org.springframework.security.cas",
+          "org.springframework.security.jackson2",
+          "org.springframework.security.jackson",
+          "org.springframework.gradle.maven",
+          "org.springframework.security.integration",
+          "org.springframework.security.aot"
+        ]
+      },
+      "target": "analysis"
+    }
+  },
+  "architecture": {
+    "database": {
+      "repository_pattern": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.client.registration.ClientRegistrationRepository.findByRegistrationId:org.springframework.security.oauth2.client.registration.ClientRegistration(java.lang.String)",
+          "description": "Repository method to find client registration by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.webauthn.management.PublicKeyCredentialUserEntityRepository.findById:org.springframework.security.web.webauthn.api.PublicKeyCredentialUserEntity(org.springframework.security.web.webauthn.api.Bytes)",
+          "description": "Repository method to find user entity by ID"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.webauthn.management.UserCredentialRepository.findByCredentialId:org.springframework.security.web.webauthn.api.CredentialRecord(org.springframework.security.web.webauthn.api.Bytes)",
+          "description": "Repository method to find user credentials by credential ID"
+        }
+      ],
+      "ldap_queries": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.kerberos.client.ldap.KerberosLdapContextSource.getDirContextInstance.PrivilegedAction$0.run:javax.naming.directory.DirContext()",
+          "description": "Executes LDAP directory context creation with Kerberos authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.authentication.AbstractLdapAuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Authenticates users against LDAP directory"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.authentication.BindAuthenticator.authenticate:org.springframework.ldap.core.DirContextOperations(org.springframework.security.core.Authentication)",
+          "description": "Authenticates users by binding to LDAP directory"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.authentication.LdapAuthenticator.authenticate:org.springframework.ldap.core.DirContextOperations(org.springframework.security.core.Authentication)",
+          "description": "Interface for LDAP authentication operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.LdapUtils.convertPasswordToString:java.lang.String(java.lang.Object)",
+          "description": "Converts LDAP password objects to string representation"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.SpringSecurityLdapTemplate.retrieveEntry:org.springframework.ldap.core.DirContextOperations(java.lang.String,java.lang.String[])",
+          "description": "Retrieves entries from LDAP directory"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.DefaultLdapUsernameToDnMapper.buildLdapName:javax.naming.ldap.LdapName(java.lang.String)",
+          "description": "Builds LDAP distinguished name from username"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.ldap.LdapUsernameToDnMapper.buildLdapName:javax.naming.ldap.LdapName(java.lang.String)",
+          "description": "Maps username to LDAP distinguished name"
+        }
+      ]
+    },
+    "execution": {
+      "reflection": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.FilterInvocation$UnsupportedOperationExceptionInvocationHandler.invoke:java.lang.Object(java.lang.Object,java.lang.reflect.Method,java.lang.Object[])",
+          "description": "Reflection-based method invocation handler"
+        }
+      ],
+      "expression": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.access.expression.ExpressionUtils.evaluateAsBoolean:boolean(org.springframework.expression.Expression,org.springframework.expression.EvaluationContext)",
+          "description": "Evaluates a security expression to a boolean result"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.messaging.access.expression.EvaluationContextPostProcessor.postProcess:org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,java.lang.Object):org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,java.lang.Object)",
+          "description": "Post-processes security expression evaluation context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.access.expression.WebExpressionConfigAttribute.postProcess:org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,org.springframework.security.web.FilterInvocation):org.springframework.expression.EvaluationContext(org.springframework.expression.EvaluationContext,org.springframework.security.web.FilterInvocation)",
+          "description": "Post-processes web security expression evaluation context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.annotation.ExpressionTemplateSecurityAnnotationScanner$ClassToStringConverter.convert:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor,org.springframework.core.convert.TypeDescriptor)",
+          "description": "Converts security expression classes to string representations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.config.annotation.web.builders.WebSecurity$SecurityExpressionHandlerAdapter.createEvaluationContext:org.springframework.expression.EvaluationContext(java.util.function.Supplier,org.springframework.security.web.FilterInvocation)",
+          "description": "Creates context for evaluating security expressions"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtValidators$AtJwtBuilder.build:org.springframework.security.oauth2.core.OAuth2TokenValidator()",
+          "description": "Builds JWT token validator"
+        }
+      ]
+    },
+    "security": {
+      "authorization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": [
+            "PreAuthorize",
+            "PostAuthorize",
+            "Secured",
+            "RolesAllowed"
+          ],
+          "description": "authorization.annotations patterns"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.intercept.aopalliance.MethodSecurityInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+          "description": "Intercepts method invocations to enforce security"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke:void(org.springframework.security.web.FilterInvocation)",
+          "description": "Enforces security on web requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.method.AuthorizationManagerBeforeMethodInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
+          "description": "Performs authorization checks before method execution"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AuthenticatedAuthorizationManager.authenticated:org.springframework.security.authorization.AuthenticatedAuthorizationManager()",
+          "description": "Creates authorization manager that requires authenticated users"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager.authenticated:org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager()",
+          "description": "Creates reactive authorization manager that requires authenticated users"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AuthorizationManagerFactory.authenticated:org.springframework.security.authorization.AuthorizationManager()",
+          "description": "Factory method for creating authorization managers requiring authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.SecurityConfig.hashCode:int()",
+          "description": "Generates hash code for security configuration"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.method.DelegatingMethodSecurityMetadataSource$DefaultCacheKey.hashCode:int()",
+          "description": "Generates hash code for method security metadata cache key"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AuthorizationObservationContext.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets the authentication object from an authorization observation context"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.event.AuthorizationEvent.getAuthentication:java.util.function.Supplier():java.util.function.Supplier()",
+          "description": "Gets the authentication supplier from an authorization event"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.web.access.ExceptionTranslationFilter.getAuthenticationEntryPoint:org.springframework.security.web.AuthenticationEntryPoint():org.springframework.security.web.AuthenticationEntryPoint()",
+          "description": "Gets entry point for handling authorization failures"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.core.annotation.ExpressionTemplateSecurityAnnotationScanner$ExpressionTemplateValueProviderConverter.convert:java.lang.Object(java.lang.Object,org.springframework.core.convert.TypeDescriptor,org.springframework.core.convert.TypeDescriptor)",
+          "description": "Converts security expression templates for authorization evaluation"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.SecurityConfig.createListFromCommaDelimitedString:java.util.List(java.lang.String)",
+          "description": "Creates security configuration list from comma-delimited authorization rules"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.expression.method.ExpressionBasedAnnotationAttributeFactory.createPreInvocationAttribute:org.springframework.security.access.prepost.PreInvocationAttribute(java.lang.String,java.lang.String,java.lang.String)",
+          "description": "Creates pre-invocation security attributes for method authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AllRequiredFactorsAuthorizationManager.builder:org.springframework.security.authorization.AllRequiredFactorsAuthorizationManager$Builder()",
+          "description": "Creates builder for multi-factor authorization manager"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.AuthorizationManagerFactories$AdditionalRequiredFactorsBuilder.build:org.springframework.security.authorization.DefaultAuthorizationManagerFactory()",
+          "description": "Builds authorization manager factory with additional required factors"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.RequiredFactor.builder:org.springframework.security.authorization.RequiredFactor$Builder()",
+          "description": "Creates builder for required authorization factor"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl.withRolePrefix:org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl$Builder(java.lang.String)",
+          "description": "Configures role hierarchy with specified role prefix for authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.authorization.RequiredFactor.withAuthority:org.springframework.security.authorization.RequiredFactor$Builder(java.lang.String)",
+          "description": "Defines required authority for authorization"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.core.authority.FactorGrantedAuthority.withAuthority:org.springframework.security.core.authority.FactorGrantedAuthority$Builder(java.lang.String)",
+          "description": "Creates authorization authority with specified permission"
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": "org.springframework.security.core.authority.FactorGrantedAuthority.withFactor:org.springframework.security.core.authority.FactorGrantedAuthority$Builder(java.lang.String)",
+          "description": "Creates multi-factor authorization authority"
+        }
+      ],
+      "crypto": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.kerberos.authentication.KerberosServiceRequestToken.decrypt.PrivilegedExceptionAction$0.run:byte[]()",
+          "description": "Decrypts Kerberos service token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.kerberos.authentication.KerberosServiceRequestToken.encrypt.PrivilegedExceptionAction$0.run:byte[]()",
+          "description": "Encrypts Kerberos service token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.PasswordComparisonAuthenticator.authenticate:org.springframework.ldap.core.DirContextOperations(org.springframework.security.core.Authentication)",
+          "description": "Authenticates by comparing password hashes"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.BytesEncryptor.decrypt:byte[](byte[])",
+          "description": "Decrypts encrypted byte array data using cryptographic operations"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.Encryptors$NoOpTextEncryptor.decrypt:java.lang.String(java.lang.String)",
+          "description": "No-op implementation of text decryption"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.HexEncodingTextEncryptor.decrypt:java.lang.String(java.lang.String)",
+          "description": "Decrypts hex-encoded encrypted text"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.RsaRawEncryptor.decrypt:java.lang.String(java.lang.String)",
+          "description": "Decrypts RSA-encrypted text data"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.RsaRawEncryptor.decrypt:byte[](byte[])",
+          "description": "Decrypts RSA-encrypted byte array data"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.RsaSecretEncryptor.decrypt:java.lang.String(java.lang.String)",
+          "description": "Decrypts RSA secret-key encrypted text"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.RsaSecretEncryptor.decrypt:byte[](byte[])",
+          "description": "Decrypts RSA secret-key encrypted byte array"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.encrypt.TextEncryptor.decrypt:java.lang.String(java.lang.String)",
+          "description": "Interface method for text decryption"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.bcrypt.BCrypt.hashpw:java.lang.String(java.lang.String,java.lang.String)",
+          "description": "Hashes a password using BCrypt algorithm"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.bcrypt.BCrypt.hashpw:java.lang.String(byte[],java.lang.String)",
+          "description": "Hashes a password (as bytes) using BCrypt algorithm"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.config.crypto.RsaKeyConversionServicePostProcessor$ResourceKeyConverterAdapter.convert:java.security.Key(java.lang.String)",
+          "description": "Converts string resources into RSA cryptographic keys"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.converter.RsaKeyConverters$X509PemDecoder.convert:java.security.interfaces.RSAPublicKey(java.util.List)",
+          "description": "Converts PEM-encoded X509 certificates into RSA public keys"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.converter.RsaKeyConverters$X509CertificateDecoder.convert:java.security.interfaces.RSAPublicKey(java.util.List)",
+          "description": "Converts X509 certificates into RSA public keys"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.password.AbstractValidatingPasswordEncoder.encode:java.lang.String(java.lang.CharSequence)",
+          "description": "Encodes passwords using cryptographic hashing"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.crypto.password.Md4PasswordEncoder.encodeNonNullPassword:java.lang.String(java.lang.String)",
+          "description": "Encodes passwords using MD4 hashing algorithm"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtClaimsSet.builder:org.springframework.security.oauth2.jwt.JwtClaimsSet$Builder()",
+          "description": "Creates builder for JWT claims set"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtClaimsSet$Builder.build:org.springframework.security.oauth2.jwt.JwtClaimsSet()",
+          "description": "Builds JWT claims set"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.Jwt$Builder.build:org.springframework.security.oauth2.jwt.Jwt()",
+          "description": "Builds JWT token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.userdetails.User.withDefaultPasswordEncoder:org.springframework.security.core.userdetails.User$UserBuilder()",
+          "description": "Sets up default password encryption for user authentication"
+        }
+      ],
+      "authentication": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AuthenticationManager.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Core authentication method that processes an authentication request"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AuthenticationProvider.authenticate:org.springframework.security.core.Authentication(org.springframework.security.core.Authentication)",
+          "description": "Provider interface method for processing authentication requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.ReactiveAuthenticationManager.authenticate:reactor.core.publisher.Mono(org.springframework.security.core.Authentication)",
+          "description": "Reactive version of authentication manager for processing authentication requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated:org.springframework.security.authentication.UsernamePasswordAuthenticationToken(java.lang.Object,java.lang.Object,java.util.Collection)",
+          "description": "Creates an authenticated token with user details and authorities"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.UsernamePasswordAuthenticationToken.unauthenticated:org.springframework.security.authentication.UsernamePasswordAuthenticationToken(java.lang.Object,java.lang.Object)",
+          "description": "Creates an unauthenticated token with credentials"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AbstractAuthenticationToken.hashCode:int()",
+          "description": "Generates hash code for authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AnonymousAuthenticationToken.hashCode:int()",
+          "description": "Generates hash code for anonymous authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.RememberMeAuthenticationToken.hashCode:int()",
+          "description": "Generates hash code for remember-me authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.access.event.AuthorizationFailureEvent.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Retrieves the Authentication object from an authorization failure event"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.access.event.AuthorizedEvent.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Retrieves the Authentication object from a successful authorization event"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.access.intercept.AbstractSecurityInterceptor.getAuthenticationManager:org.springframework.security.authentication.AuthenticationManager():org.springframework.security.authentication.AuthenticationManager()",
+          "description": "Gets the AuthenticationManager responsible for authenticating users"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.access.intercept.RunAsUserToken.getOriginalAuthentication:java.lang.Class():java.lang.Class()",
+          "description": "Retrieves the original authentication class from a RunAsUserToken"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AuthenticationObservationContext.getAuthenticationRequest:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets the authentication request from an observation context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.AuthenticationObservationContext.getAuthenticationResult:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets the authentication result from an observation context"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.event.AbstractAuthenticationEvent.getAuthentication:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Retrieves the Authentication object from an authentication event"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.AuthenticationException.getAuthenticationRequest:org.springframework.security.core.Authentication():org.springframework.security.core.Authentication()",
+          "description": "Gets the authentication request that caused an authentication exception"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.authentication.AuthenticationFilter.getAuthenticationConverter:org.springframework.security.web.authentication.AuthenticationConverter():org.springframework.security.web.authentication.AuthenticationConverter()",
+          "description": "Retrieves converter for creating Authentication objects from HTTP requests"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.authentication.AuthenticationFilter.getAuthenticationManagerResolver:org.springframework.security.authentication.AuthenticationManagerResolver():org.springframework.security.authentication.AuthenticationManagerResolver()",
+          "description": "Gets resolver for determining appropriate AuthenticationManager"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request into Bearer token authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.rsocket.authentication.BasicAuthenticationPayloadExchangeConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+          "description": "Converts payload exchange into Basic authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.rsocket.authentication.BearerPayloadExchangeConverter.convert:reactor.core.publisher.Mono(org.springframework.security.rsocket.api.PayloadExchange)",
+          "description": "Converts payload exchange into Bearer token authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter.convert:org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Converts HTTP request into SAML2 authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.authentication.preauth.x509.SubjectDnX509PrincipalExtractor.setSubjectDnRegex:void(java.lang.String)",
+          "description": "Configures X.509 certificate subject DN extraction for authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.UsernamePasswordAuthenticationToken$Builder.build:org.springframework.security.authentication.UsernamePasswordAuthenticationToken()",
+          "description": "Builds authentication token for username/password authentication"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.jaas.JaasAuthenticationToken$Builder.build:org.springframework.security.authentication.jaas.JaasAuthenticationToken()",
+          "description": "Builds JAAS authentication token"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.authentication.ott.OneTimeTokenAuthentication$Builder.build:org.springframework.security.authentication.ott.OneTimeTokenAuthentication()",
+          "description": "Builds one-time token authentication object"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.Authentication$Builder.build:org.springframework.security.core.Authentication()",
+          "description": "Builds generic authentication object"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.context.ReactiveSecurityContextHolder.withSecurityContext:reactor.util.context.Context(reactor.core.publisher.Mono)",
+          "description": "Sets up security context with authentication information for reactive applications"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.context.ReactiveSecurityContextHolder.withAuthentication:reactor.util.context.Context(org.springframework.security.core.Authentication)",
+          "description": "Configures authentication context for reactive applications"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.userdetails.User.withUsername:org.springframework.security.core.userdetails.User$UserBuilder(java.lang.String)",
+          "description": "Creates user authentication details with specified username"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.userdetails.User.withUserDetails:org.springframework.security.core.userdetails.User$UserBuilder(org.springframework.security.core.userdetails.UserDetails)",
+          "description": "Creates user authentication details from existing UserDetails object"
+        }
+      ],
+      "input_validation": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.DPoPProofJwtDecoderFactory$JtiClaimValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT token claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtAudienceValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT audience claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtClaimValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates generic JWT claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtIssuedAtValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT issuance time claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtIssuerValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT issuer claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtTimestampValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT timestamp claims"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.JwtTypeValidator.validate:org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt):org.springframework.security.oauth2.core.OAuth2TokenValidatorResult(org.springframework.security.oauth2.jwt.Jwt)",
+          "description": "Validates JWT type claims"
+        }
+      ],
+      "cookie_security": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.savedrequest.CookieRequestCache.getRequest:org.springframework.security.web.savedrequest.SavedRequest(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse):org.springframework.security.web.savedrequest.SavedRequest(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+          "description": "Retrieves saved request from secure cookie storage"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.core.session.ReactiveSessionInformation.withSessionId:org.springframework.security.core.session.ReactiveSessionInformation(java.lang.String)",
+          "description": "Manages secure session information for reactive applications"
+        }
+      ],
+      "output_encoding": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.util.TextEscapeUtils.escapeEntities:java.lang.String(java.lang.String)",
+          "description": "Escapes HTML entities in text for secure output"
+        }
+      ]
+    },
+    "data_flow": {
+      "xml_parsing": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.internal.OpenSamlOperations$DecryptionConfigurer.decrypt:void(org.opensaml.core.xml.XMLObject)",
+          "description": "Decrypts SAML XML objects"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.authentication.OpenSamlOperations$DecryptionConfigurer.decrypt:void(org.opensaml.core.xml.XMLObject)",
+          "description": "Decrypts SAML authentication XML objects"
+        }
+      ],
+      "input_sources": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.registration.OpenSaml5AssertingPartyMetadataRepository$MetadataLocationRepositoryBuilder$SpringResource.getInputStream:java.io.InputStream():java.io.InputStream()",
+          "description": "Retrieves input stream for reading SAML metadata"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.FilterInvocation.getRequest:jakarta.servlet.http.HttpServletRequest():jakarta.servlet.http.HttpServletRequest()",
+          "description": "Gets the raw HTTP request object containing user input"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.authentication.AuthenticationConverter.convert:org.springframework.security.core.Authentication(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Base interface for converting HTTP requests into Authentication objects"
+        }
+      ],
+      "serialization": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml5Template.serialize:org.springframework.security.saml2.provider.service.web.authentication.logout.OpenSaml5Template$OpenSaml5SerializationConfigurer(org.w3c.dom.Element)",
+          "description": "Serializes SAML elements for authentication logout"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.webauthn.jackson.AttestationConveyancePreferenceJackson2Serializer.serialize:void(org.springframework.security.web.webauthn.api.AttestationConveyancePreference,com.fasterxml.jackson.core.JsonGenerator,com.fasterxml.jackson.databind.SerializerProvider)",
+          "description": "Serializes WebAuthn attestation preferences using Jackson"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.jackson.CookieDeserializer.deserialize:jakarta.servlet.http.Cookie(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+          "description": "Deserializes HTTP cookies using Jackson"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.jackson.PreAuthenticatedAuthenticationTokenDeserializer.deserialize:org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken(tools.jackson.core.JsonParser,tools.jackson.databind.DeserializationContext)",
+          "description": "Deserializes pre-authentication tokens using Jackson"
+        }
+      ]
+    },
+    "presentation": {
+      "redirects": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.DefaultRedirectStrategy.sendRedirect:void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String):void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String)",
+          "description": "Performs HTTP redirect using default strategy"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.FormPostRedirectStrategy.sendRedirect:void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String):void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String)",
+          "description": "Performs HTTP redirect using form post strategy"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.RedirectStrategy.sendRedirect:void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String):void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.String)",
+          "description": "Interface method for performing HTTP redirects"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.firewall.FirewalledResponse.sendRedirect:void(java.lang.String):void(java.lang.String)",
+          "description": "Performs HTTP redirect with security firewall checks"
+        }
+      ],
+      "headers": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.header.writers.frameoptions.AbstractRequestParameterAllowFromStrategy.getAllowFromValue:java.lang.String(jakarta.servlet.http.HttpServletRequest):java.lang.String(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Determines X-Frame-Options ALLOW-FROM header value"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy.getAllowFromValue:java.lang.String(jakarta.servlet.http.HttpServletRequest):java.lang.String(jakarta.servlet.http.HttpServletRequest)",
+          "description": "Strategy interface for determining X-Frame-Options ALLOW-FROM header value"
+        }
+      ],
+      "cookies": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.savedrequest.CookieRequestCache.getMatchingRequest:jakarta.servlet.http.HttpServletRequest(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse):jakarta.servlet.http.HttpServletRequest(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)",
+          "description": "Matches current request against cookie-stored request"
+        }
+      ]
+    },
+    "routing": {
+      "parameters": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.FilterInvocation.getRequestUrl:java.lang.String():java.lang.String()",
+          "description": "Extracts the request URL from the current HTTP request"
+        },
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.web.FilterInvocation.getFullRequestUrl:java.lang.String():java.lang.String()",
+          "description": "Gets the complete request URL including protocol, host, port and path"
+        }
+      ]
+    },
+    "integration": {
+      "http_clients": [
+        {
+          "target": "joern",
+          "search_type": "annotation_name",
+          "pattern": "org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withIssuerLocation:org.springframework.security.oauth2.jwt.NimbusJwtDecoder$JwkSetUriJwtDecoderBuilder(java.lang.String)",
+          "description": "Configures JWT decoder with remote issuer location for HTTP requests"
+        }
+      ]
+    }
+  }
+}
