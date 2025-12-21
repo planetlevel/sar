@@ -1514,7 +1514,7 @@ If you see NO custom authorization patterns, return: {{"patterns_found": [], "ar
 
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] AI metrics: {metrics['metric_type']}")
-            print(f"  Opportunities: {metrics.get('opportunities', 'N/A')}")
+            print(f"  Exposures: {metrics.get('exposures', 'N/A')}")
             print(f"  Protected: {metrics.get('protected', 'N/A')}")
             print(f"  Coverage: {metrics.get('coverage', 'N/A')}%")
 
@@ -1643,7 +1643,7 @@ ALL EXPOSURES (first 20 of {total_count}):
 Return these EXACT values in JSON:
 {{
   "metric_type": "{metric_type}",
-  "opportunities": {total_count},
+  "exposures": {total_count},
   "protected": {protected_count},
   "unprotected": {unprotected_count},
   "coverage": {coverage_pct:.1f},
@@ -1704,8 +1704,8 @@ Return these EXACT values in JSON:
         """
         coverage = evidence['coverage_metrics']['coverage']
         unprotected = evidence['coverage_metrics']['unprotected']
-        # Use opportunities if available, fall back to total_endpoints for backward compatibility
-        total = evidence['coverage_metrics'].get('opportunities', evidence['coverage_metrics'].get('total_endpoints', 0))
+        # Use exposures if available, fall back to total_endpoints for backward compatibility
+        total = evidence['coverage_metrics'].get('exposures', evidence['coverage_metrics'].get('total_endpoints', 0))
         eval_result = evidence['evaluation']
 
         # Try AI generation
@@ -1736,7 +1736,7 @@ Return these EXACT values in JSON:
         # Prepare context summary
         context = {
             'coverage': coverage_metrics['coverage'],
-            'opportunities': coverage_metrics.get('opportunities', coverage_metrics.get('total_endpoints', 0)),
+            'exposures': coverage_metrics.get('exposures', coverage_metrics.get('total_endpoints', 0)),
             'total_endpoints': coverage_metrics.get('total_endpoints', 0),  # Keep for compatibility
             'protected': coverage_metrics['protected'],
             'unprotected': coverage_metrics['unprotected'],
@@ -1830,11 +1830,11 @@ AUTHORIZATION ARCHITECTURE PATTERN:
 
 CRITICAL: This application uses {pattern_type} authorization. The recommendation MUST acknowledge this architecture and explain whether it's appropriate.
 
-NOTE: Coverage metrics are calculated based on authorization opportunities:
-- If authorization is at the service layer: Opportunities = classes with auth behaviors
-- If authorization is at the endpoint layer: Opportunities = HTTP routes
-- If authorization is at the code layer: Opportunities = protected code locations
-- Coverage % reflects protection of opportunities at the detected architectural layer
+NOTE: Coverage metrics are calculated based on authorization exposures:
+- If authorization is at the service layer: Exposures = classes with auth behaviors
+- If authorization is at the endpoint layer: Exposures = HTTP routes
+- If authorization is at the code layer: Exposures = protected code locations
+- Coverage % reflects protection of exposures at the detected architectural layer
 
 ARCHITECTURE EVALUATION:
 - Consistency: {context['consistency']}

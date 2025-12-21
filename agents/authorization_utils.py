@@ -1642,7 +1642,7 @@ Now extract roles from the expression above:"""
         coverage_metrics = evidence.get('coverage_metrics', {})
 
         return {
-            'opportunities': coverage_metrics.get('opportunities', coverage_metrics.get('total_endpoints', 0)),
+            'exposures': coverage_metrics.get('exposures', coverage_metrics.get('total_endpoints', 0)),
             'protected': coverage_metrics.get('protected', 0),
             'unprotected': coverage_metrics.get('unprotected', 0),
             'coverage': coverage_metrics.get('coverage', 0)
