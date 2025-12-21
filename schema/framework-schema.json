@@ -206,32 +206,35 @@
           "description": "HTTP routing layer - maps URL patterns to code entry points",
           "properties": {
             "handler_classes": {
-              "type": "object",
+              "type": "array",
               "title": "Handler Classes",
               "description": "Classes that contain route handlers (Controllers, Resources, Handlers)",
-              "additionalProperties": {
+              "items": {
                 "$ref": "#/definitions/patternGroup"
               }
             },
             "route_definitions": {
-              "type": "object",
+              "type": "array",
               "title": "Route Definitions",
               "description": "Annotations or patterns that define URL routes",
-              "additionalProperties": {
+              "items": {
                 "$ref": "#/definitions/patternGroup"
               }
             },
             "parameters": {
-              "type": "object",
+              "type": "array",
               "title": "Parameter Bindings",
               "description": "Annotations for binding request data to method parameters",
-              "additionalProperties": {
+              "items": {
                 "$ref": "#/definitions/patternGroup"
               }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "database": {
@@ -242,41 +245,65 @@
             "sql_queries": {
               "title": "SQL Queries",
               "description": "Raw SQL execution methods",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "orm_operations": {
               "title": "ORM Operations",
               "description": "ORM methods (find, save, delete, merge)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "jpa_operations": {
               "title": "JPA Operations",
               "description": "JPA-specific operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "repository_pattern": {
               "title": "Repository Pattern",
               "description": "Repository/DAO pattern methods",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "nosql_operations": {
               "title": "NoSQL Operations",
               "description": "NoSQL database operations (MongoDB, Redis, etc.)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "ldap_queries": {
               "title": "LDAP Queries",
               "description": "LDAP query operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "xpath_queries": {
               "title": "XPath Queries",
               "description": "XPath query execution",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "execution": {
@@ -287,31 +314,49 @@
             "native": {
               "title": "Native Command Execution",
               "description": "Process/command execution (was: danger.process)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "expression": {
               "title": "Expression Evaluation",
               "description": "Expression language evaluation - SpEL, OGNL, JEXL (was: operations.expression_parsing)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "reflection": {
               "title": "Reflection",
               "description": "Dynamic method invocation via reflection (was: danger.reflection)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "deserialization": {
               "title": "Deserialization",
               "description": "Object deserialization operations (was: danger.deserialization)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "script": {
               "title": "Script Execution",
               "description": "Script execution (JavaScript, Python, Groovy, etc.)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "communication": {
@@ -322,26 +367,41 @@
             "http": {
               "title": "HTTP Client",
               "description": "HTTP client requests",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "socket": {
               "title": "Socket Communication",
               "description": "Raw socket operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "rest": {
               "title": "REST API Calls",
               "description": "REST client operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "messaging": {
               "title": "Messaging",
               "description": "Message queues and pub/sub operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "data_flow": {
@@ -352,26 +412,41 @@
             "sources": {
               "title": "Input Sources",
               "description": "Methods that receive external input (HTTP params, headers, cookies, files)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "serialization": {
               "title": "Serialization",
               "description": "Serialization and deserialization operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "xml_parsing": {
               "title": "XML Parsing",
               "description": "XML parsing operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "propagators": {
               "title": "Data Propagators",
               "description": "Methods that transform data while preserving taint (was: operations.propagators)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "security": {
@@ -382,56 +457,89 @@
             "authentication": {
               "title": "Authentication",
               "description": "Authentication methods (was: defense.authentication)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "authorization": {
               "title": "Authorization",
               "description": "Access control and permission checking (was: defense.authorization)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "cryptography": {
               "title": "Cryptography",
               "description": "Encryption, hashing, signing operations (was: defense.cryptography)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "input_validation": {
               "title": "Input Validation",
               "description": "Input validation methods",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "sanitization": {
               "title": "Sanitization",
               "description": "Input sanitization and encoding (was: defense.sanitizer)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "output_encoding": {
               "title": "Output Encoding",
               "description": "Output encoding and escaping",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "cookie_security": {
               "title": "Cookie Security",
               "description": "Secure cookie handling",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "logging": {
               "title": "Security Logging",
               "description": "Security-related logging (was: defense.logging)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "secrets": {
               "title": "Secrets Management",
               "description": "Secrets handling - credential storage, API key management, password hashing, secrets managers",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "privacy": {
               "title": "Privacy Controls",
               "description": "Privacy and PII/PHI handling - data anonymization, PII protection, consent management",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "presentation": {
@@ -442,31 +550,49 @@
             "template_rendering": {
               "title": "Template Rendering",
               "description": "Template engine operations (was: operations.template_rendering)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "response_output": {
               "title": "Response Output",
               "description": "HTTP response writing methods",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "redirects": {
               "title": "HTTP Redirects",
               "description": "HTTP redirect operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "cookies": {
               "title": "Cookie Manipulation",
               "description": "Cookie setting and reading",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "headers": {
               "title": "Header Manipulation",
               "description": "HTTP header manipulation",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "integration": {
@@ -477,26 +603,41 @@
             "filesystem": {
               "title": "Filesystem Operations",
               "description": "File I/O operations (was: danger.filesystem)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "email": {
               "title": "Email",
               "description": "Email sending operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "http_clients": {
               "title": "HTTP Clients",
               "description": "HTTP client library usage",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "external_services": {
               "title": "External Services",
               "description": "Third-party service integrations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         },
         "ai": {
@@ -507,56 +648,89 @@
             "chat": {
               "title": "Chat Completions",
               "description": "Chat completion APIs (conversational AI)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "completion": {
               "title": "Text Completion",
               "description": "Text completion APIs (single-shot generation)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "embedding": {
               "title": "Embeddings",
               "description": "Vector embedding generation (semantic search)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "image": {
               "title": "Image Generation",
               "description": "Image generation and manipulation (DALL-E, Stable Diffusion)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "audio": {
               "title": "Audio Processing",
               "description": "Audio transcription and generation (Whisper, TTS)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "vision": {
               "title": "Vision",
               "description": "Image analysis and understanding",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "function_calling": {
               "title": "Function Calling",
               "description": "Tool and function calling capabilities",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "streaming": {
               "title": "Streaming",
               "description": "Streaming response handling",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "agents": {
               "title": "Agent Orchestration",
               "description": "AI agent orchestration (LangChain, AutoGPT, ReAct)",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             },
             "fine_tuning": {
               "title": "Fine-tuning",
               "description": "Model training and fine-tuning operations",
+              "type": "array",
+            "items": {
               "$ref": "#/definitions/patternGroup"
+            }
             }
           },
           "additionalProperties": {
-            "$ref": "#/definitions/patternGroup"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
           }
         }
       },
@@ -564,8 +738,11 @@
         "type": "object",
         "description": "Custom architecture category (allows framework-specific extensions)",
         "additionalProperties": {
-          "$ref": "#/definitions/patternGroup"
-        }
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/patternGroup"
+            }
+          }
       }
     }
   },
