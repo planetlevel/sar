@@ -3,7 +3,6 @@
 Framework Detector - Detects frameworks and loads framework-specific configurations
 """
 
-import os
 import yaml
 import json
 import re
@@ -23,145 +22,58 @@ class FrameworkDetector:
             project_dir: Directory containing the project
             frameworks_dir: Directory containing framework YAML files
         """
-        self.project_dir = project_dir
+        self.project_dir = Path(project_dir)
 
         if frameworks_dir is None:
             # Get the sar package directory, then go up to find data/frameworks/
-            sar_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(sar_dir)  # Up to project root
-            frameworks_dir = os.path.join(project_root, 'data', 'frameworks')
+            sar_dir = Path(__file__).parent
+            project_root = sar_dir.parent  # Up to project root
+            frameworks_dir = project_root / 'data' / 'frameworks'
 
             # Fallback: if data/frameworks/ doesn't exist, try old location
-            if not os.path.exists(frameworks_dir):
-                frameworks_dir = os.path.join(project_root, 'frameworks')
+            if not frameworks_dir.exists():
+                frameworks_dir = project_root / 'frameworks'
 
-        self.frameworks_dir = frameworks_dir
+        self.frameworks_dir = Path(frameworks_dir)
         self.available_frameworks = self._load_frameworks()
 
         # Initialize FileTool for file operations
         from compass.file_tool import FileTool
-        self.file_tool = FileTool(project_dir)
+        self.file_tool = FileTool(str(self.project_dir))
 
     def _load_frameworks(self) -> Dict[str, FrameworkDefinition]:
         """Load all framework definitions from JSON files using Pydantic validation"""
         frameworks = {}
 
         # Load standard frameworks from frameworks/ directory
-        if os.path.exists(self.frameworks_dir):
-            for file_name in os.listdir(self.frameworks_dir):
+        if self.frameworks_dir.exists():
+            for file_path in self.frameworks_dir.iterdir():
                 # Load JSON files using Pydantic validation
-                if file_name.endswith('.json'):
-                    framework_path = os.path.join(self.frameworks_dir, file_name)
-                    framework_id = file_name.replace('.json', '')
+                if file_path.suffix == '.json':
+                    framework_id = file_path.stem
                     # Skip schema files and sample files
                     if not framework_id.endswith('.schema') and not framework_id.startswith('SAMPLE_'):
                         try:
-                            framework_def = load_framework(framework_path)
+                            framework_def = load_framework(str(file_path))
                             frameworks[framework_id] = framework_def
                         except Exception as e:
-                            print(f"Warning: Failed to load {file_name}: {e}")
-                elif file_name.endswith('.yaml') or file_name.endswith('.yml'):
-                    # Legacy YAML support (still using dict-based loading)
-                    framework_path = os.path.join(self.frameworks_dir, file_name)
-                    try:
-                        with open(framework_path, 'r') as f:
-                            framework_def = yaml.safe_load(f)
-                            framework_id = file_name.replace('.yaml', '').replace('.yml', '')
-                            # Convert dict to FrameworkDefinition (basic conversion, may need enhancement)
-                            try:
-                                frameworks[framework_id] = FrameworkDefinition.parse_obj(framework_def)
-                            except Exception as parse_err:
-                                print(f"Warning: Failed to parse YAML {file_name} as FrameworkDefinition: {parse_err}")
-                    except Exception as e:
-                        print(f"Warning: Failed to load {file_name}: {e}")
+                            print(f"Warning: Failed to load {file_path.name}: {e}")
 
         # Load custom framework configs from project's .compass/ directory
-        custom_config_dir = os.path.join(self.project_dir, '.compass')
-        if os.path.exists(custom_config_dir):
-            for file_name in os.listdir(custom_config_dir):
-                if file_name.endswith('-compass-config.json'):
-                    config_path = os.path.join(custom_config_dir, file_name)
+        custom_config_dir = self.project_dir / '.compass'
+        if custom_config_dir.exists():
+            for file_path in custom_config_dir.iterdir():
+                if file_path.name.endswith('-compass-config.json'):
                     try:
-                        custom_def = load_framework(config_path)
+                        custom_def = load_framework(str(file_path))
                         # Use filename without extension as framework ID
-                        framework_id = file_name.replace('.json', '')
+                        framework_id = file_path.stem
                         frameworks[framework_id] = custom_def
                         print(f"[FRAMEWORK DETECTOR] Loaded custom framework: {custom_def.name}")
                     except Exception as e:
-                        print(f"Warning: Failed to load custom config {file_name}: {e}")
+                        print(f"Warning: Failed to load custom config {file_path.name}: {e}")
 
         return frameworks
-
-    def _merge_configs(self, base_config: Dict, extended_config: Dict, preserve_base_metadata: bool = False) -> Dict:
-        """
-        Merge extended framework config with base framework config
-
-        Args:
-            base_config: Base framework configuration (e.g., Java)
-            extended_config: Extended framework configuration (e.g., Spring)
-            preserve_base_metadata: If True, preserve base's name/languages/extends (for library merges)
-
-        Returns:
-            Merged configuration with extended config taking precedence
-        """
-        import copy
-        merged = copy.deepcopy(base_config)
-
-        # Metadata fields that should NOT be overwritten when merging libraries
-        protected_fields = {'name', 'languages', 'extends', '$schema'} if preserve_base_metadata else set()
-
-        # Recursively merge dictionaries
-        def deep_merge(target, source):
-            for key, value in source.items():
-                # Skip protected metadata fields when merging libraries
-                if key in protected_fields:
-                    continue
-
-                if key in target:
-                    # If both are dicts, recursively merge
-                    if isinstance(target[key], dict) and isinstance(value, dict):
-                        # Special case: if dict contains 'signatures' key, merge the lists
-                        if 'signatures' in target[key] and 'signatures' in value:
-                            # Merge signature lists
-                            target_sigs = target[key].get('signatures', [])
-                            source_sigs = value.get('signatures', [])
-
-                            # Handle both old format (strings) and new format (objects with 'signature' field)
-                            if target_sigs and isinstance(target_sigs[0], dict):
-                                # New format: deduplicate based on 'signature' field
-                                existing_sigs = {sig['signature'] for sig in target_sigs if 'signature' in sig}
-                                for sig in source_sigs:
-                                    if isinstance(sig, dict) and 'signature' in sig:
-                                        if sig['signature'] not in existing_sigs:
-                                            target_sigs.append(sig)
-                                            existing_sigs.add(sig['signature'])
-                                merged_sigs = target_sigs
-                            else:
-                                # Old format: deduplicate strings directly
-                                merged_sigs = target_sigs + [sig for sig in source_sigs if sig not in target_sigs]
-
-                            target[key]['signatures'] = merged_sigs
-                            # Merge other keys in the dict
-                            for k, v in value.items():
-                                if k != 'signatures':
-                                    target[key][k] = v
-                        else:
-                            deep_merge(target[key], value)
-                    # If both are lists, combine them
-                    elif isinstance(target[key], list) and isinstance(value, list):
-                        # Deduplicate list items
-                        for item in value:
-                            if item not in target[key]:
-                                target[key].append(item)
-                    else:
-                        # Otherwise, source value takes precedence
-                        target[key] = value
-                else:
-                    # Key doesn't exist in target, just add it
-                    target[key] = copy.deepcopy(value)
-
-        deep_merge(merged, extended_config)
-        return merged
 
     def detect_all_frameworks(self) -> List[tuple]:
         """
@@ -203,87 +115,27 @@ class FrameworkDetector:
         if not detection:
             return False
 
-        # NEW: Check dependencies first (most definitive)
+        # Check dependencies first (most definitive)
         dependencies = detection.dependencies if detection.dependencies else {}
         if dependencies:
-            dependency_matched = False
+            # Define build files to check in priority order
+            build_files = [
+                'pom.xml',
+                'build.gradle',
+                'requirements.txt',
+                'pyproject.toml',
+                'package.json',
+                'go.mod'
+            ]
 
-            # Check pom.xml dependencies
-            pom_deps = dependencies.get('pom.xml', [])
-            if pom_deps:
-                pom_content = self.file_tool.read_file('pom.xml')
-                if pom_content:
-                    # Check if any dependency artifact is present
-                    for dep in pom_deps:
-                        if dep.artifact and f'<artifactId>{dep.artifact}</artifactId>' in pom_content:
-                            dependency_matched = True
-                            break
+            # Check each build file for matching dependencies
+            for build_file in build_files:
+                if build_file in dependencies:
+                    if self._check_build_file_dependencies(build_file, dependencies[build_file]):
+                        return True  # Definitive match based on dependency
 
-            # Check build.gradle dependencies
-            if not dependency_matched:
-                gradle_deps = dependencies.get('build.gradle', [])
-                if gradle_deps:
-                    gradle_content = self.file_tool.read_file('build.gradle')
-                    if gradle_content:
-                        # Check if any dependency pattern is present
-                        for dep in gradle_deps:
-                            if dep.pattern and dep.pattern in gradle_content:
-                                dependency_matched = True
-                                break
-
-            # Check requirements.txt dependencies (Python)
-            if not dependency_matched:
-                requirements_deps = dependencies.get('requirements.txt', [])
-                if requirements_deps:
-                    requirements_content = self.file_tool.read_file('requirements.txt')
-                    if requirements_content:
-                        # Check if any dependency pattern is present
-                        for dep in requirements_deps:
-                            if dep.pattern and dep.pattern in requirements_content:
-                                dependency_matched = True
-                                break
-
-            # Check pyproject.toml dependencies (Python)
-            if not dependency_matched:
-                pyproject_deps = dependencies.get('pyproject.toml', [])
-                if pyproject_deps:
-                    pyproject_content = self.file_tool.read_file('pyproject.toml')
-                    if pyproject_content:
-                        # Check if any dependency pattern is present
-                        for dep in pyproject_deps:
-                            if dep.pattern and dep.pattern in pyproject_content:
-                                dependency_matched = True
-                                break
-
-            # Check package.json dependencies (JavaScript/TypeScript)
-            if not dependency_matched:
-                package_deps = dependencies.get('package.json', [])
-                if package_deps:
-                    package_content = self.file_tool.read_file('package.json')
-                    if package_content:
-                        # Check if any dependency pattern is present
-                        for dep in package_deps:
-                            if dep.pattern and dep.pattern in package_content:
-                                dependency_matched = True
-                                break
-
-            # Check go.mod dependencies (Go)
-            if not dependency_matched:
-                gomod_deps = dependencies.get('go.mod', [])
-                if gomod_deps:
-                    gomod_content = self.file_tool.read_file('go.mod')
-                    if gomod_content:
-                        # Check if any dependency pattern is present
-                        for dep in gomod_deps:
-                            if dep.pattern and dep.pattern in gomod_content:
-                                dependency_matched = True
-                                break
-
-            # If dependencies are specified, at least one must match
-            if dependency_matched:
-                return True  # Definitive match based on dependency
-            else:
-                return False  # Dependencies specified but none found
+            # Dependencies specified but none found
+            return False
 
         # Check for required files (old detection method)
         files_def = detection.files
@@ -312,131 +164,33 @@ class FrameworkDetector:
         # If no specific detection criteria, only match if files were found
         return files_found > 0
 
-    def detect_database(self, framework_def: Dict) -> Dict[str, Any]:
+    def _check_build_file_dependencies(self, build_file: str, dependencies: List) -> bool:
         """
-        Detect database configuration using framework-specific patterns
+        Helper method to check if any dependency pattern matches in a build file
 
         Args:
-            framework_def: Framework definition from YAML
+            build_file: Name of build file (e.g., 'pom.xml', 'build.gradle')
+            dependencies: List of DependencyPattern objects
 
         Returns:
-            Dict with 'databases', 'orm', and 'config_source' keys
+            True if any dependency matches, False otherwise
         """
-        result = {
-            'databases': [],
-            'orm': None,
-            'config_source': None
-        }
+        if not dependencies:
+            return False
 
-        db_config = framework_def.get('database', {})
+        file_content = self.file_tool.read_file(build_file)
+        if not file_content:
+            return False
 
-        # Check configuration files
-        config_files = db_config.get('config_files', [])
-        for config_def in config_files:
-            config_path = os.path.join(self.project_dir, config_def['path'])
-            if os.path.exists(config_path):
-                databases = self._extract_databases_from_config(config_path, config_def)
-                for db in databases:
-                    if db not in result['databases']:
-                        result['databases'].append(db)
-                        if not result['config_source']:
-                            result['config_source'] = config_def['path']
+        for dep in dependencies:
+            # Check artifact (for pom.xml)
+            if dep.artifact and f'<artifactId>{dep.artifact}</artifactId>' in file_content:
+                return True
+            # Check pattern (for other build files)
+            if dep.pattern and dep.pattern in file_content:
+                return True
 
-        # Check dependencies in build files
-        dependencies = db_config.get('dependencies', {})
-        for build_file, dep_patterns in dependencies.items():
-            build_path = os.path.join(self.project_dir, build_file)
-            if os.path.exists(build_path):
-                databases = self._extract_databases_from_dependencies(
-                    build_path, dep_patterns, db_config
-                )
-                for db in databases:
-                    if db not in result['databases']:
-                        result['databases'].append(db)
-                        if not result['config_source']:
-                            result['config_source'] = build_file
-
-        # Detect ORM
-        orm_patterns = db_config.get('orm', [])
-        for build_file in dependencies.keys():
-            build_path = os.path.join(self.project_dir, build_file)
-            if os.path.exists(build_path):
-                orm = self._detect_orm(build_path, orm_patterns)
-                if orm and not result['orm']:
-                    result['orm'] = orm
-                    break
-
-        return result
-
-    def _extract_databases_from_config(self, config_path: str, config_def: Dict) -> List[str]:
-        """Extract database names from configuration file"""
-        databases = []
-
-        try:
-            with open(config_path, 'r') as f:
-                content = f.read()
-
-                patterns = config_def.get('patterns', {})
-                for pattern_type, pattern_list in patterns.items():
-                    for pattern_def in pattern_list:
-                        regex = pattern_def.get('regex')
-                        group = pattern_def.get('group', 0)
-
-                        matches = re.findall(regex, content)
-                        for match in matches:
-                            if isinstance(match, tuple) and group > 0:
-                                db = match[group - 1] if group <= len(match) else match[0]
-                            else:
-                                db = match
-
-                            if db and db not in databases:
-                                databases.append(db)
-
-        except Exception:
-            pass
-
-        return databases
-
-    def _extract_databases_from_dependencies(
-        self, build_path: str, dep_patterns: List[Dict], db_config: Dict
-    ) -> List[str]:
-        """Extract database names from build/dependency files"""
-        databases = []
-
-        try:
-            with open(build_path, 'r') as f:
-                content = f.read()
-
-                for dep_def in dep_patterns:
-                    if 'artifact' in dep_def:
-                        # Check for artifact name
-                        if dep_def['artifact'] in content:
-                            databases.append(dep_def['database'])
-                    elif 'pattern' in dep_def:
-                        # Check for pattern match
-                        if re.search(dep_def['pattern'], content):
-                            databases.append(dep_def['database'])
-
-        except Exception:
-            pass
-
-        return databases
-
-    def _detect_orm(self, build_path: str, orm_patterns: List[Dict]) -> Optional[str]:
-        """Detect ORM framework"""
-        try:
-            with open(build_path, 'r') as f:
-                content = f.read().lower()
-
-                for orm_def in orm_patterns:
-                    pattern = orm_def['pattern'].lower()
-                    if pattern in content:
-                        return orm_def['name']
-
-        except Exception:
-            pass
-
-        return None
+        return False
 
     def get_framework_config(self, framework_id: str) -> Optional[FrameworkDefinition]:
         """Get configuration for a specific framework"""
@@ -470,15 +224,9 @@ def main():
         print(f"Detected framework: {first_fw_def.name} ({framework_id})")
         print(f"Languages: {', '.join(first_fw_def.languages)}")
         print()
-
-        # Detect database
-        db_info = detector.detect_database(first_fw_def)
-        if db_info['databases']:
-            print(f"Databases: {', '.join(db_info['databases'])}")
-            print(f"ORM: {db_info['orm']}")
-            print(f"Config source: {db_info['config_source']}")
-        else:
-            print("No database configuration detected")
+        print(f"Total frameworks detected: {len(all_frameworks)}")
+        for fw_id, fw_def in all_frameworks[:5]:  # Show first 5
+            print(f"  - {fw_def.name} ({fw_id})")
     else:
         print("No framework detected")
 
