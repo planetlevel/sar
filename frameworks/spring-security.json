@@ -211,14 +211,16 @@
           "type": "joern",
           "search_type": "annotation_name",
           "patterns": [
-            {
-              "signature": "PreAuthorize",
-              "description": "Spring Security annotation for method-level authorization"
-            },
-            {
-              "signature": "Secured",
-              "description": "Spring Security annotation for role-based authorization"
-            },
+            "PreAuthorize",
+            "PostAuthorize",
+            "Secured",
+            "RolesAllowed"
+          ]
+        },
+        "methods": {
+          "type": "joern",
+          "search_type": "method_signature",
+          "signatures": [
             {
               "signature": "org.springframework.security.access.intercept.aopalliance.MethodSecurityInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
               "description": "Intercepts method invocations to enforce security"
@@ -304,6 +306,20 @@
               "description": "Creates multi-factor authorization authority"
             }
           ]
+        },
+        "public_access": {
+          "description": "How to mark endpoints as public (no authentication required) in Spring Security",
+          "config_based": {
+            "pattern": ".permitAll()",
+            "location": "SecurityFilterChain bean configuration",
+            "example": "http.authorizeHttpRequests(auth -> auth.requestMatchers(\"/health\", \"/actuator/health\").permitAll())",
+            "note": "This is the recommended approach for explicitly marking endpoints as public"
+          },
+          "annotation_based": {
+            "note": "Spring Security does not have a standard @PermitAll annotation",
+            "alternative": "Use permitAll() in HttpSecurity configuration instead of annotations"
+          },
+          "best_practice": "Maintain an explicit allowlist of public endpoints in SecurityFilterChain configuration rather than scattered annotations"
         }
       },
       "crypto": {
