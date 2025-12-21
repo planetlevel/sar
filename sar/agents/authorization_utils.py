@@ -11,7 +11,7 @@ import json
 import os
 import re
 from sar.framework_schema import FrameworkDefinition, PatternGroup, load_framework, load_all_frameworks
-from sar.framework_detector import FrameworkDetector
+from sar.framework_tool import FrameworkTool
 
 
 class AuthorizationUtils:
@@ -33,8 +33,8 @@ class AuthorizationUtils:
         self.ai_client = ai_client
         self.debug = debug
 
-        # Initialize FrameworkDetector for Pydantic-validated framework loading
-        self.framework_detector = FrameworkDetector(
+        # Initialize FrameworkTool for Pydantic-validated framework loading
+        self.framework_detector = FrameworkTool(
             project_dir=project_dir,
             frameworks_dir=str(frameworks_dir) if frameworks_dir else None
         )
@@ -145,7 +145,7 @@ class AuthorizationUtils:
 
     def load_matching_frameworks(self, library_names: List[str]) -> Dict[str, FrameworkDefinition]:
         """
-        Load framework JSON files for the specified libraries using FrameworkDetector
+        Load framework JSON files for the specified libraries using FrameworkTool
 
         Returns: {framework_name: FrameworkDefinition}
         """

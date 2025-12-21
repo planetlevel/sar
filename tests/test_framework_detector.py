@@ -15,8 +15,11 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sar.framework_detector import FrameworkDetector
+from sar.framework_tool import FrameworkTool
 from sar.framework_schema import FrameworkDefinition
+
+# Backward compatibility alias
+FrameworkDetector = FrameworkTool
 
 
 class TestFrameworkLoading:

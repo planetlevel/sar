@@ -18,8 +18,11 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sar.framework_schema import load_framework, FrameworkDefinition
-from sar.framework_detector import FrameworkDetector
+from sar.framework_tool import FrameworkTool
 from compass.cpg_tool import CpgTool
+
+# Backward compatibility alias
+FrameworkDetector = FrameworkTool
 
 
 def test_load_existing_spring_security():

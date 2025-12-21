@@ -1,26 +1,38 @@
 #!/usr/bin/env python3
 """
-Framework Detector - Detects frameworks and loads framework-specific configurations
+Framework Tool - Centralized tool for framework detection and pattern searching
+
+FrameworkTool acts as a database interface for framework patterns in code.
+Agents ask simple questions (e.g., "find authorization patterns") and the tool
+handles all complexity: loading frameworks, building queries, parsing results.
+
+This encapsulates ALL pattern searching logic in one place, keeping agents simple.
 """
 
 import yaml
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any
-from sar.framework_schema import load_framework, FrameworkDefinition
+from typing import Dict, List, Optional, Any, Union, Callable
+from sar.framework_schema import load_framework, FrameworkDefinition, PatternGroup
 
 
-class FrameworkDetector:
-    """Detects web frameworks and provides framework-specific patterns"""
+class FrameworkTool:
+    """
+    Centralized tool for framework detection and pattern searching.
 
-    def __init__(self, project_dir: str, frameworks_dir: str = None):
+    Acts as a database interface - agents ask what patterns exist in code,
+    tool handles all complexity of searching, parsing, and returning results.
+    """
+
+    def __init__(self, project_dir: str, frameworks_dir: str = None, cpg_tool=None):
         """
-        Initialize framework detector
+        Initialize framework tool
 
         Args:
             project_dir: Directory containing the project
-            frameworks_dir: Directory containing framework YAML files
+            frameworks_dir: Optional directory containing framework JSON files
+            cpg_tool: Optional CPG tool instance (will create if not provided)
         """
         self.project_dir = Path(project_dir)
 
@@ -37,9 +49,13 @@ class FrameworkDetector:
         self.frameworks_dir = Path(frameworks_dir)
         self.available_frameworks = self._load_frameworks()
 
-        # Initialize FileTool for file operations
+        # Initialize tools for file and code operations
         from compass.file_tool import FileTool
         self.file_tool = FileTool(str(self.project_dir))
+
+        # CPG tool for code pattern searching (lazy initialization)
+        self._cpg_tool_instance = cpg_tool
+        self._cpg_tool_initialized = cpg_tool is not None
 
     def _load_frameworks(self) -> Dict[str, FrameworkDefinition]:
         """Load all framework definitions from JSON files using Pydantic validation"""
@@ -74,6 +90,28 @@ class FrameworkDetector:
                         print(f"Warning: Failed to load custom config {file_path.name}: {e}")
 
         return frameworks
+
+    @property
+    def cpg_tool(self):
+        """Lazy initialization of CPG tool"""
+        if not self._cpg_tool_initialized:
+            from compass.cpg_tool import CpgTool
+            self._cpg_tool_instance = CpgTool('auto', str(self.project_dir), auto_generate=True, debug=False)
+            self._cpg_tool_initialized = True
+        return self._cpg_tool_instance
+
+    def detect_frameworks(self) -> Dict[str, FrameworkDefinition]:
+        """
+        Detect frameworks present in project
+
+        Returns:
+            Dict mapping framework_id to FrameworkDefinition for detected frameworks
+        """
+        all_frameworks = self.detect_all_frameworks()
+        if not all_frameworks:
+            return {}
+
+        return {fw_id: fw_def for fw_id, fw_def in all_frameworks}
 
     def detect_all_frameworks(self) -> List[tuple]:
         """
@@ -202,33 +240,27 @@ class FrameworkDetector:
 
 
 def main():
-    """Demo the framework detector"""
+    """Demo the framework tool"""
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: framework_detector.py <project_dir>")
+        print("Usage: framework_tool.py <project_dir>")
         sys.exit(1)
 
     project_dir = sys.argv[1]
-    detector = FrameworkDetector(project_dir)
+    tool = FrameworkTool(project_dir)
 
-    print(f"Available frameworks: {', '.join(detector.list_frameworks())}")
+    print(f"Available frameworks: {', '.join(tool.list_frameworks())}")
     print()
 
-    result = detector.detect_framework()
-    if result:
-        framework_id, all_frameworks = result
-        # all_frameworks is a list of (id, FrameworkDefinition) tuples
-        # Get the first framework's definition
-        first_fw_def = all_frameworks[0][1]
-        print(f"Detected framework: {first_fw_def.name} ({framework_id})")
-        print(f"Languages: {', '.join(first_fw_def.languages)}")
-        print()
-        print(f"Total frameworks detected: {len(all_frameworks)}")
-        for fw_id, fw_def in all_frameworks[:5]:  # Show first 5
+    frameworks = tool.detect_frameworks()
+    if frameworks:
+        print(f"Detected {len(frameworks)} frameworks:")
+        for fw_id, fw_def in list(frameworks.items())[:5]:  # Show first 5
             print(f"  - {fw_def.name} ({fw_id})")
+            print(f"    Languages: {', '.join(fw_def.languages)}")
     else:
-        print("No framework detected")
+        print("No frameworks detected")
 
 
 if __name__ == "__main__":

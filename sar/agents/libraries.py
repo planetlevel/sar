@@ -11,7 +11,7 @@ This is a test agent to verify the defense analysis pipeline is working.
 from typing import Dict, Any, List
 import os
 import glob
-from sar.framework_detector import FrameworkDetector
+from sar.framework_tool import FrameworkTool
 
 
 class LibrariesAgent:
@@ -27,9 +27,9 @@ class LibrariesAgent:
         self.ai = ai_client
         self.debug = debug
 
-        # Initialize FrameworkDetector for framework listing
-        # FrameworkDetector will auto-detect data/frameworks/ location
-        self.framework_detector = FrameworkDetector(project_dir=project_dir)
+        # Initialize FrameworkTool for framework listing
+        # FrameworkTool will auto-detect data/frameworks/ location
+        self.framework_detector = FrameworkTool(project_dir=project_dir)
 
     def get_agent_id(self) -> str:
         return "libraries"
