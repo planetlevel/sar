@@ -106,6 +106,328 @@ class EndpointAuthorizationAgent:
 
         return versions
 
+    def _ai_analyze_access_control_matrix(self, defense_matrix: Dict, roles: Dict) -> Dict:
+        """
+        Use AI to analyze the defense_usage_matrix and propose role structure + endpoint classifications
+
+        AI examines:
+        - Current endpoints and their existing authorization (from matrix)
+        - Endpoint naming patterns (OwnerController, PetController, etc.)
+        - HTTP methods (GET, POST, DELETE, etc.)
+        - Application domain inference from controller names
+
+        Returns:
+            {
+                'role_structure': {
+                    'current_roles': ['USER', 'ADMIN'],
+                    'proposed_roles': ['USER', 'ADMIN'],
+                    'role_mapping': {...},
+                    'rationale': 'Why this role structure'
+                },
+                'endpoint_classifications': [
+                    {
+                        'endpoint': 'GET OwnerController.initCreationForm',
+                        'current_auth': None,
+                        'suggested_auth': 'AUTHENTICATED',
+                        'suggested_role': 'USER',
+                        'rationale': 'Owner creation form should be accessible to any authenticated user'
+                    },
+                    ...
+                ]
+            }
+        """
+        if not self.ai:
+            # Fallback to algorithmic approach if no AI
+            return self._algorithmic_matrix_analysis(defense_matrix, roles)
+
+        rows = defense_matrix.get('rows', [])
+        columns = defense_matrix.get('columns', [])
+        matrix = defense_matrix.get('matrix', [])
+        row_protected = defense_matrix.get('row_protected', [])
+
+        # Build current state summary for AI
+        current_state = []
+        for i, endpoint_name in enumerate(rows):
+            is_protected = row_protected[i] if i < len(row_protected) else False
+            current_roles = []
+
+            if is_protected and i < len(matrix):
+                for j, has_role in enumerate(matrix[i]):
+                    if has_role and j < len(columns):
+                        current_roles.append(columns[j])
+
+            current_state.append({
+                'endpoint': endpoint_name,
+                'protected': is_protected,
+                'roles': current_roles if current_roles else None
+            })
+
+        prompt = f"""Analyze this Spring application's access control matrix and propose authorization for ALL endpoints.
+
+CURRENT ACCESS CONTROL MATRIX:
+{json.dumps(current_state, indent=2)}
+
+CURRENT ROLES: {', '.join(roles.get('used', []))}
+
+YOUR TASK:
+1. Infer the application domain from endpoint names (OwnerController, PetController, VetController, etc.)
+2. Propose a simplified/standardized role structure appropriate for this application
+3. For EVERY endpoint, suggest authorization:
+   - PUBLIC: No authentication needed (login, welcome, health checks)
+   - AUTHENTICATED: Any logged-in user (no specific role)
+   - ROLE_SPECIFIC: Requires specific role (specify which)
+
+4. Provide rationale for each endpoint based on:
+   - HTTP method (GET=read, POST=modify, DELETE=delete)
+   - Controller/operation name
+   - Application domain
+   - Data sensitivity
+
+Return JSON ONLY:
+{{
+  "role_structure": {{
+    "current_roles": ["ADMIN", "USER"],
+    "proposed_roles": ["ADMIN", "USER"],
+    "role_mapping": {{"ADMIN": "ADMIN", "USER": "USER"}},
+    "rationale": "Why this role structure is appropriate"
+  }},
+  "endpoint_classifications": [
+    {{
+      "endpoint": "GET WelcomeController.welcome",
+      "current_auth": null,
+      "suggested_auth": "PUBLIC",
+      "suggested_role": null,
+      "rationale": "Public welcome page - no authentication required"
+    }},
+    {{
+      "endpoint": "POST OwnerController.processCreationForm",
+      "current_auth": "USER",
+      "suggested_auth": "AUTHENTICATED",
+      "suggested_role": "USER",
+      "rationale": "Owner creation requires authentication to track who created the record"
+    }}
+  ]
+}}
+
+CRITICAL:
+- Analyze ALL {len(current_state)} endpoints
+- Base suggestions on actual application domain, not generic patterns
+- Consider business logic (who should realistically access each operation)
+- Don't just copy current state - propose improvements where appropriate
+"""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=3000, temperature=0.3)
+            if response:
+                import re
+                match = re.search(r'\{.*\}', response, re.DOTALL)
+                if match:
+                    result = json.loads(match.group(0))
+
+                    # Validate structure
+                    if 'role_structure' in result and 'endpoint_classifications' in result:
+                        # Add computed summaries
+                        classifications = result['endpoint_classifications']
+                        result['total_endpoints'] = len(classifications)
+                        result['currently_protected'] = sum(1 for e in classifications if e.get('current_auth'))
+                        result['suggested_public'] = sum(1 for e in classifications if e.get('suggested_auth') == 'PUBLIC')
+                        result['suggested_authenticated'] = sum(1 for e in classifications if e.get('suggested_auth') == 'AUTHENTICATED')
+                        result['suggested_role_specific'] = sum(1 for e in classifications if e.get('suggested_auth') == 'ROLE_SPECIFIC')
+
+                        if self.debug:
+                            print(f"[{self.get_agent_id().upper()}] AI matrix analysis complete:")
+                            print(f"  Proposed roles: {', '.join(result['role_structure']['proposed_roles'])}")
+                            print(f"  Endpoints analyzed: {result['total_endpoints']}")
+                            print(f"  Suggested PUBLIC: {result['suggested_public']}")
+                            print(f"  Suggested AUTHENTICATED: {result['suggested_authenticated']}")
+                            print(f"  Suggested ROLE_SPECIFIC: {result['suggested_role_specific']}")
+
+                        return result
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] AI matrix analysis failed: {e}")
+
+        # Fallback
+        return self._algorithmic_matrix_analysis(defense_matrix, roles)
+
+    def _algorithmic_matrix_analysis(self, defense_matrix: Dict, roles: Dict) -> Dict:
+        """
+        Fallback algorithmic analysis when AI unavailable
+
+        Simple heuristic-based classification
+        """
+        rows = defense_matrix.get('rows', [])
+        columns = defense_matrix.get('columns', [])
+        matrix = defense_matrix.get('matrix', [])
+        row_protected = defense_matrix.get('row_protected', [])
+
+        # Propose keeping existing roles
+        role_structure = {
+            'current_roles': roles.get('used', []),
+            'proposed_roles': roles.get('used', []),
+            'role_mapping': {role: role for role in roles.get('used', [])},
+            'rationale': f"Maintain existing {len(roles.get('used', []))} role structure"
+        }
+
+        # Simple endpoint classification
+        endpoint_classifications = []
+        for i, endpoint_name in enumerate(rows):
+            is_protected = row_protected[i] if i < len(row_protected) else False
+            endpoint_lower = endpoint_name.lower()
+
+            # Determine current authorization
+            current_auth = None
+            current_roles = []
+            if is_protected and i < len(matrix):
+                for j, has_role in enumerate(matrix[i]):
+                    if has_role and j < len(columns):
+                        current_roles.append(columns[j])
+                current_auth = ', '.join(current_roles) if current_roles else 'PROTECTED'
+
+            # Simple heuristics
+            if any(word in endpoint_lower for word in ['welcome', 'login', 'health']):
+                suggested = ('PUBLIC', None, 'Public endpoint')
+            elif any(word in endpoint_lower for word in ['admin', 'delete', 'remove']):
+                suggested = ('ROLE_SPECIFIC', 'ADMIN', 'Administrative operation')
+            else:
+                suggested = ('AUTHENTICATED', 'USER', 'Requires authentication')
+
+            endpoint_classifications.append({
+                'endpoint': endpoint_name,
+                'current_auth': current_auth,
+                'suggested_auth': suggested[0],
+                'suggested_role': suggested[1],
+                'rationale': suggested[2]
+            })
+
+        return {
+            'role_structure': role_structure,
+            'endpoint_classifications': endpoint_classifications,
+            'total_endpoints': len(endpoint_classifications),
+            'currently_protected': sum(1 for e in endpoint_classifications if e['current_auth']),
+            'suggested_public': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'PUBLIC'),
+            'suggested_authenticated': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'AUTHENTICATED'),
+            'suggested_role_specific': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'ROLE_SPECIFIC')
+        }
+
+    def _build_proposed_access_matrix(self, evidence: Dict) -> Dict:
+        """
+        Build enhanced access control matrix with suggested authorization for ALL endpoints
+
+        Uses AI to analyze the actual endpoints and propose appropriate role structure
+        and classifications based on the application domain.
+
+        Returns complete matrix showing:
+        - All endpoints (protected + unprotected)
+        - Current authorization (if any)
+        - Suggested authorization with rationale
+        - Proposed role structure
+        """
+        defense_matrix = evidence.get('defense_usage_matrix', {})
+        roles = evidence.get('roles', {})
+
+        # Use AI to analyze matrix and propose role structure + endpoint classifications
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Using AI to analyze access control matrix...")
+
+        return self._ai_analyze_access_control_matrix(defense_matrix, roles)
+
+    def _suggest_endpoint_authorization(self, endpoint_name: str, current_auth: Optional[str]) -> Dict:
+        """
+        Suggest authorization classification for an endpoint based on its name/characteristics
+
+        Returns:
+            {
+                'classification': 'PUBLIC' | 'AUTHENTICATED' | 'ROLE_SPECIFIC',
+                'role': None | 'USER' | 'ADMIN',
+                'rationale': 'Why this classification'
+            }
+        """
+        endpoint_lower = endpoint_name.lower()
+
+        # Public endpoints - no authentication needed
+        public_patterns = [
+            'welcome', 'home', 'index', 'login', 'logout', 'register',
+            'health', 'actuator', 'swagger', 'api-docs', 'static',
+            'error', 'favicon', 'css', 'js', 'images'
+        ]
+
+        if any(pattern in endpoint_lower for pattern in public_patterns):
+            return {
+                'classification': 'PUBLIC',
+                'role': None,
+                'rationale': 'Public endpoint - no authentication required (add to permitAll() list)'
+            }
+
+        # Admin-only endpoints - sensitive operations (check more specifically)
+        admin_patterns = [
+            'delete', 'remove', 'config', 'settings', 'system', 'control'
+        ]
+
+        # Check for admin in the path/controller name, not just anywhere
+        has_admin_marker = 'admin' in endpoint_lower or 'superadmin' in endpoint_lower
+        has_admin_operation = any(pattern in endpoint_lower for pattern in admin_patterns)
+
+        if has_admin_marker or has_admin_operation:
+            return {
+                'classification': 'ROLE_SPECIFIC',
+                'role': 'ADMIN',
+                'rationale': 'Administrative function - restrict to ADMIN role'
+            }
+
+        # Update/Edit operations - might need specific role
+        if any(word in endpoint_lower for word in ['update', 'edit', 'modify', 'patch']):
+            if current_auth and 'ADMIN' in current_auth:
+                return {
+                    'classification': 'ROLE_SPECIFIC',
+                    'role': 'ADMIN',
+                    'rationale': 'Update operation - currently restricted to ADMIN, consider if USER should also have access'
+                }
+            else:
+                return {
+                    'classification': 'AUTHENTICATED',
+                    'role': 'USER',
+                    'rationale': 'Update operation - requires authentication, available to any logged-in user'
+                }
+
+        # Create/Post operations - authenticated users
+        if any(word in endpoint_lower for word in ['create', 'new', 'add', 'post', 'processCreation']):
+            return {
+                'classification': 'AUTHENTICATED',
+                'role': 'USER',
+                'rationale': 'Creation operation - requires authentication to track ownership'
+            }
+
+        # Read/View operations - typically authenticated
+        if any(word in endpoint_lower for word in ['show', 'view', 'get', 'find', 'list', 'display', 'init']):
+            # If it's an init form, probably needs auth
+            if 'init' in endpoint_lower or 'form' in endpoint_lower:
+                return {
+                    'classification': 'AUTHENTICATED',
+                    'role': 'USER',
+                    'rationale': 'Form initialization - requires authentication'
+                }
+            # If it's a public listing (vets, resources)
+            if any(word in endpoint_lower for word in ['vet', 'resource', 'list']):
+                return {
+                    'classification': 'PUBLIC',
+                    'role': None,
+                    'rationale': 'Public information - can be accessed without authentication'
+                }
+            # Default read operations need auth
+            return {
+                'classification': 'AUTHENTICATED',
+                'role': 'USER',
+                'rationale': 'Read operation - requires authentication to protect data privacy'
+            }
+
+        # Default: require authentication
+        return {
+            'classification': 'AUTHENTICATED',
+            'role': 'USER',
+            'rationale': 'Standard operation - requires authentication'
+        }
+
     def get_agent_id(self) -> str:
         return "endpoint_authorization"
 
@@ -1914,6 +2236,9 @@ Configuration Style: {config_style}
         # Get Spring Security guidance
         spring_guidance = self._build_spring_security_guidance()
 
+        # Build proposed access control matrix
+        proposed_matrix = self._build_proposed_access_matrix(evidence)
+
         return f"""You are a security architect analyzing authorization in an application.
 
 APPLICATION CONTEXT:
@@ -1953,18 +2278,43 @@ ROLES DEFINED:
 - Domain-specific roles: {context['domain_specific_role_count']}
 - Roles found: {', '.join(context['roles_used'][:20])}
 
+PROPOSED ACCESS CONTROL MATRIX:
+This section provides a complete classification of ALL {proposed_matrix['total_endpoints']} endpoints with suggested authorization.
+
+Role Structure:
+- Current roles: {', '.join(proposed_matrix['role_structure']['current_roles'])}
+- Proposed roles: {', '.join(proposed_matrix['role_structure']['proposed_roles'])}
+- Rationale: {proposed_matrix['role_structure']['rationale']}
+
+Endpoint Classification Summary:
+- Currently protected: {proposed_matrix['currently_protected']}/{proposed_matrix['total_endpoints']}
+- Suggested PUBLIC (permitAll in HTTP config): {proposed_matrix['suggested_public']}
+- Suggested AUTHENTICATED (any logged-in user): {proposed_matrix['suggested_authenticated']}
+- Suggested ROLE-SPECIFIC (admin/specific role): {proposed_matrix['suggested_role_specific']}
+
+Complete Endpoint Classifications:
+{json.dumps(proposed_matrix['endpoint_classifications'], indent=2)}
+
+IMPORTANT: This is a PROPOSED access control matrix. Review each classification and adjust based on:
+1. Business requirements and use cases
+2. Data sensitivity and privacy concerns
+3. Compliance and regulatory requirements
+4. Current application behavior and user expectations
+
 TASK:
 Generate a tailored authorization recommendation for THIS specific application. You MUST:
 1. EXPLICITLY acknowledge the detected authorization architecture pattern ({pattern_type} at {primary_layer})
 2. Explain if the current architecture pattern is sound for this application
-3. Identify which locations (classes, endpoints, or code) SHOULD have authorization but don't
-4. Consider the application's current authorization state and architecture
+3. Review the PROPOSED ACCESS CONTROL MATRIX above and either:
+   a) Agree with the classifications and explain why they're appropriate, OR
+   b) Adjust classifications where business requirements differ and explain your reasoning
+4. Consider the application's current authorization state and proposed improvements
 5. Reference the specific frameworks being used
-6. Evaluate if the roles defined are appropriate (DO NOT recommend creating a PUBLIC role)
-7. Address the coverage gaps and consistency issues
-8. Infer what this application does based on roles/frameworks
-9. Classify each unprotected location as: PUBLIC (permitAll in HTTP config), AUTHENTICATED (any user), or ROLE-SPECIFIC
-10. Provide rationale for each classification decision
+6. Evaluate the proposed role structure and whether it meets the application's needs
+7. Address the coverage gaps and explain how the proposed matrix resolves them
+8. Infer what this application does based on roles/frameworks/endpoint names
+9. For any classifications you modify from the proposed matrix, provide clear rationale
+10. Discuss whether the proposed role structure should be simplified or expanded
 
 CRITICAL: Respond with valid JSON only. Use \\n for newlines within strings, NOT literal newlines.
 
@@ -1973,22 +2323,23 @@ Provide your recommendation in this exact JSON format:
   "title": "One-line recommendation title",
   "summary": "Brief 1-2 sentence summary acknowledging the current architecture pattern and what needs to be done",
   "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss existing roles (NEVER recommend PUBLIC role - use permitAll() for public endpoints instead). Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
-  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST include:\\n- Step 0: Establish default-deny at HTTP layer (.anyRequest().authenticated())\\n- Explicit permitAll() allowlist for public endpoints in HttpSecurity (NOT @PreAuthorize)\\n- For EACH unprotected location, specify: classification (PUBLIC/AUTHENTICATED/ROLE), annotation to add or 'Add to permitAll()', rationale\\n- Include version-appropriate Spring Security configuration examples\\n- Include regression test that verifies all endpoints are either: in permitAll() list, annotated with authorization, or documented as intentionally unprotected\\nUse \\n for line breaks.",
+  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST include:\\n- Step 0: Establish default-deny at HTTP layer (.anyRequest().authenticated())\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to permitAll() allowlist in HttpSecurity (NOT @PreAuthorize)\\n- Step 3: Add @PreAuthorize annotations to protected endpoints following the matrix\\n- Step 4: For each endpoint, reference its classification from the matrix and show exact annotation needed\\n- Include version-appropriate Spring Security configuration examples\\n- Include regression test that verifies all endpoints match the approved access control matrix\\nUse \\n for line breaks.",
   "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. IMPORTANT: Scope claims to HTTP access only - acknowledge that controller auth does NOT protect @Scheduled, @EventListener, message listeners, or internal service calls. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
 }}
 
 CRITICAL REQUIREMENTS:
 - First paragraph of design_recommendation MUST discuss the {pattern_type} authorization architecture pattern at {primary_layer}
 - Explicitly state whether auth at {primary_layer} is appropriate for this application
+- Reference and review the PROPOSED ACCESS CONTROL MATRIX - either agree with it or adjust specific classifications with rationale
 - DO NOT recommend creating a PUBLIC role - use permitAll() in HTTP security config instead
 - DO NOT recommend @PreAuthorize("permitAll()") - that's wrong, use HTTP security config
-- For each unprotected location, provide classification and rationale
 - Scope protection claims to "prevents unauthorized HTTP access" not "prevents all access"
 - Each section must be 400-600 words (not 200-300)
 - Include actual code examples with real role names from the application: {', '.join(context['roles_used'][:10])}
 - Use version-appropriate Spring Security configuration based on detected versions
-- Provide concrete, actionable guidance with numbered implementation steps
-- Include regression test requirement in implementation section
+- Provide concrete, actionable guidance referencing the matrix classifications
+- Include regression test that validates endpoints match the approved access control matrix
+- Discuss whether the proposed role structure is appropriate or should be adjusted
 
 Generate the recommendation now:"""
 
