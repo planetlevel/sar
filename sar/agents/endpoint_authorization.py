@@ -16,6 +16,7 @@ from pathlib import Path
 import json
 import os
 from .authorization_utils import AuthorizationUtils
+from sar.report_utils import build_defense_usage_matrix, build_defense_metadata, calculate_metrics
 
 
 class EndpointAuthorizationAgent:
@@ -140,8 +141,8 @@ class EndpointAuthorizationAgent:
             print(f"[{self.get_agent_id().upper()}] Phase 3: Finding Generation")
 
         evidence = self._build_evidence()
-        defense_metadata = self.utils.build_defense_metadata(self.all_mechanisms)
-        metrics = self.utils.calculate_metrics(evidence)
+        defense_metadata = build_defense_metadata(self.all_mechanisms)
+        metrics = calculate_metrics(evidence)
         recommendation = self._generate_recommendation(evidence)
 
         return {
@@ -1678,7 +1679,7 @@ Return these EXACT values in JSON:
         coverage_metrics = self._generate_ai_coverage_metrics(None)
 
         # Build defense usage matrix using discovered exposures
-        defense_matrix = self.utils.build_defense_usage_matrix(
+        defense_matrix = build_defense_usage_matrix(
             exposures=self.discovered_exposures,
             all_mechanisms=self.all_mechanisms,
             defense_type='authorization'
