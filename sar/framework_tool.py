@@ -480,10 +480,50 @@ class FrameworkTool:
           .method
           .map(m => {{
             val annot = m.annotation.name("({pattern_regex})").head
-            val annotValue = annot.parameterAssign.headOption.map(_.value).getOrElse("")
+            val annotValue = annot.parameterAssign.headOption.map(_.code).getOrElse("")
             val className = m.typeDecl.headOption.map(_.name).getOrElse("Unknown")
-            val httpMethod = m.annotation.name(".*Mapping").headOption.map(_.name.replace("Mapping", "").toUpperCase).getOrElse("UNKNOWN")
-            s"${{m.fullName}}|${{className}}|${{m.filename}}|${{m.lineNumber.headOption.getOrElse(0)}}|${{annot.name}}|${{annotValue}}|${{httpMethod}}"
+
+            // Extract route path and HTTP method from @XxxMapping annotations
+            val mappingAnnotOpt = m.annotation.name(".*Mapping").headOption
+            val routePath = mappingAnnotOpt.flatMap({{mapping =>
+              // Try to find value or path parameter (exclude method parameter)
+              mapping.parameterAssign.code
+                .find(c => !c.contains("RequestMethod"))
+                .map({{code =>
+                  // Extract just the string value from "value = \"/path\"" or "\"/path\""
+                  if (code.contains("=")) {{
+                    // Format: value = "/path" or path = "/path"
+                    val parts = code.split("=", 2)
+                    if (parts.length > 1) parts(1).trim else code
+                  }} else {{
+                    // Format: "/path"
+                    code.trim
+                  }}
+                }})
+            }}).getOrElse("<iterator>")
+
+            val httpMethod = mappingAnnotOpt.map({{mapping =>
+              val mappingName = mapping.name
+              // Extract from @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping
+              if (mappingName == "GetMapping") "GET"
+              else if (mappingName == "PostMapping") "POST"
+              else if (mappingName == "PutMapping") "PUT"
+              else if (mappingName == "DeleteMapping") "DELETE"
+              else if (mappingName == "PatchMapping") "PATCH"
+              else if (mappingName == "RequestMapping") {{
+                // For @RequestMapping, extract from method parameter
+                val methodParam = mapping.parameterAssign.code
+                  .find(c => c.contains("RequestMethod"))
+                  .getOrElse("")
+                val lastDot = methodParam.lastIndexOf(".")
+                if (lastDot >= 0) methodParam.substring(lastDot + 1)
+                else if (methodParam.nonEmpty) methodParam
+                else "REQUEST"
+              }}
+              else "UNKNOWN"
+            }}).getOrElse("UNKNOWN")
+
+            s"${{m.fullName}}|${{className}}|${{m.filename}}|${{m.lineNumber.headOption.getOrElse(0)}}|${{annot.name}}|${{annotValue}}|${{httpMethod}}|${{routePath}}"
           }})
           .l
         '''
@@ -515,7 +555,7 @@ class FrameworkTool:
 
         for result in results:
             parts = result.split('|')
-            if len(parts) < 7:
+            if len(parts) < 8:
                 continue
 
             method_full = parts[0]
@@ -525,6 +565,7 @@ class FrameworkTool:
             annot_name = parts[4]
             annot_value = parts[5]
             http_method = parts[6]
+            route_path = parts[7] if len(parts) > 7 else "<iterator>"
 
             # Determine location and location_type based on available context
             # Check if this is a controller class (endpoint layer)
@@ -537,7 +578,13 @@ class FrameworkTool:
 
             # Determine location_type: endpoint, service, code, or unknown
             if http_method and http_method != 'UNKNOWN':
-                location = f"{http_method} {annot_value}"  # Will be refined below
+                # Use route path if available, otherwise fallback
+                if route_path and route_path != "<iterator>":
+                    # Clean up route path (remove quotes, backslashes, and whitespace)
+                    clean_route = route_path.replace('\\', '').strip().strip('"').strip("'").strip()
+                    location = f"{http_method} {clean_route}"
+                else:
+                    location = f"{http_method} <iterator>"
                 location_type = "endpoint"
             elif is_controller:
                 location = f'{class_name} (line {line_num})'
