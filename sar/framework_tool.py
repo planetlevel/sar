@@ -354,20 +354,37 @@ class FrameworkTool:
                 all_patterns.append((fw_id, pattern_group))
 
         # Deduplicate patterns based on their search criteria
-        # Key: (target, search_type, pattern_string)
-        seen_patterns = {}
+        # For annotation patterns, use the UNION of all patterns to avoid running multiple overlapping queries
+        merged_patterns = {}
         for fw_id, pattern_group in all_patterns:
-            # Create unique key from pattern's search criteria
-            pattern_str = str(sorted(pattern_group.pattern)) if pattern_group.pattern else ""
-            key = (
-                pattern_group.target,
-                pattern_group.search_type,
-                pattern_str
-            )
+            key = (pattern_group.target, pattern_group.search_type)
 
-            # Keep first occurrence (prefer more specific frameworks like spring-security over spring)
-            if key not in seen_patterns:
-                seen_patterns[key] = (fw_id, pattern_group)
+            if key not in merged_patterns:
+                # First pattern for this key - store it
+                merged_patterns[key] = (fw_id, pattern_group, set())
+                # Convert pattern to set for merging
+                if pattern_group.pattern:
+                    if isinstance(pattern_group.pattern, list):
+                        merged_patterns[key][2].update(pattern_group.pattern)
+                    elif isinstance(pattern_group.pattern, dict):
+                        merged_patterns[key][2].update(pattern_group.pattern.values())
+            else:
+                # Merge this pattern with existing one
+                if pattern_group.pattern:
+                    if isinstance(pattern_group.pattern, list):
+                        merged_patterns[key][2].update(pattern_group.pattern)
+                    elif isinstance(pattern_group.pattern, dict):
+                        merged_patterns[key][2].update(pattern_group.pattern.values())
+
+        # Convert merged patterns back to list format
+        seen_patterns = {}
+        for key, (fw_id, pattern_group, merged_set) in merged_patterns.items():
+            # Create a new pattern group with merged patterns
+            from copy import copy
+            merged_pg = copy(pattern_group)
+            if merged_set:
+                merged_pg.pattern = sorted(list(merged_set))
+            seen_patterns[key] = (fw_id, merged_pg)
 
         # Execute searches on deduplicated patterns
         behaviors = []
