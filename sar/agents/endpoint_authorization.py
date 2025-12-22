@@ -171,17 +171,21 @@ CURRENT ROLES: {', '.join(roles.get('used', []))}
 
 YOUR TASK:
 1. Infer the application domain from endpoint names (OwnerController, PetController, VetController, etc.)
-2. Propose a simplified/standardized role structure appropriate for this application
-3. For EVERY endpoint, suggest authorization:
-   - PUBLIC: No authentication needed (login, welcome, health checks)
-   - AUTHENTICATED: Any logged-in user (no specific role)
-   - ROLE_SPECIFIC: Requires specific role (specify which)
+2. Propose domain-specific roles that reflect real business functions:
+   - For veterinary clinic: VET, OWNER, RECEPTIONIST, ADMIN
+   - For e-commerce: CUSTOMER, VENDOR, WAREHOUSE, ADMIN
+   - For banking: CUSTOMER, TELLER, LOAN_OFFICER, MANAGER
+   - Generic ADMIN/USER should only be used if no clear domain emerges
+3. For EVERY endpoint, prefer ROLE_SPECIFIC over AUTHENTICATED:
+   - PUBLIC: Only for truly public pages (welcome, login, health checks, marketing content)
+   - AUTHENTICATED: Use sparingly - only when ANY logged-in user regardless of role should access
+   - ROLE_SPECIFIC: Default choice - assign specific role(s) based on business logic
 
-4. Provide rationale for each endpoint based on:
-   - HTTP method (GET=read, POST=modify, DELETE=delete)
-   - Controller/operation name
-   - Application domain
-   - Data sensitivity
+4. Think about WHO in the organization would perform each operation:
+   - Pet medical records → VET role (not generic AUTHENTICATED)
+   - Owner account creation → RECEPTIONIST or ADMIN (not any authenticated user)
+   - Financial transactions → specific banking roles (not generic USER)
+   - Inventory management → WAREHOUSE role (not generic AUTHENTICATED)
 
 Return JSON ONLY:
 {{
@@ -200,20 +204,68 @@ Return JSON ONLY:
       "rationale": "Public welcome page - no authentication required"
     }},
     {{
-      "endpoint": "POST OwnerController.processCreationForm",
+      "endpoint": "GET OwnerController.findOwners",
+      "current_auth": null,
+      "suggested_auth": "ROLE_SPECIFIC",
+      "suggested_role": ["RECEPTIONIST", "VET"],
+      "rationale": "Owner search should be limited to staff (receptionists and vets) who need to look up client records"
+    }},
+    {{
+      "endpoint": "POST OwnerController.createOwner",
+      "current_auth": null,
+      "suggested_auth": "ROLE_SPECIFIC",
+      "suggested_role": "RECEPTIONIST",
+      "rationale": "Owner registration is a front-desk function - receptionists create new client accounts"
+    }},
+    {{
+      "endpoint": "POST PetController.createPet",
       "current_auth": "USER",
-      "suggested_auth": "AUTHENTICATED",
-      "suggested_role": "USER",
-      "rationale": "Owner creation requires authentication to track who created the record"
+      "suggested_auth": "ROLE_SPECIFIC",
+      "suggested_role": "OWNER",
+      "rationale": "Pet owners should be able to register their own pets - map existing USER role to OWNER"
+    }},
+    {{
+      "endpoint": "POST VisitController.createVisit",
+      "current_auth": null,
+      "suggested_auth": "ROLE_SPECIFIC",
+      "suggested_role": "VET",
+      "rationale": "Only veterinary staff should create visit records - medical documentation"
+    }},
+    {{
+      "endpoint": "POST AdminController.deleteOwner",
+      "current_auth": "ADMIN",
+      "suggested_auth": "ROLE_SPECIFIC",
+      "suggested_role": "ADMIN",
+      "rationale": "Keep existing ADMIN-only protection for deletion operations"
     }}
   ]
 }}
 
-CRITICAL:
-- Analyze ALL {len(current_state)} endpoints
-- Base suggestions on actual application domain, not generic patterns
-- Consider business logic (who should realistically access each operation)
-- Don't just copy current state - propose improvements where appropriate
+CRITICAL RULES:
+1. Analyze ALL {len(current_state)} endpoints
+2. BE AGGRESSIVE about proposing domain-specific roles:
+   - Identify the business domain (veterinary, e-commerce, banking, etc.)
+   - Propose roles that match real job functions in that domain
+   - Avoid generic USER/ADMIN unless no clear domain emerges
+   - Examples: VET, OWNER, RECEPTIONIST for vet clinic; CUSTOMER, VENDOR for e-commerce
+3. PREFER ROLE_SPECIFIC over AUTHENTICATED for most endpoints:
+   - Use PUBLIC only for: welcome pages, login, health checks, public marketing content
+   - Use AUTHENTICATED only when legitimately ANY user regardless of role should access (rare!)
+   - Use ROLE_SPECIFIC as the default - think about WHO performs each operation
+4. RESPECT EXISTING PROTECTIONS - Default to keeping what exists:
+   - If endpoint has ADMIN protection → suggested_auth: "ROLE_SPECIFIC", suggested_role: "ADMIN" (or refined equivalent)
+   - If endpoint has USER protection → suggested_auth: "ROLE_SPECIFIC", suggested_role: map to appropriate domain role
+   - Do NOT downgrade ROLE_SPECIFIC to AUTHENTICATED without strong justification
+   - Focus on ADDING protection to {sum(1 for e in current_state if not e.get('protected'))} UNPROTECTED endpoints
+5. When proposing new roles, map existing roles appropriately:
+   - USER in vet clinic → probably OWNER (pet owners) or VET (staff), determine from context
+   - USER in e-commerce → probably CUSTOMER
+   - USER in banking → probably CUSTOMER
+6. Valid changes to existing protections:
+   - Refining generic roles to domain-specific (USER → OWNER, VET, etc.)
+   - Consolidating redundant roles
+   - Better privilege separation
+   - Strengthening weak protections
 """
 
         try:
@@ -481,11 +533,7 @@ CRITICAL:
         # Consolidate ALL mechanisms (standard + custom)
         self.all_mechanisms = self.standard_mechanisms + self.custom_mechanisms
 
-        # Phase 2: Architecture Evaluation
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Phase 2: Architecture Evaluation")
-
-        self.architecture_evaluation = self._evaluate_architecture()
+        # Phase 2: Architecture Evaluation (handled by AI in recommendation generation)
 
         # Phase 3: Finding Generation
         if self.debug:
@@ -1708,135 +1756,7 @@ If you see NO custom authorization patterns, return: {{"patterns_found": [], "ar
     # ========================================================================
     # PHASE 2: ARCHITECTURE EVALUATION
     # ========================================================================
-
-    def _evaluate_architecture(self) -> Dict:
-        """
-        Evaluate authorization architecture quality across four dimensions
-
-        Focus: Is the authorization ARCHITECTURE sound, not just "are mechanisms good"
-        """
-        evaluation = {
-            'consistency': self._evaluate_consistency(),
-            'centralization': self._evaluate_centralization(),
-            'boundaries': self._evaluate_boundaries(),
-            'maintainability': self._evaluate_maintainability()
-        }
-
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Architecture evaluation:")
-            print(f"  Consistency: {evaluation['consistency']['assessment']}")
-            print(f"  Centralization: {evaluation['centralization']['assessment']}")
-            print(f"  Boundaries: {evaluation['boundaries']['assessment']}")
-            print(f"  Maintainability: {evaluation['maintainability']['assessment']}")
-
-        return evaluation
-
-    def _evaluate_consistency(self) -> Dict:
-        """
-        Is authorization applied consistently across the application?
-        """
-        # Discover HTTP endpoints via Joern
-        discovered_endpoints = self.utils._discover_http_endpoints()
-
-        # Map endpoints to their authorization patterns
-        endpoint_patterns = {}
-        for endpoint_location in discovered_endpoints:
-            patterns = []
-
-            for mechanism in self.all_mechanisms:
-                for behavior in mechanism.get('behaviors', []):
-                    # Only match endpoint-level behaviors (service-level won't match routes)
-                    if behavior.get('location_type') == 'endpoint':
-                        # For endpoint-level, location is "GET /path" format
-                        if behavior.get('location') == endpoint_location:
-                            patterns.append(mechanism.get('framework', 'unknown'))
-
-            endpoint_patterns[endpoint_location] = patterns
-
-        # Analyze consistency
-        protected = sum(1 for patterns in endpoint_patterns.values() if patterns)
-        unprotected = len(endpoint_patterns) - protected
-        multiple_patterns = sum(1 for patterns in endpoint_patterns.values() if len(patterns) > 1)
-
-        coverage_pct = (protected / len(discovered_endpoints)) * 100 if discovered_endpoints else 0
-
-        return {
-            'coverage_percentage': round(coverage_pct, 1),
-            'protected_count': protected,
-            'unprotected_count': unprotected,
-            'multiple_patterns_count': multiple_patterns,
-            'unprotected_endpoints': [k for k, v in endpoint_patterns.items() if not v][:20],
-            'assessment': 'consistent' if coverage_pct >= 90 and multiple_patterns == 0
-                         else 'mostly_consistent' if coverage_pct >= 70
-                         else 'inconsistent'
-        }
-
-    def _evaluate_centralization(self) -> Dict:
-        """
-        Is the authorization approach centralized or fragmented?
-        """
-        # Group mechanisms by type
-        mechanism_types = {}
-        for mech in self.all_mechanisms:
-            mech_type = mech.get('type', 'unknown')
-            if mech_type not in mechanism_types:
-                mechanism_types[mech_type] = []
-            mechanism_types[mech_type].append(mech)
-
-        approach_count = len(mechanism_types)
-        is_centralized = approach_count <= 2
-
-        return {
-            'approach_count': approach_count,
-            'mechanism_types': list(mechanism_types.keys()),
-            'mechanisms_per_type': {k: len(v) for k, v in mechanism_types.items()},
-            'is_centralized': is_centralized,
-            'assessment': 'centralized' if is_centralized
-                         else 'somewhat_fragmented' if approach_count <= 4
-                         else 'highly_fragmented'
-        }
-
-    def _evaluate_boundaries(self) -> Dict:
-        """
-        Are authorization decisions made at appropriate boundaries?
-        """
-        # Simplified boundary analysis
-        # Real implementation would parse behavior locations
-        boundary_locations = {
-            'entry_point': len(self.all_mechanisms),  # Assume mechanisms are at entry points
-            'embedded': 0
-        }
-
-        boundary_score = 1.0 if self.all_mechanisms else 0.0
-
-        return {
-            'boundary_locations': boundary_locations,
-            'boundary_score': round(boundary_score, 2),
-            'assessment': 'appropriate' if boundary_score >= 0.9
-                         else 'mostly_appropriate' if boundary_score >= 0.7
-                         else 'scattered'
-        }
-
-    def _evaluate_maintainability(self) -> Dict:
-        """
-        Is the architecture maintainable and testable?
-        """
-        # Check for declarative vs imperative
-        declarative = [m for m in self.all_mechanisms
-                      if m.get('type') in ['standard', 'annotation', 'meta_annotation']]
-        imperative = [m for m in self.all_mechanisms
-                     if m.get('type') in ['custom_method', 'interceptor']]
-
-        declarative_ratio = len(declarative) / len(self.all_mechanisms) if self.all_mechanisms else 0
-
-        return {
-            'declarative_count': len(declarative),
-            'imperative_count': len(imperative),
-            'declarative_ratio': round(declarative_ratio, 2),
-            'assessment': 'maintainable' if declarative_ratio >= 0.7
-                         else 'moderate' if declarative_ratio >= 0.4
-                         else 'complex'
-        }
+    # Architecture evaluation is now handled by AI in the recommendation generation phase
 
     # ========================================================================
     # PHASE 3: FINDING GENERATION
@@ -2052,7 +1972,6 @@ Return these EXACT values in JSON:
             'defense_usage_matrix': defense_matrix,  # Current state
             'roles': roles,
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
-            'evaluation': self.architecture_evaluation,
             'coverage_metrics': coverage_metrics,  # AI-generated metrics
             'proposed_access_matrix': proposed_matrix  # AI-generated classifications and role structure
         }
@@ -2069,7 +1988,6 @@ Return these EXACT values in JSON:
         unprotected = evidence['coverage_metrics']['unprotected']
         # Use exposures if available, fall back to total_endpoints for backward compatibility
         total = evidence['coverage_metrics'].get('exposures', evidence['coverage_metrics'].get('total_endpoints', 0))
-        eval_result = evidence['evaluation']
 
         # Try AI generation
         try:
@@ -2080,8 +1998,8 @@ Return these EXACT values in JSON:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] AI recommendation failed: {e}, using fallback")
 
-        # Fallback to rule-based (delegated to utils)
-        return self.utils.generate_fallback_recommendation(coverage, unprotected, total, eval_result)
+        # Fallback to rule-based (delegated to utils) - no evaluation data available
+        return self.utils.generate_fallback_recommendation(coverage, unprotected, total, None)
 
     def _generate_ai_recommendation(self, evidence: Dict) -> Optional[Dict]:
         """
@@ -2092,7 +2010,6 @@ Return these EXACT values in JSON:
         """
         # Build context for AI
         coverage_metrics = evidence['coverage_metrics']
-        eval_result = evidence['evaluation']
         roles = evidence['roles']
         mechanisms = evidence['mechanisms']
 
@@ -2103,10 +2020,6 @@ Return these EXACT values in JSON:
             'total_endpoints': coverage_metrics.get('total_endpoints', 0),  # Keep for compatibility
             'protected': coverage_metrics['protected'],
             'unprotected': coverage_metrics['unprotected'],
-            'consistency': eval_result['consistency']['assessment'],
-            'centralization': eval_result['centralization']['assessment'],
-            'boundaries': eval_result['boundaries']['assessment'],
-            'maintainability': eval_result['maintainability']['assessment'],
             'roles_used': roles['used'],
             'generic_role_count': roles['generic_count'],
             'domain_specific_role_count': roles['domain_specific_count'],
@@ -2274,11 +2187,12 @@ NOTE: Coverage metrics are calculated based on authorization exposures:
 - If authorization is at the code layer: Exposures = protected code locations
 - Coverage % reflects protection of exposures at the detected architectural layer
 
-ARCHITECTURE EVALUATION:
-- Consistency: {context['consistency']}
-- Centralization: {context['centralization']}
-- Boundaries: {context['boundaries']}
-- Maintainability: {context['maintainability']}
+ARCHITECTURE EVALUATION (AI Task):
+You must evaluate the authorization architecture across four dimensions:
+- Consistency: Is authorization applied consistently across similar operations? Are there gaps or inconsistent patterns?
+- Centralization: Is the authorization approach unified, or is it fragmented across multiple mechanisms?
+- Boundaries: Are authorization decisions made at appropriate boundaries (e.g., HTTP layer, service layer)?
+- Maintainability: Is the architecture testable and maintainable (declarative vs imperative)?
 
 ROLES DEFINED:
 - Total roles: {len(context['roles_used'])}

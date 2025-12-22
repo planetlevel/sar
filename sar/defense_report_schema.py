@@ -158,7 +158,7 @@ class Evidence(BaseModel):
     defense_usage_matrix: Optional[DefenseUsageMatrix] = None
     roles: Optional[Roles] = None
     auth_pattern: Optional[AuthPattern] = None
-    evaluation: Optional[ArchitectureEvaluation] = None
+    evaluation: Optional[ArchitectureEvaluation] = None  # DEPRECATED: Replaced by AI-based architecture evaluation in recommendation
     coverage_metrics: Optional[CoverageMetrics] = None
     proposed_access_matrix: Optional[ProposedAccessMatrix] = None
 
