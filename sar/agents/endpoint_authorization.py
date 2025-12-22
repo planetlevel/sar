@@ -70,6 +70,42 @@ class EndpointAuthorizationAgent:
         # State from Phase 3
         self.discovered_exposures = []  # Exposures discovered during metrics calculation
 
+        # Detect Spring versions for version-specific recommendations
+        self.spring_versions = self._detect_spring_versions()
+
+    def _detect_spring_versions(self) -> Dict[str, Optional[str]]:
+        """
+        Detect Spring Boot and Spring Security versions from architecture report
+
+        Returns dict with 'spring_boot' and 'spring_security' version strings
+        """
+        versions = {
+            'spring_boot': None,
+            'spring_security': None
+        }
+
+        if not self.architecture_report:
+            return versions
+
+        # Extract from architecture report libraries section
+        libraries = self.architecture_report.get('libraries', [])
+
+        for lib in libraries:
+            name = lib.get('name', '').lower()
+            version = lib.get('version', '')
+
+            if 'spring-boot' in name and not versions['spring_boot']:
+                versions['spring_boot'] = version
+            elif 'spring-security' in name and not versions['spring_security']:
+                versions['spring_security'] = version
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Detected Spring versions:")
+            print(f"  Spring Boot: {versions['spring_boot'] or 'not detected'}")
+            print(f"  Spring Security: {versions['spring_security'] or 'not detected'}")
+
+        return versions
+
     def get_agent_id(self) -> str:
         return "endpoint_authorization"
 
@@ -1789,6 +1825,73 @@ Return these EXACT values in JSON:
 
         return None
 
+    def _build_spring_security_guidance(self) -> str:
+        """
+        Build version-specific Spring Security guidance section
+
+        Provides correct configuration patterns based on detected Spring Boot/Security versions
+        """
+        spring_boot = self.spring_versions.get('spring_boot')
+        spring_security = self.spring_versions.get('spring_security')
+
+        # Determine configuration style based on version
+        if spring_boot and spring_boot.startswith('3'):
+            config_style = "Boot 3.x (Current)"
+            config_guidance = """
+   - Use @EnableMethodSecurity(prePostEnabled = true) - NOT @EnableGlobalMethodSecurity
+   - Use SecurityFilterChain bean - NOT WebSecurityConfigurerAdapter (removed in Boot 3)
+   - Example:
+     @Bean
+     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+         http.authorizeHttpRequests(authz -> authz
+             .requestMatchers("/health", "/actuator/**").permitAll()
+             .anyRequest().authenticated()
+         );
+         return http.build();
+     }"""
+        elif spring_boot and spring_boot.startswith('2.7'):
+            config_style = "Boot 2.7.x (Modern)"
+            config_guidance = """
+   - PREFERRED: Use @EnableMethodSecurity(prePostEnabled = true) and SecurityFilterChain bean
+   - LEGACY (still works): @EnableGlobalMethodSecurity + WebSecurityConfigurerAdapter
+   - Recommend modern style for future compatibility with Boot 3"""
+        else:
+            config_style = "Version not detected - use existing patterns"
+            config_guidance = """
+   - Continue with your existing configuration style
+   - If method security not enabled, add @EnableMethodSecurity or @EnableGlobalMethodSecurity"""
+
+        return f"""
+SPRING SECURITY BEST PRACTICES (CRITICAL - FOLLOW EXACTLY):
+Detected Versions: Spring Boot {spring_boot or 'unknown'}, Spring Security {spring_security or 'unknown'}
+Configuration Style: {config_style}
+
+1. Public Endpoints (CRITICAL - DO NOT use PUBLIC role):
+   - Use permitAll() in HttpSecurity configuration for truly public endpoints
+   - Example: http.authorizeHttpRequests().requestMatchers("/health", "/actuator/**").permitAll()
+   - DO NOT create a "PUBLIC" role - this creates confusion about authentication state
+   - DO NOT use @PreAuthorize("permitAll()") on methods - permitAll() is HTTP security, not method security
+   - Leave public endpoints UNANNOTATED at method level (protected by HTTP security allowlist)
+
+2. Method Security Annotations (for protected endpoints):
+   - Use @PreAuthorize("hasRole('ADMIN')") for role checks
+   - Use @PreAuthorize("hasAuthority('ROLE_ADMIN')") if authorities include ROLE_ prefix
+   - Use @PreAuthorize("isAuthenticated()") for any authenticated user (no specific role)
+   - For JSR-250 style: @RolesAllowed({{"ADMIN", "USER"}}) if enabled
+
+3. Configuration:{config_guidance}
+
+4. Scope Limitations (IMPORTANT):
+   - Controller/endpoint authorization ONLY protects HTTP access via Spring MVC request handling
+   - Does NOT automatically protect: @Scheduled methods, @EventListener, message listeners, WebSocket endpoints, internal service-to-service calls
+   - Phrase protection as "prevents unauthorized HTTP access" not "prevents all unauthorized access"
+   - If non-HTTP entry points exist, they need separate authorization mechanisms
+
+5. Default-Deny Stance:
+   - Configure .anyRequest().authenticated() as the default
+   - Explicitly allowlist public endpoints with .requestMatchers(...).permitAll()
+   - This ensures new endpoints are secure by default"""
+
     def _build_recommendation_prompt(self, context: Dict, evidence: Dict) -> str:
         """Build detailed prompt for AI recommendation generation"""
         # Get architecture pattern info
@@ -1808,6 +1911,9 @@ Return these EXACT values in JSON:
                 location_type = behavior.get('location_type', 'unknown')
                 location_counts[location_type] += 1
 
+        # Get Spring Security guidance
+        spring_guidance = self._build_spring_security_guidance()
+
         return f"""You are a security architect analyzing authorization in an application.
 
 APPLICATION CONTEXT:
@@ -1815,6 +1921,8 @@ APPLICATION CONTEXT:
 - Protected: {context['protected']} ({context['coverage']:.1f}%)
 - Unprotected: {context['unprotected']}
 - Frameworks detected: {', '.join(set(context['frameworks']))}
+
+{spring_guidance}
 
 AUTHORIZATION ARCHITECTURE PATTERN:
 - Pattern: {pattern_type}
@@ -1852,9 +1960,11 @@ Generate a tailored authorization recommendation for THIS specific application. 
 3. Identify which locations (classes, endpoints, or code) SHOULD have authorization but don't
 4. Consider the application's current authorization state and architecture
 5. Reference the specific frameworks being used
-6. Evaluate if the roles defined are appropriate
+6. Evaluate if the roles defined are appropriate (DO NOT recommend creating a PUBLIC role)
 7. Address the coverage gaps and consistency issues
 8. Infer what this application does based on roles/frameworks
+9. Classify each unprotected location as: PUBLIC (permitAll in HTTP config), AUTHENTICATED (any user), or ROLE-SPECIFIC
+10. Provide rationale for each classification decision
 
 CRITICAL: Respond with valid JSON only. Use \\n for newlines within strings, NOT literal newlines.
 
@@ -1862,19 +1972,23 @@ Provide your recommendation in this exact JSON format:
 {{
   "title": "One-line recommendation title",
   "summary": "Brief 1-2 sentence summary acknowledging the current architecture pattern and what needs to be done",
-  "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss roles, recommend PUBLIC role, explain access control matrix, discuss which locations need annotations. Use \\n for line breaks.",
-  "implementation_recommendation": "Concrete technical steps (400-600 words). Provide detailed numbered steps for implementing authorization on the remaining locations (classes, endpoints, or code). Include specific code examples with actual annotations, show which locations need @PreAuthorize or other auth mechanisms, explain how to add authorization to locations that are missing it, include testing approaches. Use \\n for line breaks.",
-  "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs between different authorization architectures. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
+  "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss existing roles (NEVER recommend PUBLIC role - use permitAll() for public endpoints instead). Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
+  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST include:\\n- Step 0: Establish default-deny at HTTP layer (.anyRequest().authenticated())\\n- Explicit permitAll() allowlist for public endpoints in HttpSecurity (NOT @PreAuthorize)\\n- For EACH unprotected location, specify: classification (PUBLIC/AUTHENTICATED/ROLE), annotation to add or 'Add to permitAll()', rationale\\n- Include version-appropriate Spring Security configuration examples\\n- Include regression test that verifies all endpoints are either: in permitAll() list, annotated with authorization, or documented as intentionally unprotected\\nUse \\n for line breaks.",
+  "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. IMPORTANT: Scope claims to HTTP access only - acknowledge that controller auth does NOT protect @Scheduled, @EventListener, message listeners, or internal service calls. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
 }}
 
 CRITICAL REQUIREMENTS:
 - First paragraph of design_recommendation MUST discuss the {pattern_type} authorization architecture pattern at {primary_layer}
 - Explicitly state whether auth at {primary_layer} is appropriate for this application
-- Identify which specific locations (classes, endpoints, or code) are missing authorization annotations
+- DO NOT recommend creating a PUBLIC role - use permitAll() in HTTP security config instead
+- DO NOT recommend @PreAuthorize("permitAll()") - that's wrong, use HTTP security config
+- For each unprotected location, provide classification and rationale
+- Scope protection claims to "prevents unauthorized HTTP access" not "prevents all access"
 - Each section must be 400-600 words (not 200-300)
-- Include actual code examples with real role names from the application
-- Be application-specific using the actual roles: {', '.join(context['roles_used'][:10])}
+- Include actual code examples with real role names from the application: {', '.join(context['roles_used'][:10])}
+- Use version-appropriate Spring Security configuration based on detected versions
 - Provide concrete, actionable guidance with numbered implementation steps
+- Include regression test requirement in implementation section
 
 Generate the recommendation now:"""
 
