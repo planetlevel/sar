@@ -518,7 +518,7 @@ class FrameworkTool:
           .map(m => {{
             val annot = m.annotation.name("({pattern_regex})").head
             val annotValue = annot.parameterAssign.headOption.map(_.code).getOrElse("")
-            val className = m.typeDecl.headOption.map(_.name).getOrElse("Unknown")
+            val className = m.typeDecl.headOption.map(_.fullName).getOrElse("Unknown")
 
             // Extract route path and HTTP method from @XxxMapping annotations
             val mappingAnnotOpt = m.annotation.name(".*Mapping").headOption
@@ -716,7 +716,7 @@ class FrameworkTool:
           .methodFullName("({sig_regex})")
           .map(c => {{
             val methodOpt = c.method.headOption
-            val className = methodOpt.flatMap(_.typeDecl.headOption).map(_.name).getOrElse("Unknown")
+            val className = methodOpt.flatMap(_.typeDecl.headOption).map(_.fullName).getOrElse("Unknown")
             val callerMethod = methodOpt.map(_.fullName).getOrElse("Unknown")
             s"${{c.code}}|${{c.methodFullName}}|${{className}}|${{callerMethod}}|${{c.filename}}|${{c.lineNumber.headOption.getOrElse(0)}}"
           }})
