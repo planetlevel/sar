@@ -337,12 +337,11 @@ class FrameworkTool:
         if isinstance(frameworks, FrameworkDefinition):
             frameworks = {'framework': frameworks}
 
-        behaviors = []
-
+        # Collect all patterns from all frameworks and deduplicate before searching
+        # Multiple frameworks may have identical patterns (e.g., spring and spring-security both search for @PreAuthorize)
+        all_patterns = []
         for fw_id, fw_def in frameworks.items():
-            # Extract patterns from category path
             patterns = self._extract_patterns_from_path(fw_def, category_path)
-
             if not patterns:
                 continue
 
@@ -350,14 +349,35 @@ class FrameworkTool:
             if filter_fn:
                 patterns = [p for p in patterns if filter_fn(p)]
 
-            # Search each pattern
+            # Store pattern with framework ID for later
             for pattern_group in patterns:
-                pattern_behaviors = self._execute_pattern_search(
-                    pattern_group,
-                    fw_id,
-                    category_path
-                )
-                behaviors.extend(pattern_behaviors)
+                all_patterns.append((fw_id, pattern_group))
+
+        # Deduplicate patterns based on their search criteria
+        # Key: (target, search_type, pattern_string)
+        seen_patterns = {}
+        for fw_id, pattern_group in all_patterns:
+            # Create unique key from pattern's search criteria
+            pattern_str = str(sorted(pattern_group.pattern)) if pattern_group.pattern else ""
+            key = (
+                pattern_group.target,
+                pattern_group.search_type,
+                pattern_str
+            )
+
+            # Keep first occurrence (prefer more specific frameworks like spring-security over spring)
+            if key not in seen_patterns:
+                seen_patterns[key] = (fw_id, pattern_group)
+
+        # Execute searches on deduplicated patterns
+        behaviors = []
+        for fw_id, pattern_group in seen_patterns.values():
+            pattern_behaviors = self._execute_pattern_search(
+                pattern_group,
+                fw_id,
+                category_path
+            )
+            behaviors.extend(pattern_behaviors)
 
         return behaviors
 
