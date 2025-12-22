@@ -62,7 +62,6 @@ class EndpointAuthorizationAgent:
 
         # State from Phase 1
         self.standard_mechanisms = []
-        self.ai_analysis_result = None  # Renamed from custom_mechanisms
         self.all_mechanisms = []
 
         # State from Phase 2
@@ -123,12 +122,6 @@ class EndpointAuthorizationAgent:
 
         # Consolidate ALL mechanisms (standard + custom)
         self.all_mechanisms = self.standard_mechanisms + self.custom_mechanisms
-
-        # NOW run AI analysis with complete mechanism picture
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Running AI architecture analysis (with custom defenses)...")
-
-        self.ai_analysis_result = self._run_ai_analysis()
 
         # Phase 2: Architecture Evaluation
         if self.debug:
@@ -481,9 +474,16 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
 
         return architecture
 
-    def _run_ai_analysis(self) -> Optional[Dict]:
+    # REMOVED: _run_ai_analysis() - ai_insights was redundant with main recommendation
+    # This method generated architecture_summary, coverage_gaps, recommendations, sound_design, reasoning
+    # but this duplicated the detailed AI-generated analysis already in design_recommendation,
+    # implementation_recommendation, and rationale fields. The prompts also asked about service
+    # layer and data-level authorization which is outside the scope of endpoint authorization agent.
+    #
+    # Removed 2025-12-21 per user feedback
+    def _run_ai_analysis_REMOVED(self) -> Optional[Dict]:
         """
-        ALWAYS run AI analysis to understand authorization architecture
+        [REMOVED] ALWAYS run AI analysis to understand authorization architecture
 
         AI investigates:
         - How are standard mechanisms being used?
@@ -674,16 +674,13 @@ Respond in JSON:
             'raw_response': response_text[:500]
         }
 
-    def _extract_mechanisms_from_ai(self) -> List[Dict]:
+    # REMOVED: _extract_mechanisms_from_ai() - no longer needed after ai_insights removal
+    def _extract_mechanisms_from_ai_REMOVED(self) -> List[Dict]:
         """
-        Extract custom mechanisms discovered by AI analysis
+        [REMOVED] Extract custom mechanisms discovered by AI analysis
 
         Returns list of mechanisms in same format as standard_mechanisms
         """
-        if not self.ai_analysis_result:
-            return []
-
-        # TODO: Parse AI analysis result and extract custom mechanisms
         return []
 
     # ========================================================================
@@ -1691,8 +1688,7 @@ Return these EXACT values in JSON:
             'roles': roles,
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
             'evaluation': self.architecture_evaluation,
-            'coverage_metrics': coverage_metrics,  # AI-generated metrics
-            'ai_insights': self.ai_analysis_result  # Include AI analysis if available
+            'coverage_metrics': coverage_metrics  # AI-generated metrics
         }
 
         return evidence
