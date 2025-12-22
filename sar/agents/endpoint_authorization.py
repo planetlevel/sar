@@ -2040,13 +2040,21 @@ Return these EXACT values in JSON:
             defense_type='authorization'
         )
 
+        # Build proposed access control matrix with AI-powered role analysis
+        # This provides a complete classification of ALL endpoints with suggested authorization
+        proposed_matrix = self._build_proposed_access_matrix({
+            'defense_usage_matrix': defense_matrix,
+            'roles': roles
+        })
+
         evidence = {
             'mechanisms': self.all_mechanisms,
-            'defense_usage_matrix': defense_matrix,  # Keep for reference
+            'defense_usage_matrix': defense_matrix,  # Current state
             'roles': roles,
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
             'evaluation': self.architecture_evaluation,
-            'coverage_metrics': coverage_metrics  # AI-generated metrics
+            'coverage_metrics': coverage_metrics,  # AI-generated metrics
+            'proposed_access_matrix': proposed_matrix  # AI-generated classifications and role structure
         }
 
         return evidence

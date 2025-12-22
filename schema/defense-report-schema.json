@@ -1,0 +1,999 @@
+{
+  "$defs": {
+    "AgentRecommendation": {
+      "description": "Single agent's recommendation",
+      "properties": {
+        "agent_id": {
+          "title": "Agent Id",
+          "type": "string"
+        },
+        "agent_name": {
+          "title": "Agent Name",
+          "type": "string"
+        },
+        "ran": {
+          "title": "Ran",
+          "type": "boolean"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "defense_metadata": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DefenseMetadata"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Evidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metrics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Metrics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Recommendation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "agent_id",
+        "agent_name",
+        "ran"
+      ],
+      "title": "AgentRecommendation",
+      "type": "object"
+    },
+    "ArchitectureEvaluation": {
+      "description": "Architecture quality evaluation",
+      "properties": {
+        "consistency": {
+          "additionalProperties": true,
+          "title": "Consistency",
+          "type": "object"
+        },
+        "centralization": {
+          "additionalProperties": true,
+          "title": "Centralization",
+          "type": "object"
+        },
+        "boundaries": {
+          "additionalProperties": true,
+          "title": "Boundaries",
+          "type": "object"
+        },
+        "maintainability": {
+          "additionalProperties": true,
+          "title": "Maintainability",
+          "type": "object"
+        }
+      },
+      "required": [
+        "consistency",
+        "centralization",
+        "boundaries",
+        "maintainability"
+      ],
+      "title": "ArchitectureEvaluation",
+      "type": "object"
+    },
+    "AuthPattern": {
+      "description": "Authorization architecture pattern",
+      "properties": {
+        "pattern": {
+          "title": "Pattern",
+          "type": "string"
+        },
+        "confidence": {
+          "title": "Confidence",
+          "type": "number"
+        },
+        "primary_layer": {
+          "title": "Primary Layer",
+          "type": "string"
+        },
+        "evidence_summary": {
+          "title": "Evidence Summary",
+          "type": "string"
+        },
+        "coverage_approach": {
+          "title": "Coverage Approach",
+          "type": "string"
+        },
+        "architecture_description": {
+          "title": "Architecture Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern",
+        "confidence",
+        "primary_layer",
+        "evidence_summary",
+        "coverage_approach",
+        "architecture_description"
+      ],
+      "title": "AuthPattern",
+      "type": "object"
+    },
+    "Behavior": {
+      "description": "A specific instance of a defense mechanism",
+      "properties": {
+        "framework": {
+          "title": "Framework",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "mechanism": {
+          "title": "Mechanism",
+          "type": "string"
+        },
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "class": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "line": {
+          "title": "Line",
+          "type": "integer"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "location_type": {
+          "title": "Location Type",
+          "type": "string"
+        },
+        "roles": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Roles"
+        },
+        "httpMethod": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Httpmethod"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route"
+        }
+      },
+      "required": [
+        "framework",
+        "category",
+        "type",
+        "mechanism",
+        "method",
+        "file",
+        "line",
+        "location",
+        "location_type"
+      ],
+      "title": "Behavior",
+      "type": "object"
+    },
+    "Component": {
+      "description": "Component being analyzed",
+      "properties": {
+        "type": {
+          "default": "application",
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "properties": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Property"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "Component",
+      "type": "object"
+    },
+    "CoverageMetrics": {
+      "description": "Coverage metrics",
+      "properties": {
+        "metric_type": {
+          "title": "Metric Type",
+          "type": "string"
+        },
+        "exposures": {
+          "title": "Exposures",
+          "type": "integer"
+        },
+        "protected": {
+          "title": "Protected",
+          "type": "integer"
+        },
+        "unprotected": {
+          "title": "Unprotected",
+          "type": "integer"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric_type",
+        "exposures",
+        "protected",
+        "unprotected",
+        "coverage",
+        "explanation"
+      ],
+      "title": "CoverageMetrics",
+      "type": "object"
+    },
+    "DefenseMetadata": {
+      "description": "Defense mechanism metadata",
+      "properties": {
+        "defense_name": {
+          "title": "Defense Name",
+          "type": "string"
+        },
+        "defense_type": {
+          "title": "Defense Type",
+          "type": "string"
+        },
+        "defense_mechanism": {
+          "title": "Defense Mechanism",
+          "type": "string"
+        },
+        "defense_patterns": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            ]
+          },
+          "title": "Defense Patterns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "defense_name",
+        "defense_type",
+        "defense_mechanism",
+        "defense_patterns"
+      ],
+      "title": "DefenseMetadata",
+      "type": "object"
+    },
+    "DefenseUsageMatrix": {
+      "description": "Matrix showing exposure vs defense coverage",
+      "properties": {
+        "rows": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rows",
+          "type": "array"
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "matrix": {
+          "items": {
+            "items": {
+              "type": "boolean"
+            },
+            "type": "array"
+          },
+          "title": "Matrix",
+          "type": "array"
+        },
+        "row_protected": {
+          "items": {
+            "type": "boolean"
+          },
+          "title": "Row Protected",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rows",
+        "columns",
+        "matrix",
+        "row_protected"
+      ],
+      "title": "DefenseUsageMatrix",
+      "type": "object"
+    },
+    "EndpointClassification": {
+      "description": "Classification of a single endpoint",
+      "properties": {
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "current_auth": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Current Auth"
+        },
+        "suggested_auth": {
+          "enum": [
+            "PUBLIC",
+            "AUTHENTICATED",
+            "ROLE_SPECIFIC"
+          ],
+          "title": "Suggested Auth",
+          "type": "string"
+        },
+        "suggested_role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Suggested Role"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpoint",
+        "current_auth",
+        "suggested_auth",
+        "suggested_role",
+        "rationale"
+      ],
+      "title": "EndpointClassification",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": true,
+      "description": "Evidence supporting the recommendation",
+      "properties": {
+        "mechanisms": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Mechanism"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mechanisms"
+        },
+        "defense_usage_matrix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DefenseUsageMatrix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "roles": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Roles"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "auth_pattern": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AuthPattern"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evaluation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArchitectureEvaluation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coverage_metrics": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoverageMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "proposed_access_matrix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProposedAccessMatrix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Mechanism": {
+      "description": "Defense mechanism with its behaviors",
+      "properties": {
+        "framework": {
+          "title": "Framework",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "patterns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Patterns",
+          "type": "array"
+        },
+        "behaviors": {
+          "items": {
+            "$ref": "#/$defs/Behavior"
+          },
+          "title": "Behaviors",
+          "type": "array"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "pattern_group_target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Group Target"
+        },
+        "pattern_group_search_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Group Search Type"
+        },
+        "pattern_group_description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Group Description"
+        },
+        "discovery_method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discovery Method"
+        }
+      },
+      "required": [
+        "framework",
+        "category",
+        "type",
+        "behaviors"
+      ],
+      "title": "Mechanism",
+      "type": "object"
+    },
+    "Metadata": {
+      "description": "Report metadata",
+      "properties": {
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/Tool"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "component": {
+          "$ref": "#/$defs/Component"
+        }
+      },
+      "required": [
+        "timestamp",
+        "tools",
+        "component"
+      ],
+      "title": "Metadata",
+      "type": "object"
+    },
+    "Metrics": {
+      "description": "Standardized metrics",
+      "properties": {
+        "exposures": {
+          "title": "Exposures",
+          "type": "integer"
+        },
+        "protected": {
+          "title": "Protected",
+          "type": "integer"
+        },
+        "unprotected": {
+          "title": "Unprotected",
+          "type": "integer"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        }
+      },
+      "required": [
+        "exposures",
+        "protected",
+        "unprotected",
+        "coverage"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "Property": {
+      "description": "Key-value property",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "Property",
+      "type": "object"
+    },
+    "ProposedAccessMatrix": {
+      "description": "Complete proposed access control matrix",
+      "properties": {
+        "role_structure": {
+          "$ref": "#/$defs/RoleStructure"
+        },
+        "endpoint_classifications": {
+          "items": {
+            "$ref": "#/$defs/EndpointClassification"
+          },
+          "title": "Endpoint Classifications",
+          "type": "array"
+        },
+        "total_endpoints": {
+          "title": "Total Endpoints",
+          "type": "integer"
+        },
+        "currently_protected": {
+          "title": "Currently Protected",
+          "type": "integer"
+        },
+        "suggested_public": {
+          "title": "Suggested Public",
+          "type": "integer"
+        },
+        "suggested_authenticated": {
+          "title": "Suggested Authenticated",
+          "type": "integer"
+        },
+        "suggested_role_specific": {
+          "title": "Suggested Role Specific",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "role_structure",
+        "endpoint_classifications",
+        "total_endpoints",
+        "currently_protected",
+        "suggested_public",
+        "suggested_authenticated",
+        "suggested_role_specific"
+      ],
+      "title": "ProposedAccessMatrix",
+      "type": "object"
+    },
+    "Recommendation": {
+      "description": "Recommendation structure",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "design_recommendation": {
+          "title": "Design Recommendation",
+          "type": "string"
+        },
+        "implementation_recommendation": {
+          "title": "Implementation Recommendation",
+          "type": "string"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "summary",
+        "design_recommendation",
+        "implementation_recommendation",
+        "rationale"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "RoleStructure": {
+      "description": "Proposed role structure for authorization",
+      "properties": {
+        "current_roles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Current Roles",
+          "type": "array"
+        },
+        "proposed_roles": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Proposed Roles",
+          "type": "array"
+        },
+        "role_mapping": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Role Mapping",
+          "type": "object"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "current_roles",
+        "proposed_roles",
+        "role_mapping",
+        "rationale"
+      ],
+      "title": "RoleStructure",
+      "type": "object"
+    },
+    "Roles": {
+      "description": "Role analysis",
+      "properties": {
+        "used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Used",
+          "type": "array"
+        },
+        "generic": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Generic",
+          "type": "array"
+        },
+        "domain_specific": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Domain Specific",
+          "type": "array"
+        },
+        "generic_count": {
+          "title": "Generic Count",
+          "type": "integer"
+        },
+        "domain_specific_count": {
+          "title": "Domain Specific Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "used",
+        "generic",
+        "domain_specific",
+        "generic_count",
+        "domain_specific_count"
+      ],
+      "title": "Roles",
+      "type": "object"
+    },
+    "Summary": {
+      "description": "Report summary",
+      "properties": {
+        "agents_ran": {
+          "title": "Agents Ran",
+          "type": "integer"
+        },
+        "agents_skipped": {
+          "title": "Agents Skipped",
+          "type": "integer"
+        },
+        "total_recommendations": {
+          "title": "Total Recommendations",
+          "type": "integer"
+        },
+        "overall_coverage": {
+          "title": "Overall Coverage",
+          "type": "number"
+        }
+      },
+      "required": [
+        "agents_ran",
+        "agents_skipped",
+        "total_recommendations",
+        "overall_coverage"
+      ],
+      "title": "Summary",
+      "type": "object"
+    },
+    "Tool": {
+      "description": "Tool metadata",
+      "properties": {
+        "vendor": {
+          "title": "Vendor",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "vendor",
+        "name",
+        "version"
+      ],
+      "title": "Tool",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "description": "Complete defense analysis report.\n\nThis follows the CompassDefenseReport format inspired by CycloneDX BOM.",
+  "properties": {
+    "bomFormat": {
+      "const": "CompassDefenseReport",
+      "default": "CompassDefenseReport",
+      "title": "Bomformat",
+      "type": "string"
+    },
+    "specVersion": {
+      "default": "1.0",
+      "title": "Specversion",
+      "type": "string"
+    },
+    "version": {
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "serialNumber": {
+      "title": "Serialnumber",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "recommendations": {
+      "items": {
+        "$ref": "#/$defs/AgentRecommendation"
+      },
+      "title": "Recommendations",
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/Summary"
+    }
+  },
+  "required": [
+    "serialNumber",
+    "metadata",
+    "recommendations",
+    "summary"
+  ],
+  "title": "DefenseReport",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://compass.defense-report.schema.json"
+}
