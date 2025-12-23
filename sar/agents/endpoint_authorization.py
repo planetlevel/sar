@@ -106,34 +106,219 @@ class EndpointAuthorizationAgent:
 
         return versions
 
-    def _ai_analyze_access_control_matrix(self, defense_matrix: Dict, roles: Dict) -> Dict:
+    def _ai_discover_roles(self, endpoint_sample: List[Dict], current_roles: List[str]) -> Dict:
         """
-        Use AI to analyze the defense_usage_matrix and propose role structure + endpoint classifications
+        Phase 1: Discover domain-specific roles from sample of endpoints
 
-        AI examines:
-        - Current endpoints and their existing authorization (from matrix)
-        - Endpoint naming patterns (OwnerController, PetController, etc.)
-        - HTTP methods (GET, POST, DELETE, etc.)
-        - Application domain inference from controller names
+        Args:
+            endpoint_sample: List of ~30 representative endpoints (protected + unprotected)
+            current_roles: Current roles from Joern analysis (e.g., ['USER', 'ADMIN'])
 
         Returns:
             {
-                'role_structure': {
-                    'current_roles': ['USER', 'ADMIN'],
-                    'proposed_roles': ['USER', 'ADMIN'],
-                    'role_mapping': {...},
-                    'rationale': 'Why this role structure'
-                },
-                'endpoint_classifications': [
-                    {
-                        'endpoint': 'GET OwnerController.initCreationForm',
-                        'current_auth': None,
+                'current_roles': ['USER', 'ADMIN'],
+                'proposed_roles': ['VET', 'OWNER', 'RECEPTIONIST', 'ADMIN'],
+                'role_mapping': {'USER': 'OWNER', 'ADMIN': 'ADMIN'},
+                'rationale': 'Why these roles are appropriate for this domain'
+            }
+        """
+        prompt = f"""Analyze this application and propose domain-specific roles.
+
+SAMPLE ENDPOINTS ({len(endpoint_sample)} representative samples):
+{json.dumps(endpoint_sample, indent=2)}
+
+CURRENT ROLES: {', '.join(current_roles) if current_roles else 'None detected'}
+
+YOUR TASK:
+1. Infer the application domain from endpoint names (OwnerController, PetController, etc.)
+2. Propose domain-specific roles that reflect real business functions:
+   - For veterinary clinic: VET, OWNER, RECEPTIONIST, ADMIN
+   - For e-commerce: CUSTOMER, VENDOR, WAREHOUSE, ADMIN
+   - For banking: CUSTOMER, TELLER, LOAN_OFFICER, MANAGER
+   - Generic ADMIN/USER should only be used if no clear domain emerges
+
+3. Map existing roles to proposed roles (e.g., USER → OWNER)
+
+Return JSON ONLY:
+{{
+  "current_roles": ["ADMIN", "USER"],
+  "proposed_roles": ["VET", "OWNER", "RECEPTIONIST", "ADMIN"],
+  "role_mapping": {{"USER": "OWNER", "ADMIN": "ADMIN"}},
+  "rationale": "This is a veterinary clinic application. VET performs medical operations, OWNER manages pets, RECEPTIONIST handles registration."
+}}
+"""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=1000, temperature=0.3)
+            if response:
+                import re
+                match = re.search(r'\{.*\}', response, re.DOTALL)
+                if match:
+                    result = json.loads(match.group(0))
+                    if 'proposed_roles' in result and 'role_structure' not in result:
+                        # Valid response
+                        return result
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Role discovery failed: {e}")
+
+        # Fallback: keep existing roles
+        return {
+            'current_roles': current_roles,
+            'proposed_roles': current_roles if current_roles else ['USER', 'ADMIN'],
+            'role_mapping': {role: role for role in current_roles},
+            'rationale': 'Maintaining existing role structure (AI analysis unavailable)'
+        }
+
+    def _ai_classify_endpoints_chunked(self, endpoints: List[Dict], role_structure: Dict, chunk_size: int = 100) -> List[Dict]:
+        """
+        Phase 2: Classify all endpoints in chunks using discovered roles
+
+        Uses compact bitset encoding to reduce tokens dramatically:
+        - Input: idx http_method name current_bitset
+        - Output: idx classification suggested_bits brief_reason
+
+        Args:
+            endpoints: All endpoints to classify
+            role_structure: Role structure from Phase 1
+            chunk_size: Endpoints per chunk (default 100 with bitset encoding)
+
+        Returns:
+            List of endpoint classifications
+        """
+        proposed_roles = role_structure['proposed_roles']
+        all_classifications = []
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Classifying {len(endpoints)} endpoints in chunks of {chunk_size}")
+            print(f"[{self.get_agent_id().upper()}] Proposed roles: {', '.join(proposed_roles)}")
+
+        # Process in chunks
+        for chunk_start in range(0, len(endpoints), chunk_size):
+            chunk = endpoints[chunk_start:chunk_start+chunk_size]
+
+            # Build compact representations
+            compact_endpoints = []
+            for idx, ep in enumerate(chunk):
+                endpoint_name = ep.get('endpoint', '')
+
+                # Parse endpoint format: "GET /api/owners" or "GET OwnerController.getOwner"
+                parts = endpoint_name.split(' ', 1)
+                http_method = parts[0] if parts else 'GET'
+                method_name = parts[1] if len(parts) > 1 else endpoint_name
+
+                # Build current protection bitset
+                current_roles_list = ep.get('roles', []) if ep.get('protected') else []
+                current_bits = ''.join('1' if role in current_roles_list else '0' for role in proposed_roles)
+
+                compact_endpoints.append(f"{idx} {http_method} {method_name} {current_bits}")
+
+            prompt = f"""Classify endpoints using role bitset encoding.
+
+ROLES: {' '.join(f"{i}={role}" for i, role in enumerate(proposed_roles))}
+
+ENDPOINTS (compact format):
+{chr(10).join(compact_endpoints)}
+
+CLASSIFICATION CODES:
+- P = PUBLIC (permitAll in HTTP config - no authentication)
+- A = AUTHENTICATED (any logged-in user - isAuthenticated())
+- R = ROLE_SPECIFIC (specific role required - hasRole())
+
+OUTPUT FORMAT (one line per endpoint):
+idx classification suggested_bits brief_reason
+
+Example:
+0 R 1010 admin+manager operations
+1 P 0000 public welcome page
+2 A 1111 any authenticated user
+
+CRITICAL: Return ONLY the {len(chunk)} data lines below, NO preamble, NO explanations, NO markdown.
+Just {len(chunk)} lines in the exact format shown above.
+
+YOUR RESPONSE (data lines only, no preamble):"""
+
+            try:
+                response = self.ai.call_claude(prompt, max_tokens=2000, temperature=0.3)
+                if response:
+                    lines = response.strip().split('\n')
+
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+
+                        parts = line.split(None, 3)  # Split on whitespace, max 4 parts
+                        if len(parts) < 4:
+                            continue
+
+                        try:
+                            idx = int(parts[0])
+                        except ValueError:
+                            # Skip lines that don't start with a number (preamble text)
+                            continue
+
+                        classification = parts[1]
+                        suggested_bits = parts[2]
+                        rationale = parts[3]
+
+                        # Map classification codes
+                        if classification == 'P':
+                            suggested_auth = 'PUBLIC'
+                            suggested_role = None
+                        elif classification == 'A':
+                            suggested_auth = 'AUTHENTICATED'
+                            suggested_role = 'USER'
+                        elif classification == 'R':
+                            suggested_auth = 'ROLE_SPECIFIC'
+                            # Decode bitset to role names
+                            roles = [proposed_roles[i] for i, bit in enumerate(suggested_bits) if bit == '1' and i < len(proposed_roles)]
+                            suggested_role = roles if roles else proposed_roles[0]
+                        else:
+                            suggested_auth = 'AUTHENTICATED'
+                            suggested_role = 'USER'
+
+                        if idx < len(chunk):
+                            endpoint_data = chunk[idx]
+                            all_classifications.append({
+                                'endpoint': endpoint_data.get('endpoint', ''),
+                                'current_auth': ', '.join(endpoint_data.get('roles', [])) if endpoint_data.get('protected') else None,
+                                'suggested_auth': suggested_auth,
+                                'suggested_role': suggested_role,
+                                'rationale': rationale
+                            })
+
+                if self.debug:
+                    print(f"[{self.get_agent_id().upper()}]   ✓ Chunk {chunk_start//chunk_size + 1} classified {len([c for c in all_classifications if c['endpoint'] in [ep['endpoint'] for ep in chunk]])} endpoints")
+
+            except Exception as e:
+                if self.debug:
+                    print(f"[{self.get_agent_id().upper()}]   ✗ Chunk {chunk_start//chunk_size + 1} failed: {e}")
+
+                # Fallback for this chunk: mark as needing review
+                for ep in chunk:
+                    all_classifications.append({
+                        'endpoint': ep.get('endpoint', ''),
+                        'current_auth': ', '.join(ep.get('roles', [])) if ep.get('protected') else None,
                         'suggested_auth': 'AUTHENTICATED',
                         'suggested_role': 'USER',
-                        'rationale': 'Owner creation form should be accessible to any authenticated user'
-                    },
-                    ...
-                ]
+                        'rationale': 'Needs manual review (AI classification failed)'
+                    })
+
+        return all_classifications
+
+    def _ai_analyze_access_control_matrix(self, defense_matrix: Dict, roles: Dict) -> Dict:
+        """
+        Two-phase AI analysis:
+        1. Sample 30 random endpoints → discover domain-specific roles
+        2. Classify ALL endpoints in chunks using discovered roles
+
+        Returns:
+            {
+                'role_structure': {...},
+                'endpoint_classifications': [...],
+                'total_endpoints': int,
+                ...
             }
         """
         if not self.ai:
@@ -145,7 +330,7 @@ class EndpointAuthorizationAgent:
         matrix = defense_matrix.get('matrix', [])
         row_protected = defense_matrix.get('row_protected', [])
 
-        # Build current state summary for AI
+        # Build current state summary
         current_state = []
         for i, endpoint_name in enumerate(rows):
             is_protected = row_protected[i] if i < len(row_protected) else False
@@ -162,145 +347,69 @@ class EndpointAuthorizationAgent:
                 'roles': current_roles if current_roles else None
             })
 
-        prompt = f"""Analyze this Spring application's access control matrix and propose authorization for ALL endpoints.
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Two-phase AI analysis:")
+            print(f"[{self.get_agent_id().upper()}]   Phase 1: Role discovery from 30 random samples")
+            print(f"[{self.get_agent_id().upper()}]   Phase 2: Chunked endpoint classification")
 
-CURRENT ACCESS CONTROL MATRIX:
-{json.dumps(current_state, indent=2)}
+        # ========================================================================
+        # PHASE 1: Role Discovery from 30 Random Samples
+        # ========================================================================
 
-CURRENT ROLES: {', '.join(roles.get('used', []))}
+        import random
 
-YOUR TASK:
-1. Infer the application domain from endpoint names (OwnerController, PetController, VetController, etc.)
-2. Propose domain-specific roles that reflect real business functions:
-   - For veterinary clinic: VET, OWNER, RECEPTIONIST, ADMIN
-   - For e-commerce: CUSTOMER, VENDOR, WAREHOUSE, ADMIN
-   - For banking: CUSTOMER, TELLER, LOAN_OFFICER, MANAGER
-   - Generic ADMIN/USER should only be used if no clear domain emerges
-3. For EVERY endpoint, prefer ROLE_SPECIFIC over AUTHENTICATED:
-   - PUBLIC: Only for truly public pages (welcome, login, health checks, marketing content)
-   - AUTHENTICATED: Use sparingly - only when ANY logged-in user regardless of role should access
-   - ROLE_SPECIFIC: Default choice - assign specific role(s) based on business logic
+        # Sample 30 endpoints (mix of protected and unprotected)
+        protected_endpoints = [e for e in current_state if e.get('protected')]
+        unprotected_endpoints = [e for e in current_state if not e.get('protected')]
 
-4. Think about WHO in the organization would perform each operation:
-   - Pet medical records → VET role (not generic AUTHENTICATED)
-   - Owner account creation → RECEPTIONIST or ADMIN (not any authenticated user)
-   - Financial transactions → specific banking roles (not generic USER)
-   - Inventory management → WAREHOUSE role (not generic AUTHENTICATED)
+        sample = []
+        # Take up to 15 protected
+        sample.extend(protected_endpoints[:15])
+        # Take up to 15 unprotected (randomly if more than 15)
+        if len(unprotected_endpoints) > 15:
+            sample.extend(random.sample(unprotected_endpoints, 15))
+        else:
+            sample.extend(unprotected_endpoints)
 
-Return JSON ONLY:
-{{
-  "role_structure": {{
-    "current_roles": ["ADMIN", "USER"],
-    "proposed_roles": ["ADMIN", "USER"],
-    "role_mapping": {{"ADMIN": "ADMIN", "USER": "USER"}},
-    "rationale": "Why this role structure is appropriate"
-  }},
-  "endpoint_classifications": [
-    {{
-      "endpoint": "GET WelcomeController.welcome",
-      "current_auth": null,
-      "suggested_auth": "PUBLIC",
-      "suggested_role": null,
-      "rationale": "Public welcome page - no authentication required"
-    }},
-    {{
-      "endpoint": "GET OwnerController.findOwners",
-      "current_auth": null,
-      "suggested_auth": "ROLE_SPECIFIC",
-      "suggested_role": ["RECEPTIONIST", "VET"],
-      "rationale": "Owner search should be limited to staff (receptionists and vets) who need to look up client records"
-    }},
-    {{
-      "endpoint": "POST OwnerController.createOwner",
-      "current_auth": null,
-      "suggested_auth": "ROLE_SPECIFIC",
-      "suggested_role": "RECEPTIONIST",
-      "rationale": "Owner registration is a front-desk function - receptionists create new client accounts"
-    }},
-    {{
-      "endpoint": "POST PetController.createPet",
-      "current_auth": "USER",
-      "suggested_auth": "ROLE_SPECIFIC",
-      "suggested_role": "OWNER",
-      "rationale": "Pet owners should be able to register their own pets - map existing USER role to OWNER"
-    }},
-    {{
-      "endpoint": "POST VisitController.createVisit",
-      "current_auth": null,
-      "suggested_auth": "ROLE_SPECIFIC",
-      "suggested_role": "VET",
-      "rationale": "Only veterinary staff should create visit records - medical documentation"
-    }},
-    {{
-      "endpoint": "POST AdminController.deleteOwner",
-      "current_auth": "ADMIN",
-      "suggested_auth": "ROLE_SPECIFIC",
-      "suggested_role": "ADMIN",
-      "rationale": "Keep existing ADMIN-only protection for deletion operations"
-    }}
-  ]
-}}
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}]   Sampled {len(sample)} endpoints ({sum(1 for e in sample if e.get('protected'))} protected, {sum(1 for e in sample if not e.get('protected'))} unprotected)")
 
-CRITICAL RULES:
-1. Analyze ALL {len(current_state)} endpoints
-2. BE AGGRESSIVE about proposing domain-specific roles:
-   - Identify the business domain (veterinary, e-commerce, banking, etc.)
-   - Propose roles that match real job functions in that domain
-   - Avoid generic USER/ADMIN unless no clear domain emerges
-   - Examples: VET, OWNER, RECEPTIONIST for vet clinic; CUSTOMER, VENDOR for e-commerce
-3. PREFER ROLE_SPECIFIC over AUTHENTICATED for most endpoints:
-   - Use PUBLIC only for: welcome pages, login, health checks, public marketing content
-   - Use AUTHENTICATED only when legitimately ANY user regardless of role should access (rare!)
-   - Use ROLE_SPECIFIC as the default - think about WHO performs each operation
-4. RESPECT EXISTING PROTECTIONS - Default to keeping what exists:
-   - If endpoint has ADMIN protection → suggested_auth: "ROLE_SPECIFIC", suggested_role: "ADMIN" (or refined equivalent)
-   - If endpoint has USER protection → suggested_auth: "ROLE_SPECIFIC", suggested_role: map to appropriate domain role
-   - Do NOT downgrade ROLE_SPECIFIC to AUTHENTICATED without strong justification
-   - Focus on ADDING protection to {sum(1 for e in current_state if not e.get('protected'))} UNPROTECTED endpoints
-5. When proposing new roles, map existing roles appropriately:
-   - USER in vet clinic → probably OWNER (pet owners) or VET (staff), determine from context
-   - USER in e-commerce → probably CUSTOMER
-   - USER in banking → probably CUSTOMER
-6. Valid changes to existing protections:
-   - Refining generic roles to domain-specific (USER → OWNER, VET, etc.)
-   - Consolidating redundant roles
-   - Better privilege separation
-   - Strengthening weak protections
-"""
+        # Discover domain-specific roles from sample
+        role_structure = self._ai_discover_roles(sample, roles.get('used', []))
 
-        try:
-            response = self.ai.call_claude(prompt, max_tokens=3000, temperature=0.3)
-            if response:
-                import re
-                match = re.search(r'\{.*\}', response, re.DOTALL)
-                if match:
-                    result = json.loads(match.group(0))
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}]   Discovered roles: {', '.join(role_structure['proposed_roles'])}")
+            print(f"[{self.get_agent_id().upper()}]   Rationale: {role_structure['rationale']}")
 
-                    # Validate structure
-                    if 'role_structure' in result and 'endpoint_classifications' in result:
-                        # Add computed summaries
-                        classifications = result['endpoint_classifications']
-                        result['total_endpoints'] = len(classifications)
-                        result['currently_protected'] = sum(1 for e in classifications if e.get('current_auth'))
-                        result['suggested_public'] = sum(1 for e in classifications if e.get('suggested_auth') == 'PUBLIC')
-                        result['suggested_authenticated'] = sum(1 for e in classifications if e.get('suggested_auth') == 'AUTHENTICATED')
-                        result['suggested_role_specific'] = sum(1 for e in classifications if e.get('suggested_auth') == 'ROLE_SPECIFIC')
+        # ========================================================================
+        # PHASE 2: Chunked Endpoint Classification
+        # ========================================================================
 
-                        if self.debug:
-                            print(f"[{self.get_agent_id().upper()}] AI matrix analysis complete:")
-                            print(f"  Proposed roles: {', '.join(result['role_structure']['proposed_roles'])}")
-                            print(f"  Endpoints analyzed: {result['total_endpoints']}")
-                            print(f"  Suggested PUBLIC: {result['suggested_public']}")
-                            print(f"  Suggested AUTHENTICATED: {result['suggested_authenticated']}")
-                            print(f"  Suggested ROLE_SPECIFIC: {result['suggested_role_specific']}")
+        endpoint_classifications = self._ai_classify_endpoints_chunked(
+            current_state,
+            role_structure,
+            chunk_size=100
+        )
 
-                        return result
-        except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] AI matrix analysis failed: {e}")
+        # Build result
+        result = {
+            'role_structure': role_structure,
+            'endpoint_classifications': endpoint_classifications,
+            'total_endpoints': len(endpoint_classifications),
+            'currently_protected': sum(1 for e in endpoint_classifications if e.get('current_auth')),
+            'suggested_public': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'PUBLIC'),
+            'suggested_authenticated': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'AUTHENTICATED'),
+            'suggested_role_specific': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'ROLE_SPECIFIC')
+        }
 
-        # Fallback
-        return self._algorithmic_matrix_analysis(defense_matrix, roles)
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] AI matrix analysis complete:")
+            print(f"  Endpoints analyzed: {result['total_endpoints']}")
+            print(f"  Suggested PUBLIC: {result['suggested_public']}")
+            print(f"  Suggested AUTHENTICATED: {result['suggested_authenticated']}")
+            print(f"  Suggested ROLE_SPECIFIC: {result['suggested_role_specific']}")
+
+        return result
 
     def _algorithmic_matrix_analysis(self, defense_matrix: Dict, roles: Dict) -> Dict:
         """
