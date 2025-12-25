@@ -1,5 +1,51 @@
 {
   "$defs": {
+    "AdditionalProtection": {
+      "description": "A protection mechanism found during verification",
+      "properties": {
+        "method": {
+          "title": "Method",
+          "type": "string"
+        },
+        "class": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class"
+        },
+        "mechanism": {
+          "title": "Mechanism",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "protection_type": {
+          "title": "Protection Type",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "method",
+        "mechanism",
+        "file",
+        "protection_type",
+        "note"
+      ],
+      "title": "AdditionalProtection",
+      "type": "object"
+    },
     "AgentRecommendation": {
       "description": "Single agent's recommendation",
       "properties": {
@@ -452,6 +498,12 @@
               "type": "string"
             },
             {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
               "type": "null"
             }
           ],
@@ -550,6 +602,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/ProposedAccessMatrix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "verification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerificationReport"
             },
             {
               "type": "null"
@@ -658,6 +721,40 @@
         "behaviors"
       ],
       "title": "Mechanism",
+      "type": "object"
+    },
+    "MechanismTest": {
+      "description": "Record of a protection mechanism that was tested during verification",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "checked": {
+          "title": "Checked",
+          "type": "boolean"
+        },
+        "found": {
+          "title": "Found",
+          "type": "integer"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "description",
+        "checked",
+        "found",
+        "query"
+      ],
+      "title": "MechanismTest",
       "type": "object"
     },
     "Metadata": {
@@ -946,6 +1043,76 @@
         "version"
       ],
       "title": "Tool",
+      "type": "object"
+    },
+    "UpdatedCoverage": {
+      "description": "Updated coverage metrics after verification",
+      "properties": {
+        "exposures": {
+          "title": "Exposures",
+          "type": "integer"
+        },
+        "protected": {
+          "title": "Protected",
+          "type": "integer"
+        },
+        "unprotected": {
+          "title": "Unprotected",
+          "type": "integer"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        }
+      },
+      "required": [
+        "exposures",
+        "protected",
+        "unprotected",
+        "coverage"
+      ],
+      "title": "UpdatedCoverage",
+      "type": "object"
+    },
+    "VerificationReport": {
+      "description": "AI-driven verification of unprotected routes",
+      "properties": {
+        "mechanisms_tested": {
+          "items": {
+            "$ref": "#/$defs/MechanismTest"
+          },
+          "title": "Mechanisms Tested",
+          "type": "array"
+        },
+        "additional_protections_found": {
+          "items": {
+            "$ref": "#/$defs/AdditionalProtection"
+          },
+          "title": "Additional Protections Found",
+          "type": "array"
+        },
+        "verified_unprotected_count": {
+          "title": "Verified Unprotected Count",
+          "type": "integer"
+        },
+        "updated_coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UpdatedCoverage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "mechanisms_tested",
+        "additional_protections_found",
+        "verified_unprotected_count"
+      ],
+      "title": "VerificationReport",
       "type": "object"
     }
   },

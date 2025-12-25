@@ -100,7 +100,7 @@ class EndpointClassification(BaseModel):
     endpoint: str
     current_auth: Optional[str]
     suggested_auth: Literal["PUBLIC", "AUTHENTICATED", "ROLE_SPECIFIC"]
-    suggested_role: Optional[str]
+    suggested_role: Optional[Union[str, List[str]]]  # Single role or multiple roles
     rationale: str
 
 
@@ -152,6 +152,43 @@ class CoverageMetrics(BaseModel):
     explanation: str
 
 
+class MechanismTest(BaseModel):
+    """Record of a protection mechanism that was tested during verification"""
+    type: str
+    description: str
+    checked: bool
+    found: int
+    query: str
+
+
+class AdditionalProtection(BaseModel):
+    """A protection mechanism found during verification"""
+    method: str
+    class_: Optional[str] = Field(None, alias="class")
+    mechanism: str
+    file: str
+    protection_type: str
+    note: str
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class UpdatedCoverage(BaseModel):
+    """Updated coverage metrics after verification"""
+    exposures: int
+    protected: int
+    unprotected: int
+    coverage: float
+
+
+class VerificationReport(BaseModel):
+    """AI-driven verification of unprotected routes"""
+    mechanisms_tested: List[MechanismTest]
+    additional_protections_found: List[AdditionalProtection]
+    verified_unprotected_count: int
+    updated_coverage: Optional[UpdatedCoverage] = None
+
+
 class Evidence(BaseModel):
     """Evidence supporting the recommendation"""
     mechanisms: Optional[List[Mechanism]] = None
@@ -161,6 +198,7 @@ class Evidence(BaseModel):
     evaluation: Optional[ArchitectureEvaluation] = None  # DEPRECATED: Replaced by AI-based architecture evaluation in recommendation
     coverage_metrics: Optional[CoverageMetrics] = None
     proposed_access_matrix: Optional[ProposedAccessMatrix] = None
+    verification: Optional[VerificationReport] = None
 
     # Allow extra fields for agent-specific evidence
     model_config = ConfigDict(extra="allow")

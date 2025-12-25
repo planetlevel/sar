@@ -71,6 +71,25 @@ class EndpointsAgent:
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Analyzing endpoints...")
 
+        # Discover endpoints using FrameworkTool
+        from sar.framework_tool import FrameworkTool
+        tool = FrameworkTool(project_dir=self.project_dir, cpg_tool=self.cpg_tool)
+        frameworks = tool.detect_frameworks()
+
+        # Query for all endpoint methods
+        from sar.agents.authorization_utils import AuthorizationUtils
+        utils = AuthorizationUtils(
+            cpg_tool=self.cpg_tool,
+            project_dir=self.project_dir,
+            frameworks_dir=None,  # Not needed for endpoint discovery
+            ai_client=self.ai,
+            debug=self.debug
+        )
+        self.endpoints = utils.query_all_endpoint_methods(frameworks)
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Found {len(self.endpoints)} endpoints")
+
         # Count endpoints
         total = len(self.endpoints)
 

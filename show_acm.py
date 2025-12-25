@@ -7,15 +7,26 @@ report_file = sys.argv[1] if len(sys.argv) > 1 else 'output/reports/defense_repo
 with open(report_file) as f:
     data = json.load(f)
 
+# Find endpoint_authorization agent
+auth_agent = None
+for rec in data['recommendations']:
+    if rec.get('agent_id') == 'endpoint_authorization':
+        auth_agent = rec
+        break
+
+if not auth_agent:
+    print(f"ERROR: Report {report_file} does not contain endpoint_authorization agent")
+    sys.exit(1)
+
 # Check if proposed_access_matrix exists in the report
-if 'proposed_access_matrix' not in data['recommendations'][1]['evidence']:
+if 'proposed_access_matrix' not in auth_agent['evidence']:
     print(f"ERROR: Report {report_file} does not contain proposed_access_matrix")
     print("This report was generated with an older version of the analyzer.")
     print("Run the analyzer again to generate a new report with the access control matrix.")
     sys.exit(1)
 
-matrix = data['recommendations'][1]['evidence']['proposed_access_matrix']
-current_matrix = data['recommendations'][1]['evidence']['defense_usage_matrix']
+matrix = auth_agent['evidence']['proposed_access_matrix']
+current_matrix = auth_agent['evidence']['defense_usage_matrix']
 
 # ANSI color codes
 RESET = '\033[0m'
@@ -27,10 +38,11 @@ CYAN = '\033[96m'
 BLUE = '\033[94m'
 
 # =============================================================================
-# CURRENT ACCESS CONTROL MATRIX
+# CURRENT DEFENSE DEPLOYMENT MATRIX
 # =============================================================================
 print(f'\n{BOLD}{YELLOW}╔══════════════════════════════════════════════════════════════════════════════╗{RESET}')
-print(f'{BOLD}{YELLOW}║                     CURRENT ACCESS CONTROL MATRIX                            ║{RESET}')
+print(f'{BOLD}{YELLOW}║                  CURRENT DEFENSE DEPLOYMENT MATRIX                           ║{RESET}')
+print(f'{BOLD}{YELLOW}║                (Shows which role checks are currently applied)              ║{RESET}')
 print(f'{BOLD}{YELLOW}╚══════════════════════════════════════════════════════════════════════════════╝{RESET}\n')
 
 # Current matrix data
@@ -81,10 +93,11 @@ print(f"  Protected: {protected_count}/{len(current_rows)} ({protected_count/len
 print(f"  Unprotected: {len(current_rows) - protected_count}\n")
 
 # =============================================================================
-# PROPOSED ACCESS CONTROL MATRIX
+# PROPOSED DEFENSE DEPLOYMENT MATRIX
 # =============================================================================
 print(f'\n{BOLD}{CYAN}╔══════════════════════════════════════════════════════════════════════════════╗{RESET}')
-print(f'{BOLD}{CYAN}║                    PROPOSED ACCESS CONTROL MATRIX                            ║{RESET}')
+print(f'{BOLD}{CYAN}║                 PROPOSED DEFENSE DEPLOYMENT MATRIX                           ║{RESET}')
+print(f'{BOLD}{CYAN}║               (Shows which role checks should be applied)                    ║{RESET}')
 print(f'{BOLD}{CYAN}╚══════════════════════════════════════════════════════════════════════════════╝{RESET}\n')
 
 # Role Structure
@@ -108,25 +121,48 @@ classifications = matrix['endpoint_classifications']
 # Add special columns for PUBLIC and AUTHENTICATED
 all_columns = ['PUBLIC', 'AUTH'] + proposed_roles
 
+# Build map of current protection by endpoint
+current_protection = {}
+for i, endpoint_name in enumerate(current_rows):
+    is_protected = current_protected[i] if i < len(current_protected) else False
+    if is_protected and i < len(current_data):
+        # Get which roles are currently assigned
+        current_roles = []
+        for j, has_role in enumerate(current_data[i]):
+            if has_role and j < len(current_columns):
+                current_roles.append(current_columns[j])
+        current_protection[endpoint_name] = current_roles
+    else:
+        current_protection[endpoint_name] = None
+
 # Build matrix data
 matrix_data = []
 for ep in classifications:
-    row = {'endpoint': ep['endpoint'], 'rationale': ep['rationale']}
+    endpoint_name = ep['endpoint']
+    row = {'endpoint': endpoint_name, 'rationale': ep['rationale']}
+
+    # Get current protection status
+    current_roles = current_protection.get(endpoint_name)
+    is_currently_protected = current_roles is not None
 
     # Check what auth is suggested
     if ep['suggested_auth'] == 'PUBLIC':
-        row['PUBLIC'] = '✓'
+        # PUBLIC endpoints should have no protection
+        row['PUBLIC'] = ('✓', 'green') if not is_currently_protected else ('✓', 'red')
         row['AUTH'] = ''
         for role in proposed_roles:
             row[role] = ''
     elif ep['suggested_auth'] == 'AUTHENTICATED':
         row['PUBLIC'] = ''
-        row['AUTH'] = '✓'
+        # Check if currently has AUTH (any protection)
+        has_auth = is_currently_protected
+        row['AUTH'] = ('✓', 'green') if has_auth else ('✓', 'red')
         for role in proposed_roles:
             row[role] = ''
     elif ep['suggested_auth'] == 'ROLE_SPECIFIC':
         row['PUBLIC'] = ''
-        row['AUTH'] = '✓'  # Role checks require authentication
+        row['AUTH'] = ('✓', 'green') if is_currently_protected else ('✓', 'red')
+
         suggested_role = ep['suggested_role']
         # Handle both single role (string) and multiple roles (list)
         if isinstance(suggested_role, list):
@@ -135,7 +171,12 @@ for ep in classifications:
             suggested_roles_list = [suggested_role] if suggested_role else []
 
         for role in proposed_roles:
-            row[role] = '✓' if role in suggested_roles_list else ''
+            if role in suggested_roles_list:
+                # Check if this role is currently assigned
+                has_role = current_roles and role in current_roles
+                row[role] = ('✓', 'green') if has_role else ('✓', 'red')
+            else:
+                row[role] = ''
 
     matrix_data.append(row)
 
@@ -167,7 +208,13 @@ for i, row in enumerate(matrix_data):
     line = f"{ep_name:<{endpoint_width}}"
     for col in all_columns:
         val = row.get(col, '')
-        if val == '✓':
+        if isinstance(val, tuple):
+            # Colored checkmark: (symbol, color)
+            symbol, color = val
+            color_code = GREEN if color == 'green' else RED
+            line += f"{color_code}{symbol:^{col_width}}{RESET}"
+        elif val == '✓':
+            # Legacy: treat as green
             line += f"{GREEN}{val:^{col_width}}{RESET}"
         else:
             line += f"{val:^{col_width}}"
@@ -176,7 +223,13 @@ for i, row in enumerate(matrix_data):
 
 # Legend
 print(f'\n{BOLD}Legend:{RESET}')
-print(f"  {GREEN}✓{RESET} = Access granted")
-print(f"  PUBLIC = No authentication required (use permitAll() in HTTP config)")
-print(f"  AUTH = Any authenticated user (use isAuthenticated())")
-print(f"  Role columns = Specific role required (use hasRole())\n")
+print(f"  {GREEN}✓{RESET} = Defense ALREADY APPLIED (present in current implementation)")
+print(f"  {RED}✓{RESET} = Defense NEEDS TO BE ADDED (missing, proposed by analysis)")
+print(f"  PUBLIC = No authentication required - configure at framework/HTTP layer (NOT a role)")
+print(f"  AUTH = Any authenticated user - requires authentication but no specific role")
+print(f"  Role columns = Check for specific role - requires authentication + role check")
+print(f"\n{BOLD}Implementation Notes:{RESET}")
+print(f"  • Focus on {RED}red checkmarks{RESET} - these are the gaps to close")
+print(f"  • PUBLIC endpoints: Configure in framework's allowlist, do NOT add role checks")
+print(f"  • Role hierarchy (e.g., ADMIN accessing everything) configured separately in framework")
+print(f"  • This matrix shows WHICH defenses to DEPLOY, not who ultimately has access\n")

@@ -46,6 +46,7 @@ class PatternGroup(BaseModel):
         "annotation_name",
         "annotation_name_regex",
         "import",
+        "method_parameter_type",
         "regex",
         "xml_element",
         "xpath",
@@ -66,9 +67,24 @@ class PatternGroup(BaseModel):
         description="Method signature(s) for method_signature search_type"
     )
 
+    parameter_type: Optional[str] = Field(
+        None,
+        description="Parameter type for method_parameter_type search_type"
+    )
+
     description: Optional[str] = Field(
         None,
         description="Human-readable description of what this pattern detects"
+    )
+
+    ai_interpret: Optional[bool] = Field(
+        None,
+        description="Enable AI interpretation of matched code/config to extract semantic meaning"
+    )
+
+    ai_guidance: Optional[str] = Field(
+        None,
+        description="Guidance for AI about what to focus on when interpreting this pattern (only used if ai_interpret=true)"
     )
 
     # Allow extra fields for detection section flexibility (like "levels" for package_hierarchy)

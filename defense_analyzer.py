@@ -57,8 +57,8 @@ class DefenseAnalyzer:
         from sar.agents import EndpointsAgent, LibrariesAgent, EndpointAuthorizationAgent
 
         agent_classes = [
-            EndpointsAgent,
-            LibrariesAgent,
+            # EndpointsAgent,  # Disabled - not ready
+            # LibrariesAgent,  # Disabled - not ready
             EndpointAuthorizationAgent,
         ]
 

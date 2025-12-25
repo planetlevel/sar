@@ -787,6 +787,7 @@
                 "annotation_name",
                 "annotation_name_regex",
                 "import",
+                "method_parameter_type",
                 "regex",
                 "xml_element",
                 "xpath",
@@ -847,6 +848,19 @@
           "description": "Method signature(s) for method_signature search_type",
           "title": "Signature"
         },
+        "parameter_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parameter type for method_parameter_type search_type",
+          "title": "Parameter Type"
+        },
         "description": {
           "anyOf": [
             {
@@ -859,6 +873,32 @@
           "default": null,
           "description": "Human-readable description of what this pattern detects",
           "title": "Description"
+        },
+        "ai_interpret": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Enable AI interpretation of matched code/config to extract semantic meaning",
+          "title": "Ai Interpret"
+        },
+        "ai_guidance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Guidance for AI about what to focus on when interpreting this pattern (only used if ai_interpret=true)",
+          "title": "Ai Guidance"
         }
       },
       "title": "PatternGroup",

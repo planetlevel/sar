@@ -232,6 +232,14 @@
         },
         {
           "target": "joern",
+          "search_type": "method_parameter_type",
+          "parameter_type": "org.springframework.security.config.annotation.web.builders.HttpSecurity",
+          "description": "HTTP security configuration methods (configure(HttpSecurity http) in WebSecurityConfigurerAdapter or SecurityFilterChain beans)",
+          "ai_interpret": true,
+          "ai_guidance": "Focus on .anyRequest().permitAll() which makes ALL routes public at HTTP layer, and .requestMatchers() or .antMatchers() patterns that configure specific route permissions. Explain the default security stance (permit-all vs authenticated-by-default). Check for .authorizeRequests() or .authorizeHttpRequests() configuration."
+        },
+        {
+          "target": "joern",
           "search_type": "method_signature",
           "signature": "org.springframework.security.access.intercept.aopalliance.MethodSecurityInterceptor.invoke:java.lang.Object(org.aopalliance.intercept.MethodInvocation)",
           "description": "Intercepts method invocations to enforce security"
@@ -355,6 +363,52 @@
           "search_type": "method_signature",
           "signature": "org.springframework.security.core.authority.FactorGrantedAuthority.withFactor:org.springframework.security.core.authority.FactorGrantedAuthority$Builder(java.lang.String)",
           "description": "Creates multi-factor authorization authority"
+        }
+      ],
+      "filters_interceptors": [
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": [
+            ".*\\.doFilterInternal:void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,jakarta.servlet.FilterChain)",
+            ".*\\.doFilterInternal:void(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,javax.servlet.FilterChain)"
+          ],
+          "description": "Custom filter implementations (OncePerRequestFilter subclasses)",
+          "ai_interpret": true,
+          "ai_guidance": "Identify what security checks or modifications this filter performs. Look for authentication, authorization, request validation, header manipulation, or security context setup. Explain whether this filter enforces security or bypasses it."
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": [
+            ".*\\.doFilter:void(jakarta.servlet.ServletRequest,jakarta.servlet.ServletResponse,jakarta.servlet.FilterChain)",
+            ".*\\.doFilter:void(javax.servlet.ServletRequest,javax.servlet.ServletResponse,javax.servlet.FilterChain)"
+          ],
+          "description": "Generic filter implementations (Filter interface)",
+          "ai_interpret": true,
+          "ai_guidance": "Identify what security checks or modifications this filter performs. Look for authentication, authorization, request validation, header manipulation, or security context setup. Explain whether this filter enforces security or bypasses it."
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": [
+            ".*\\.preHandle:boolean(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.Object)",
+            ".*\\.preHandle:boolean(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.Object)"
+          ],
+          "description": "Spring MVC interceptor preHandle methods (HandlerInterceptor)",
+          "ai_interpret": true,
+          "ai_guidance": "Identify what security checks this interceptor performs before controller execution. Look for authentication checks, authorization logic, security validation, or request blocking. Explain what happens when it returns false (blocking) vs true (allowing)."
+        },
+        {
+          "target": "joern",
+          "search_type": "method_signature",
+          "signature": [
+            ".*\\.postHandle:void(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,java.lang.Object,org.springframework.web.servlet.ModelAndView)",
+            ".*\\.postHandle:void(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse,java.lang.Object,org.springframework.web.servlet.ModelAndView)"
+          ],
+          "description": "Spring MVC interceptor postHandle methods",
+          "ai_interpret": true,
+          "ai_guidance": "Identify what security-related modifications this interceptor performs after controller execution. Look for response header manipulation, security logging, or model data sanitization."
         }
       ],
       "crypto": [

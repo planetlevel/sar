@@ -48,14 +48,27 @@ def build_defense_usage_matrix(exposures: List[Dict],
         Matrix[i][j] = True if endpoint i validates input type j
     """
     # Extract all unique defense options from mechanisms
-    # For authorization: roles; for validation: validation types; etc.
+    # For authorization: roles, mechanisms, expressions; for validation: validation types; etc.
     all_options = set()
     for mechanism in all_mechanisms:
         for behavior in mechanism.get('behaviors', []):
-            # Generic: extract 'roles', 'validation_types', 'encoding_types', etc.
+            # Extract explicit options (roles, validation types, etc.)
             all_options.update(behavior.get('roles', []))
             all_options.update(behavior.get('validation_types', []))
             all_options.update(behavior.get('encoding_types', []))
+
+            # FALLBACK: If no explicit options, use mechanism name itself
+            # This captures @PreAuthorize (SpEL), @Superadmin, @OnlySaaS, etc.
+            has_explicit_options = (behavior.get('roles') or
+                                   behavior.get('validation_types') or
+                                   behavior.get('encoding_types'))
+            if not has_explicit_options:
+                mech_name = behavior.get('mechanism', 'UNKNOWN')
+                # Abbreviate long mechanism names for display
+                if len(mech_name) > 20:
+                    # Take first + last parts: "SuperAdminCalifragilisticExpialidocious" -> "SuperAdmin...cious"
+                    mech_name = mech_name[:12] + '...' + mech_name[-5:]
+                all_options.add(mech_name)
 
     columns = sorted(list(all_options))  # Defense options
 
@@ -102,6 +115,17 @@ def build_defense_usage_matrix(exposures: List[Dict],
                     protecting_options.update(behavior.get('roles', []))
                     protecting_options.update(behavior.get('validation_types', []))
                     protecting_options.update(behavior.get('encoding_types', []))
+
+                    # FALLBACK: If no explicit options, add mechanism name
+                    has_explicit_options = (behavior.get('roles') or
+                                           behavior.get('validation_types') or
+                                           behavior.get('encoding_types'))
+                    if not has_explicit_options:
+                        mech_name = behavior.get('mechanism', 'UNKNOWN')
+                        # Apply same abbreviation as column building
+                        if len(mech_name) > 20:
+                            mech_name = mech_name[:12] + '...' + mech_name[-5:]
+                        protecting_options.add(mech_name)
 
         # Create row: True if defense option protects this exposure
         row = [option in protecting_options for option in columns]
