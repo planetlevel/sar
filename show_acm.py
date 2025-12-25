@@ -110,7 +110,6 @@ print(f"  Rationale: {matrix['role_structure']['rationale']}\n")
 print(f'{BOLD}Summary:{RESET}')
 print(f"  Total endpoints:       {matrix['total_endpoints']}")
 print(f"  Currently protected:   {matrix['currently_protected']} ({matrix['currently_protected']/matrix['total_endpoints']*100:.1f}%)")
-print(f"  Suggested PUBLIC:      {matrix['suggested_public']}")
 print(f"  Suggested AUTHENTICATED: {matrix['suggested_authenticated']}")
 print(f"  Suggested ROLE_SPECIFIC: {matrix['suggested_role_specific']}\n")
 

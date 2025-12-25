@@ -515,7 +515,21 @@ YOUR RESPONSE (data lines only):"""
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Detecting authorization architecture pattern...")
 
-        self.auth_pattern = self._detect_authorization_pattern()
+        try:
+            self.auth_pattern = self._detect_authorization_pattern()
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] WARNING: Pattern detection failed: {e}")
+                print(f"[{self.get_agent_id().upper()}] Using fallback pattern (unknown)")
+            # Graceful fallback when AI pattern detection fails
+            self.auth_pattern = {
+                'pattern': 'unknown',
+                'confidence': 0.0,
+                'primary_layer': 'unknown',
+                'evidence_summary': f'Pattern detection failed: {str(e)[:100]}',
+                'coverage_approach': 'recommend framework-specific or basic entry-point authorization',
+                'architecture_description': 'Authorization architecture could not be determined automatically'
+            }
 
         # Discover routes and trace execution paths for Phase 1.5
         if self.debug:
@@ -771,14 +785,21 @@ Analyze this evidence like a detective solving a puzzle. Determine:
 3. WHAT does this mean for coverage?
    - How should we measure protection given this architecture?
 
+CRITICAL - BE HONEST ABOUT WHAT YOU DON'T KNOW:
+- If you see SecurityConfig/HttpSecurity configuration but can't determine if it has actual URL-based rules (vs just .permitAll()), SAY SO
+- Don't claim "URL-based rules" or "HTTP-layer security" unless you see evidence of actual restrictions
+- If you can't find HTTP-layer configuration, say: "No HTTP-layer rules detected - relying on default behavior or mechanisms we didn't detect"
+- Only make specific claims if you have specific evidence
+- Cite specific files/classes when making architectural claims (e.g., "SecurityConfig.configure() appears to...")
+
 Respond in JSON ONLY (no markdown, no explanations outside JSON):
 {{
   "pattern": "endpoint_layer|service_layer|repository_layer|filter_layer|config_layer|aspect_oriented|mixed",
   "confidence": 0.0-1.0,
   "primary_layer": "where most auth is concentrated",
-  "evidence_summary": "What clues led to this conclusion (1-2 sentences)",
+  "evidence_summary": "What clues led to this conclusion (1-2 sentences). BE HONEST about what you couldn't determine.",
   "coverage_approach": "how to measure protection (1 sentence)",
-  "architecture_description": "1-2 sentence explanation of the authorization architecture"
+  "architecture_description": "1-2 sentence explanation of the authorization architecture. BE HONEST if HTTP-layer config is unclear or missing."
 }}
 """
 
@@ -1846,6 +1867,77 @@ Return these EXACT values in JSON:
         # If AI didn't return metrics, fail
         raise ValueError("AI failed to return coverage metrics")
 
+    def _discover_authorization_tests(self) -> Dict:
+        """
+        Discover existing authorization tests in the codebase
+
+        Returns dict with:
+        - has_tests: bool - whether any authorization tests exist
+        - test_count: int - number of test files found
+        - test_patterns: list - what types of tests were found
+        - recommendation: str - what to recommend based on findings
+        """
+        import glob
+
+        # Common test patterns across languages/frameworks
+        test_patterns = {
+            'security_mock_user': ['@WithMockUser', '@WithUserDetails', 'SecurityMockMvcConfigurers.springSecurity()'],
+            'role_tests': ['hasRole', 'hasAuthority', 'authenticated()'],
+            'forbidden_tests': ['status().isForbidden()', 'status().isUnauthorized()', '403', '401'],
+            'security_context': ['SecurityContext', 'Authentication', 'SecurityContextHolder']
+        }
+
+        # Find test files
+        test_files = []
+        for pattern in ['**/test/**/*.java', '**/tests/**/*.py', '**/test/**/*.js', '**/test/**/*.ts']:
+            test_files.extend(glob.glob(f"{self.project_dir}/{pattern}", recursive=True))
+
+        if not test_files:
+            return {
+                'has_tests': False,
+                'test_count': 0,
+                'test_patterns': [],
+                'recommendation': 'no_tests_found'
+            }
+
+        # Search for authorization test patterns
+        found_patterns = set()
+        auth_test_files = []
+
+        for test_file in test_files:
+            try:
+                with open(test_file, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+
+                    # Check for authorization test patterns
+                    file_has_auth_tests = False
+                    for pattern_type, patterns in test_patterns.items():
+                        for pattern in patterns:
+                            if pattern in content:
+                                found_patterns.add(pattern_type)
+                                file_has_auth_tests = True
+
+                    if file_has_auth_tests:
+                        auth_test_files.append(test_file)
+            except:
+                continue
+
+        # Determine recommendation
+        if not auth_test_files:
+            recommendation = 'create_simple'
+        elif len(auth_test_files) < 3:
+            recommendation = 'expand_existing'
+        else:
+            recommendation = 'acknowledge_existing'
+
+        return {
+            'has_tests': bool(auth_test_files),
+            'test_count': len(auth_test_files),
+            'test_patterns': list(found_patterns),
+            'test_files': [f.replace(self.project_dir + '/', '') for f in auth_test_files[:5]],  # Sample
+            'recommendation': recommendation
+        }
+
     def _build_evidence(self) -> Dict:
         """Build comprehensive evidence for recommendation generation"""
         # Analyze roles using utility
@@ -1872,6 +1964,9 @@ Return these EXACT values in JSON:
         # Verify unprotected routes - check for additional protection mechanisms
         verification_report = self._verify_unprotected_routes()
 
+        # Discover existing authorization tests
+        test_discovery = self._discover_authorization_tests()
+
         evidence = {
             'mechanisms': self.all_mechanisms,
             'defense_usage_matrix': defense_matrix,  # Current state
@@ -1879,36 +1974,30 @@ Return these EXACT values in JSON:
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
             'coverage_metrics': coverage_metrics,  # AI-generated metrics
             'proposed_access_matrix': proposed_matrix,  # AI-generated classifications with ALL endpoints
-            'verification': verification_report  # Verification of unprotected routes
+            'verification': verification_report,  # Verification of unprotected routes
+            'test_discovery': test_discovery  # Existing authorization tests
         }
 
         return evidence
 
     def _verify_unprotected_routes(self) -> Dict:
         """
-        AI-driven verification of unprotected routes
+        Open-ended AI review of unprotected routes
 
-        Uses AI to:
-        1. Analyze what protection mechanisms we've already found
-        2. Propose additional mechanisms that might exist in this type of application
-        3. Generate Joern queries to search for those mechanisms
-        4. Execute queries and report findings
-
-        This is more flexible than hardcoded checks - AI adapts to the specific
-        application type, framework, and domain.
+        Instead of hardcoded verification queries, ask AI to review our findings
+        and provide assessment of whether we missed any protection mechanisms.
 
         Returns verification report with:
-        - mechanisms_tested: List of protection types checked
-        - additional_protections_found: New protections discovered during verification
-        - verified_unprotected_count: Count of routes confirmed unprotected
-        - updated_coverage: New coverage if additional protections found
+        - assessment: AI's review of the findings
+        - confidence: How confident AI is in the results
+        - concerns: Any potential gaps or areas needing manual review
+        - unprotected_count: Number of routes confirmed unprotected
         """
         if not self.ai:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] Skipping verification - no AI client")
 
-            # Calculate unprotected count consistently with main logic
-            # Only count behaviors that match actual exposures
+            # Calculate unprotected count
             exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
             protected_methods = set(
                 b.get('method', '')
@@ -1919,332 +2008,108 @@ Return these EXACT values in JSON:
             unprotected = len([e for e in self.discovered_exposures if e.get('method', '') not in protected_methods])
 
             return {
-                'mechanisms_tested': [],
-                'additional_protections_found': [],
-                'verified_unprotected_count': unprotected,
-                'updated_coverage': None
+                'assessment': 'No AI verification performed',
+                'confidence': 'unknown',
+                'concerns': [],
+                'unprotected_count': unprotected
             }
 
         if self.debug:
-            print(f"[{self.get_agent_id().upper()}] AI-driven verification of unprotected routes...")
+            print(f"[{self.get_agent_id().upper()}] AI review of findings...")
 
-        # Get list of unprotected exposures
-        # CRITICAL: Only count behaviors that match actual exposures (not config code like SecurityConfig)
+        # Build protected and unprotected lists
+        exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
+        protected_exposures = []
         unprotected_exposures = []
         protected_methods = set()
-
-        # Build set of all exposure methods
-        exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
 
         for mechanism in self.all_mechanisms:
             for behavior in mechanism.get('behaviors', []):
                 behavior_method = behavior.get('method', '')
-                # Only count if this behavior protects an actual exposure
                 if behavior_method in exposure_methods:
                     protected_methods.add(behavior_method)
+                    protected_exposures.append({
+                        'endpoint': behavior.get('location', behavior_method[-60:]),
+                        'mechanism': behavior.get('mechanism', 'unknown'),
+                        'roles': behavior.get('roles', [])
+                    })
 
         for exposure in self.discovered_exposures:
             method = exposure.get('method', '')
             if method and method not in protected_methods:
-                unprotected_exposures.append(exposure)
+                unprotected_exposures.append({
+                    'endpoint': method[-60:],  # Last 60 chars
+                    'httpMethod': exposure.get('httpMethod', 'UNKNOWN')
+                })
 
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}]   Found {len(unprotected_exposures)} unprotected exposures to verify")
+        # Ask AI to review
+        frameworks = list(set(m.get('framework', 'unknown') for m in self.all_mechanisms))
 
-        # Ask AI what other protection mechanisms to check for
-        verification_plan = self._ai_generate_verification_plan(unprotected_exposures)
+        prompt = f"""Review our authorization analysis findings and assess if we missed anything.
 
-        if not verification_plan or not verification_plan.get('checks'):
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]   AI provided no additional checks")
-            return {
-                'mechanisms_tested': [],
-                'additional_protections_found': [],
-                'verified_unprotected_count': len(unprotected_exposures),
-                'updated_coverage': None
-            }
+WHAT WE FOUND:
+- Total endpoints: {len(self.discovered_exposures)}
+- Protected: {len(protected_exposures)} endpoints
+- Unprotected: {len(unprotected_exposures)} endpoints
+- Frameworks: {', '.join(frameworks)}
 
-        # Execute AI-generated verification checks
-        mechanisms_tested = []
-        additional_protections = []
+SAMPLE PROTECTED ENDPOINTS (first 10):
+{json.dumps(protected_exposures[:10], indent=2)}
 
-        for check in verification_plan['checks']:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]   Checking: {check['description']}")
+SAMPLE UNPROTECTED ENDPOINTS (first 10):
+{json.dumps(unprotected_exposures[:10], indent=2)}
 
-            # Execute the Joern query
-            protections = self._execute_verification_query(check, unprotected_exposures)
-
-            mechanisms_tested.append({
-                'type': check['type'],
-                'description': check['description'],
-                'checked': True,
-                'found': len(protections),
-                'query': check.get('query', '')[:200]  # Truncate for report
-            })
-            additional_protections.extend(protections)
-
-            if self.debug and protections:
-                print(f"[{self.get_agent_id().upper()}]     Found {len(protections)} protection(s)")
-
-        # Calculate updated coverage if additional protections found
-        original_protected = len(protected_methods)
-        new_protected = len(set(p.get('method') for p in additional_protections if p.get('method') != 'N/A'))
-        total_exposures = len(self.discovered_exposures)
-
-        updated_coverage = None
-        if new_protected > 0:
-            new_total_protected = original_protected + new_protected
-            updated_coverage = {
-                'exposures': total_exposures,
-                'protected': new_total_protected,
-                'unprotected': total_exposures - new_total_protected,
-                'coverage': (new_total_protected / total_exposures * 100) if total_exposures > 0 else 0
-            }
-
-        verified_unprotected = len(unprotected_exposures) - new_protected
-
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}]   Verification complete:")
-            print(f"[{self.get_agent_id().upper()}]     Tested {len(mechanisms_tested)} protection mechanism types")
-            print(f"[{self.get_agent_id().upper()}]     Found {new_protected} additional protections")
-            print(f"[{self.get_agent_id().upper()}]     Verified {verified_unprotected} routes as genuinely unprotected")
-
-        return {
-            'mechanisms_tested': mechanisms_tested,
-            'additional_protections_found': additional_protections,
-            'verified_unprotected_count': verified_unprotected,
-            'updated_coverage': updated_coverage
-        }
-
-    def _ai_generate_verification_plan(self, unprotected_exposures: List[Dict]) -> Dict:
-        """
-        Ask AI to generate a verification plan
-
-        AI analyzes:
-        - What we've already found (standard mechanisms)
-        - Sample of unprotected exposures
-        - Application framework/type
-
-        AI proposes:
-        - Additional protection mechanisms to check for
-        - Joern queries to find them
-        """
-        # Build context about what we've already found
-        found_mechanisms = []
-        for mechanism in self.all_mechanisms:
-            found_mechanisms.append({
-                'framework': mechanism.get('framework'),
-                'type': mechanism.get('type'),
-                'count': len(mechanism.get('behaviors', [])),
-                'patterns': mechanism.get('patterns', [])[:3]  # Sample
-            })
-
-        # Sample unprotected exposures
-        sample_size = min(20, len(unprotected_exposures))
-        sample = unprotected_exposures[:sample_size]
-
-        prompt = f"""You are analyzing a codebase to verify that routes marked as "unprotected" are genuinely unprotected.
-
-WHAT WE'VE ALREADY FOUND:
-{json.dumps(found_mechanisms, indent=2)}
-
-SAMPLE UNPROTECTED EXPOSURES ({sample_size} of {len(unprotected_exposures)}):
-{json.dumps(sample, indent=2)}
-
-FRAMEWORKS DETECTED:
-{', '.join(set(m.get('framework', 'unknown') for m in self.all_mechanisms))}
+PROTECTION MECHANISMS WE DETECTED:
+{json.dumps([{'framework': m.get('framework'), 'type': m.get('type'), 'count': len(m.get('behaviors', []))} for m in self.all_mechanisms], indent=2)}
 
 YOUR TASK:
-Think critically about what SPECIFIC corner-case authorization/protection mechanisms might exist in THIS APPLICATION that we haven't checked yet.
+Review these findings and assess:
+1. Did we likely miss any protection mechanisms? (class-level auth, security configs, interceptors, filters, etc.)
+2. Are these unprotected endpoints genuinely unprotected?
+3. Any concerns or areas needing manual review?
 
-We're looking for mechanisms we might have MISSED - focus on corner cases and non-obvious patterns.
+BE HONEST - express uncertainty if you can't be sure.
 
-Consider these specific types:
-- Class-level authorization annotations (not method-level)
-- HTTP security configuration files (SecurityConfig, WebSecurityConfigurerAdapter)
-  * Methods with HttpSecurity parameter that define .authorizeRequests() or .authorizeHttpRequests()
-  * Check for .anyRequest().permitAll() (makes ALL routes public!)
-  * Check for .requestMatchers("/pattern").permitAll() (specific public routes)
-- Security filters in filter chains
-- HandlerInterceptors registered in WebMvcConfigurer
-- AOP aspects with @Around/@Before on authorization
-- Custom domain-specific authorization annotations
-- Framework-specific security mechanisms (Spring Method Security, etc.)
-- Servlet filters with authorization logic
-
-For each mechanism type you want to check, provide:
-1. Type identifier (snake_case)
-2. Human-readable description
-3. Joern query to find it (or "READ_SOURCE" if you need to read actual source code)
-
-Return JSON ONLY:
+Respond in JSON:
 {{
-  "checks": [
-    {{
-      "type": "class_level_auth",
-      "description": "Authorization annotations on controller classes",
-      "query": "cpg.typeDecl.where(_.annotation.name.matches(\\".*Authorize.*\\")).map {{ t => Map(\\"class\\" -> t.fullName, \\"annotations\\" -> t.annotation.name.l) }}.toJson"
-    }},
-    {{
-      "type": "http_security_config",
-      "description": "HttpSecurity configuration methods - READ source to check for .anyRequest().permitAll()",
-      "query": "READ_SOURCE"
-    }}
-  ],
-  "rationale": "Why we're checking these specific mechanisms"
-}}
-
-IMPORTANT: If you need to READ and PARSE source code (like HttpSecurity configs), use "query": "READ_SOURCE"
-
-Limit to 5-8 most important checks. Focus on mechanisms likely to exist in this type of application.
-"""
+  "assessment": "Your overall assessment (2-3 sentences)",
+  "confidence": "high|medium|low - how confident are you in our findings",
+  "concerns": ["list", "of", "potential", "gaps", "or", "uncertainties"],
+  "likely_complete": true/false
+}}"""
 
         try:
-            response = self.ai.call_claude(prompt, max_tokens=2000, temperature=0.3)
+            response = self.ai.call_claude(prompt, max_tokens=1000, temperature=0.3)
             if response:
                 import re
                 match = re.search(r'\{.*\}', response, re.DOTALL)
                 if match:
                     result = json.loads(match.group(0))
-                    if 'checks' in result:
-                        if self.debug:
-                            print(f"[{self.get_agent_id().upper()}]   AI proposed {len(result['checks'])} verification checks")
-                        return result
-        except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]   AI verification plan failed: {e}")
 
-        return {}
-
-    def _execute_verification_query(self, check: Dict, unprotected_exposures: List[Dict]) -> List[Dict]:
-        """Execute a verification query generated by AI"""
-        query = check.get('query', '')
-        if not query:
-            return []
-
-        # Handle READ_SOURCE queries (need to read actual source files)
-        if query == "READ_SOURCE":
-            return self._read_and_parse_http_security_config(check, unprotected_exposures)
-
-        protections = []
-        try:
-            result = self.cpg_tool.query(query)
-            if result.success and result.output and result.output.strip():
-                data = self.cpg_tool.parse_json_result(result.output)
-
-                # Convert query results to protection records
-                for item in data:
-                    protections.append({
-                        'method': item.get('method', 'N/A'),
-                        'class': item.get('class', item.get('typeDecl', 'Unknown')),
-                        'mechanism': f"{check['type']}: {item.get('annotation', item.get('name', check['description']))}",
-                        'file': item.get('file', 'unknown'),
-                        'protection_type': check['type'],
-                        'note': f"Found by AI-driven verification: {check['description']}"
-                    })
-        except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]     Query failed: {e}")
-
-        return protections
-
-    def _read_and_parse_http_security_config(self, check: Dict, unprotected_exposures: List[Dict]) -> List[Dict]:
-        """
-        Use AI to read and parse security configuration files to extract actual security rules
-
-        This is language-agnostic - AI figures out what the config means
-        """
-        protections = []
-
-        # Find config files that need parsing (from our framework detection)
-        config_behaviors = [m for m in self.all_mechanisms if m.get('type') == 'http_security_config']
-
-        if not config_behaviors:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]     No security configs found to parse")
-            return protections
-
-        # Group configs by file to avoid reading same file multiple times
-        files_to_analyze = {}
-        for config in config_behaviors:
-            file_path = config.get('file', '')
-            if file_path and file_path not in files_to_analyze:
-                files_to_analyze[file_path] = config
-
-        # Have AI analyze each config file
-        for file_path, config in files_to_analyze.items():
-            try:
-                full_path = self.project_dir / file_path
-                if not full_path.exists():
-                    continue
-
-                with open(full_path, 'r') as f:
-                    source_code = f.read()
-
-                # Ask AI to parse the security configuration
-                prompt = f"""Analyze this security configuration file and extract HTTP-layer security rules.
-
-FILE: {file_path}
-CLASS: {config.get('class', 'Unknown')}
-
-SOURCE CODE:
-```
-{source_code}
-```
-
-TASK: Extract security rules that control HTTP request access. Look for:
-- Rules that affect all public (e.g., .anyRequest().permitAll())
-- Rules that require authentication for all routes
-- Specific route patterns that are public/protected
-- ANY HTTP-layer access control configuration
-
-Return JSON array of protection rules found:
-[
-  {{
-    "mechanism": "Brief description of what rule does",
-    "protection_type": "http_permitall|http_authenticated|http_pattern|custom",
-    "severity": "critical|high|medium|low",
-    "note": "Detailed explanation of security impact"
-  }}
-]
-
-If no HTTP security rules found, return: []
-"""
-
-                try:
-                    response = self.ai.call_claude(prompt, max_tokens=1500, temperature=0.2)
-                    if response:
-                        import re
-                        match = re.search(r'\[.*\]', response, re.DOTALL)
-                        if match:
-                            import json
-                            rules = json.loads(match.group(0))
-
-                            for rule in rules:
-                                protections.append({
-                                    'method': config.get('method', 'security_config'),
-                                    'class': config.get('class', 'Unknown'),
-                                    'mechanism': rule.get('mechanism', 'Security configuration'),
-                                    'file': file_path,
-                                    'protection_type': rule.get('protection_type', 'custom'),
-                                    'note': rule.get('note', 'Security rule found in configuration')
-                                })
-
-                                if self.debug:
-                                    severity = rule.get('severity', 'medium')
-                                    icon = '🚨' if severity == 'critical' else '⚠️' if severity == 'high' else 'ℹ️'
-                                    print(f"[{self.get_agent_id().upper()}]     {icon} {rule.get('mechanism')}")
-
-                except Exception as e:
                     if self.debug:
-                        print(f"[{self.get_agent_id().upper()}]     AI parsing failed for {file_path}: {e}")
+                        print(f"[{self.get_agent_id().upper()}]   Assessment: {result.get('assessment', 'N/A')}")
+                        print(f"[{self.get_agent_id().upper()}]   Confidence: {result.get('confidence', 'unknown')}")
+                        if result.get('concerns'):
+                            print(f"[{self.get_agent_id().upper()}]   Concerns: {', '.join(result['concerns'])}")
 
-            except Exception as e:
-                if self.debug:
-                    print(f"[{self.get_agent_id().upper()}]     Error reading {file_path}: {e}")
+                    return {
+                        'assessment': result.get('assessment', 'Analysis reviewed'),
+                        'confidence': result.get('confidence', 'medium'),
+                        'concerns': result.get('concerns', []),
+                        'unprotected_count': len(unprotected_exposures),
+                        'likely_complete': result.get('likely_complete', True)
+                    }
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]   AI review failed: {e}")
 
-        return protections
+        # Fallback
+        return {
+            'assessment': 'AI review unavailable',
+            'confidence': 'unknown',
+            'concerns': ['Could not verify findings with AI'],
+            'unprotected_count': len(unprotected_exposures)
+        }
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
         """
@@ -2336,6 +2201,43 @@ If no HTTP security rules found, return: []
 
         return None
 
+    def _build_role_consistency_guidance(self) -> str:
+        """
+        Build framework-agnostic role name consistency guidance
+
+        This guidance applies to ALL frameworks and languages
+        """
+        return """
+ROLE NAME CONSISTENCY (CRITICAL - APPLIES TO ALL FRAMEWORKS):
+
+1. Role Names Must Be Consistent:
+   - Use the EXACT same role name strings throughout your codebase
+   - Example: If you use "ADMIN" in one place, use "ADMIN" everywhere (not "Admin", "admin", or "ROLE_ADMIN")
+   - Inconsistent role names are the #1 cause of authorization bugs
+
+2. Framework Role Name Conventions:
+   - Some frameworks require a prefix (e.g., "ROLE_" in some configurations)
+   - Some frameworks are case-sensitive (e.g., "ADMIN" vs "admin" are different roles)
+   - Check your framework's documentation for naming conventions
+   - Be consistent: if your framework uses "ROLE_ADMIN", use that everywhere
+
+3. Where Role Names Appear:
+   - Authorization checks in code (annotations, decorators, middleware)
+   - Configuration files (security configs, role definitions)
+   - Database/user management (user-role assignments)
+   - ALL of these must use identical role name strings
+
+4. Testing Role Names:
+   - Test that a user with role X can access endpoints requiring role X
+   - Test that a user WITHOUT role X is denied
+   - Role name typos will silently fail - tests catch them
+
+5. Documentation:
+   - Document your role names in one canonical place
+   - Include the EXACT string to use (with any prefixes/suffixes)
+   - Example: "Use 'ADMIN' (not 'admin' or 'Administrator')"
+"""
+
     def _build_spring_security_guidance(self) -> str:
         """
         Build version-specific Spring Security guidance section
@@ -2411,44 +2313,64 @@ Configuration Style: {config_style}
    - Explicitly allowlist public endpoints with .requestMatchers(...).permitAll()
    - This ensures new endpoints are secure by default"""
 
-    def _format_verification_mechanisms(self, verification: Dict) -> str:
-        """Format the list of protection mechanisms that were tested"""
-        mechanisms = verification.get('mechanisms_tested', [])
-        if not mechanisms:
-            return "None (verification not performed)"
+    def _format_verification_summary(self, verification: Dict) -> str:
+        """Format AI verification summary"""
+        assessment = verification.get('assessment', 'No verification performed')
+        confidence = verification.get('confidence', 'unknown')
+        concerns = verification.get('concerns', [])
+        unprotected = verification.get('unprotected_count', 0)
 
-        lines = []
-        for mech in mechanisms:
-            status = "✓" if mech['found'] > 0 else "✗"
-            lines.append(f"  {status} {mech['description']}: {mech['found']} found")
+        lines = [f"AI Assessment: {assessment}"]
+        lines.append(f"Confidence: {confidence}")
 
-        return "\n".join(lines)
+        if concerns:
+            lines.append(f"Concerns: {', '.join(concerns)}")
+        else:
+            lines.append("No concerns identified")
 
-    def _format_verification_results(self, verification: Dict) -> str:
-        """Format the verification results summary"""
-        additional = verification.get('additional_protections_found', [])
-        verified_unprotected = verification.get('verified_unprotected_count', 0)
-        updated_coverage = verification.get('updated_coverage')
+        lines.append(f"{unprotected} endpoints confirmed unprotected")
 
-        if not additional:
-            return f"  ✓ No additional protections found\n  ✓ {verified_unprotected} routes confirmed as genuinely unprotected"
+        return "\n  ".join(lines)
 
-        # Additional protections were found
-        lines = [f"  ⚠ Found {len(additional)} additional protection(s):"]
-        for prot in additional[:10]:  # Show first 10
-            lines.append(f"    - {prot.get('mechanism', 'Unknown')} on {prot.get('class', 'Unknown')}")
-            if 'note' in prot:
-                lines.append(f"      Note: {prot['note']}")
+    def _format_test_guidance(self, test_discovery: Dict) -> str:
+        """Format test guidance based on what was discovered"""
+        recommendation = test_discovery.get('recommendation', 'create_simple')
 
-        if len(additional) > 10:
-            lines.append(f"    ... and {len(additional) - 10} more")
+        if recommendation == 'no_tests_found':
+            return """NO TEST FRAMEWORK DETECTED - Step 5 should recommend setting up a test framework first, then adding authorization tests."""
 
-        if updated_coverage:
-            lines.append(f"\n  Updated Coverage: {updated_coverage['protected']}/{updated_coverage['exposures']} ({updated_coverage['coverage']:.1f}%)")
+        elif recommendation == 'create_simple':
+            return f"""NO AUTHORIZATION TESTS FOUND (but test framework exists with {test_discovery['test_count']} test files).
+Step 5: Provide SHORT, SIMPLE recommendation to create authorization tests that:
+- Use the existing test framework detected in the project
+- Show ONE concrete example test that verifies an endpoint requires expected role
+- Show ONE example test that verifies unauthorized access is denied (403/401)
+- Keep it simple - don't create comprehensive test suite, just show the pattern
+- Example: @WithMockUser(roles="ADMIN") test that hits endpoint expecting 200, then without annotation expecting 403"""
 
-        lines.append(f"  ✓ {verified_unprotected} routes confirmed as genuinely unprotected after verification")
+        elif recommendation == 'expand_existing':
+            test_files = test_discovery.get('test_files', [])
+            patterns = ', '.join(test_discovery['test_patterns'])
+            return f"""SOME AUTHORIZATION TESTS EXIST ({test_discovery['test_count']} files found: {', '.join(test_files[:3])}).
+Patterns detected: {patterns}
 
-        return "\n".join(lines)
+Step 5: Suggest COMPLETING the test coverage:
+- Acknowledge existing tests: "{', '.join(test_files[:2])}"
+- Recommend expanding to cover ALL endpoints in the access control matrix
+- Show how to add tests for the currently unprotected endpoints
+- Keep recommendation focused on completing gaps, not rewriting existing tests"""
+
+        else:  # acknowledge_existing
+            test_files = test_discovery.get('test_files', [])
+            patterns = ', '.join(test_discovery['test_patterns'])
+            return f"""COMPREHENSIVE AUTHORIZATION TESTS EXIST ({test_discovery['test_count']} test files found).
+Patterns detected: {patterns}
+Test files: {', '.join(test_files)}
+
+Step 5: BRIEFLY ACKNOWLEDGE existing tests:
+- Note that authorization tests already exist
+- Recommend reviewing tests to ensure they cover the updated access control matrix
+- Keep this section very brief (2-3 sentences max)"""
 
     def _build_recommendation_prompt(self, context: Dict, evidence: Dict) -> str:
         """Build detailed prompt for AI recommendation generation"""
@@ -2469,11 +2391,56 @@ Configuration Style: {config_style}
                 location_type = behavior.get('location_type', 'unknown')
                 location_counts[location_type] += 1
 
-        # Get Spring Security guidance
+        # Get generic role consistency guidance (applies to all frameworks)
+        role_consistency_guidance = self._build_role_consistency_guidance()
+
+        # Get Spring Security guidance (only relevant if Spring detected)
         spring_guidance = self._build_spring_security_guidance()
 
         # Build proposed access control matrix
         proposed_matrix = self._build_proposed_access_matrix(evidence)
+
+        # Check if pattern detection failed
+        pattern_detection_failed = (pattern_type == 'unknown' or auth_pattern.get('confidence', 1.0) == 0.0)
+
+        # Build special guidance for unknown pattern case
+        unknown_pattern_guidance = ""
+        if pattern_detection_failed:
+            frameworks = set(context.get('frameworks', []))
+            if frameworks:
+                unknown_pattern_guidance = f"""
+⚠️ CRITICAL: Architecture pattern could not be determined automatically.
+Pattern detection failed with: {auth_pattern.get('evidence_summary', 'unknown error')}
+
+RECOMMENDED APPROACH - Framework-Specific Implementation:
+Since we detected {', '.join(frameworks)}, recommend implementing the STANDARD authorization approach for this framework:
+1. Identify the framework's recommended authorization mechanism (annotations, middleware, decorators, etc.)
+2. Show how to apply it at the HTTP entry points (controllers/routes)
+3. Provide specific examples using the detected framework's actual API
+4. Reference the framework's official security documentation
+
+Example structure:
+- Step 1: Enable framework security (show actual config code)
+- Step 2: Add authorization at HTTP endpoints (show actual annotations/decorators)
+- Step 3: Define roles and configure access rules (show actual code)
+- Step 4: Test and verify (show how to test with this framework)
+"""
+            else:
+                unknown_pattern_guidance = """
+⚠️ CRITICAL: Architecture pattern could not be determined and no frameworks detected.
+
+RECOMMENDED APPROACH - Generic Entry-Point Authorization:
+Recommend implementing basic authorization at all HTTP entry points:
+1. Identify all HTTP entry points (controllers, routes, handlers)
+2. Add authentication check at EVERY entry point
+3. Add role-based authorization check based on operation sensitivity
+4. Example structure (adapt to detected language):
+   - GET endpoints (read operations) → require authentication
+   - POST/PUT/DELETE endpoints (write operations) → require specific roles
+   - Admin operations → require ADMIN role
+   - Public endpoints (health, welcome) → explicitly allow without auth
+5. Emphasize: Start simple, then refine based on business requirements
+"""
 
         return f"""You are a security architect analyzing authorization in an application.
 
@@ -2493,18 +2460,23 @@ Your recommendation MUST use the EXACT detected frameworks and versions. DO NOT 
 - If multiple frameworks detected, integrate guidance for all of them
 - Example: Instead of "configure authorization in your framework", write "use @PreAuthorize in Spring Security 6.x"
 
+{role_consistency_guidance}
+
 {spring_guidance}
+
+{unknown_pattern_guidance}
 
 AUTHORIZATION ARCHITECTURE PATTERN:
 - Pattern: {pattern_type}
 - Primary layer: {primary_layer}
+- Confidence: {auth_pattern.get('confidence', 0.0)}
 - Authorization locations breakdown:
   * Endpoint-level (controllers): {location_counts['endpoint']} behaviors
   * Service-level (business logic): {location_counts['service']} behaviors
   * Code-level (other): {location_counts['code']} behaviors
 - Description: {auth_pattern.get('architecture_description', 'Unknown pattern')}
 
-CRITICAL: This application uses {pattern_type} authorization. The recommendation MUST acknowledge this architecture and explain whether it's appropriate.
+CRITICAL: {"⚠️ Architecture pattern is UNKNOWN - follow the RECOMMENDED APPROACH guidance above" if pattern_detection_failed else f"This application uses {pattern_type} authorization. The recommendation MUST acknowledge this architecture and explain whether it's appropriate."}
 
 NOTE: Coverage metrics are calculated based on authorization exposures:
 - If authorization is at the service layer: Exposures = classes with auth behaviors
@@ -2520,10 +2492,26 @@ ROLES DEFINED:
 
 CRITICAL - SCOPE LIMITATION FOR THIS AGENT:
 This agent focuses on endpoint authorization only (which roles can access which endpoints).
-- Use role-based checks: Simple role names like ADMIN, USER, VET, OWNER
-- If you see permission/authority strings (e.g., APPLICATION_EDIT_VULNERABILITY_DELETE), IGNORE them - they are handled by a separate permissions agent
-- Focus your recommendations on assigning ROLES to endpoints, not fine-grained permissions
-- Use the framework's role-checking mechanism in your examples
+
+IN SCOPE:
+- Which ROLES can access which HTTP endpoints
+- Role-based access control (ADMIN, USER, VET, OWNER, etc.)
+- HTTP-level authorization checks at route/controller level
+
+OUT OF SCOPE - DO NOT RECOMMEND:
+- ❌ Data-level authorization (IDOR protection, owner-specific data access)
+- ❌ Object-level authorization (ensuring users only access their own resources)
+- ❌ Resource ownership checks (e.g., "owners can only access their own pets")
+- ❌ CAPTCHA or bot protection
+- ❌ Rate limiting or throttling
+- ❌ Fine-grained permissions/authorities (handled by separate permissions agent)
+- ❌ Input validation or SQL injection prevention
+- ❌ Session management or token handling
+- ❌ Compliance frameworks (HIPAA, PCI-DSS, SOC2, etc.) - use generic privacy/confidentiality language only
+
+If you see permission/authority strings (e.g., APPLICATION_EDIT_VULNERABILITY_DELETE), IGNORE them - they are handled by a separate permissions agent.
+
+Focus your recommendations ONLY on assigning ROLES to endpoints using the framework's role-checking mechanism.
 
 PROPOSED ACCESS CONTROL MATRIX:
 This section provides a complete classification of ALL {proposed_matrix['total_endpoints']} endpoints with suggested authorization.
@@ -2539,26 +2527,33 @@ IMPORTANT: This is a PROPOSED access control matrix. Review each classification 
 3. Compliance and regulatory requirements
 4. Current application behavior and user expectations
 
-VERIFICATION OF UNPROTECTED ROUTES:
-To ensure unprotected routes are genuinely unprotected, we verified {context['unprotected']} unprotected routes against additional protection mechanisms.
+AI VERIFICATION REVIEW:
+We asked AI to review our findings and assess whether we missed any protection mechanisms.
 
-Protection Mechanisms Tested:
-{self._format_verification_mechanisms(evidence.get('verification', {}))}
+Verification Summary:
+  {self._format_verification_summary(evidence.get('verification', {}))}
 
-Verification Results:
-{self._format_verification_results(evidence.get('verification', {}))}
+This AI review provides a sanity check on our analysis and highlights any potential gaps.
 
-This verification provides evidence that the reported unprotected routes are genuinely unprotected and not protected by alternative mechanisms we may have initially missed.
+AUTHORIZATION TEST DISCOVERY:
+Searched codebase for existing authorization tests:
+- Tests found: {evidence['test_discovery']['has_tests']}
+- Test count: {evidence['test_discovery']['test_count']} files
+- Test patterns detected: {', '.join(evidence['test_discovery']['test_patterns']) if evidence['test_discovery']['test_patterns'] else 'None'}
+- Test recommendation: {evidence['test_discovery']['recommendation']}
+
+IMPORTANT - Step 5 Test Guidance Based on Discovery:
+{self._format_test_guidance(evidence['test_discovery'])}
 
 TASK:
 Generate a tailored authorization recommendation for THIS specific application. You MUST:
-1. EXPLICITLY acknowledge the detected authorization architecture pattern ({pattern_type} at {primary_layer})
-2. Explain if the current architecture pattern is sound for this application
+{"1. ⚠️ ACKNOWLEDGE that pattern detection FAILED - Follow the RECOMMENDED APPROACH guidance above" if pattern_detection_failed else f"1. EXPLICITLY acknowledge the detected authorization architecture pattern ({pattern_type} at {primary_layer})"}
+{"2. Recommend implementing standard framework authorization OR basic entry-point authorization (see guidance above)" if pattern_detection_failed else f"2. Explain if the current architecture pattern is sound for this application"}
 3. Review the PROPOSED ACCESS CONTROL MATRIX above and either:
    a) Agree with the classifications and explain why they're appropriate, OR
    b) Adjust classifications where business requirements differ and explain your reasoning
 4. Consider the application's current authorization state and proposed improvements
-5. Reference the specific frameworks being used
+5. Reference the specific frameworks being used (if any detected)
 6. Evaluate the proposed role structure and whether it meets the application's needs
 7. Address the coverage gaps and explain how the proposed matrix resolves them
 8. Infer what this application does based on roles/frameworks/endpoint names
@@ -2571,8 +2566,8 @@ Provide your recommendation in this exact JSON format:
 {{
   "title": "One-line recommendation title",
   "summary": "Brief 1-2 sentence summary acknowledging the current architecture pattern and what needs to be done",
-  "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss existing roles. Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
-  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST be FRAMEWORK-SPECIFIC using exact detected frameworks and versions. MUST include:\\n- Step 0: Establish default-deny at HTTP layer - show ACTUAL framework configuration code (not generic)\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to allowlist - show ACTUAL framework config syntax for detected version\\n- Step 3: Add role check annotations to protected endpoints - use ACTUAL framework annotations from detected version\\n- Step 4: For 3-5 example endpoints from the matrix, show EXACT code with ACTUAL role names and framework syntax\\n- Step 5: Add CI test using detected test framework - show ACTUAL test code that enumerates endpoints and fails on unannotated routes\\n- All code examples MUST use framework-specific syntax, NOT placeholders or generic instructions\\nUse \\n for line breaks.",
+  "design_recommendation": "Strategic guidance (400-600 words). {"MUST start by acknowledging that architecture pattern could not be determined, then follow the RECOMMENDED APPROACH guidance to suggest either framework-specific OR entry-point authorization." if pattern_detection_failed else f"MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks?"} Then discuss existing roles. Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
+  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST be FRAMEWORK-SPECIFIC using exact detected frameworks and versions. MUST include:\\n- Step 0: Establish default-deny at HTTP layer - show ACTUAL framework configuration code (not generic)\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to allowlist - show ACTUAL framework config syntax for detected version\\n- Step 3: Add role check annotations to protected endpoints - use ACTUAL framework annotations from detected version\\n- Step 4: For 3-5 example endpoints from the matrix, show EXACT code with ACTUAL role names and framework syntax\\n- Step 5: Authorization testing - FOLLOW THE TEST GUIDANCE ABOVE based on what tests currently exist\\n- All code examples MUST use framework-specific syntax, NOT placeholders or generic instructions\\nUse \\n for line breaks.",
   "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. IMPORTANT: Scope claims to HTTP access only - acknowledge that controller auth does NOT protect @Scheduled, @EventListener, message listeners, or internal service calls. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
 }}
 
@@ -2589,7 +2584,7 @@ CRITICAL REQUIREMENTS:
 - CRITICAL: All configuration examples MUST reference the exact detected versions (see Spring Security guidance above)
 - NO GENERIC PLACEHOLDERS: Use actual framework API calls, annotations, methods - not "configure in your framework"
 - Provide concrete, actionable guidance referencing the matrix classifications
-- MUST include CI test recommendation (Step 5) that enumerates all endpoints and fails on unannotated routes - this prevents regression
+- Step 5 MUST follow the test guidance above - tailor to what tests already exist (none/some/comprehensive)
 - Discuss whether the proposed role structure is appropriate or should be adjusted
 
 Generate the recommendation now:"""
