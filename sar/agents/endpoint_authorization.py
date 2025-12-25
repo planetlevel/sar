@@ -546,6 +546,23 @@ YOUR RESPONSE (data lines only):"""
         # Consolidate ALL mechanisms (standard + custom)
         self.all_mechanisms = self.standard_mechanisms + self.custom_mechanisms
 
+        # NEW: Build endpoint-centric structure from discovered behaviors
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Building endpoint-centric view...")
+
+        from sar.agents.endpoint_builder import EndpointBuilder
+
+        builder = EndpointBuilder(cpg_tool=self.cpg_tool, debug=self.debug)
+
+        # Get all HTTP routes
+        routes = self.utils.query_all_endpoint_methods(self.matched_frameworks)
+
+        # Build Endpoint objects with all their authorization layers
+        self.endpoints = builder.build_endpoints(routes, self.all_mechanisms)
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] Built {len(self.endpoints)} endpoints")
+
         # Phase 2: Architecture Evaluation (handled by AI in recommendation generation)
 
         # Phase 3: Finding Generation
@@ -1940,19 +1957,40 @@ Return these EXACT values in JSON:
 
     def _build_evidence(self) -> Dict:
         """Build comprehensive evidence for recommendation generation"""
-        # Analyze roles using utility
-        roles = self.utils.analyze_roles(self.all_mechanisms)
+        # Extract roles from all endpoints' authorizations
+        all_roles = set()
+        for endpoint in self.endpoints:
+            for auth in endpoint.authorizations:
+                if auth.authorization.type == "RBAC":
+                    all_roles.update(auth.authorization.roles_any_of or [])
 
-        # Generate AI-powered metrics that understand the architecture pattern
-        # Uses self.discovered_exposures from quick discovery
-        coverage_metrics = self._generate_ai_coverage_metrics(None)
+        # Classify roles
+        generic_roles = [r for r in all_roles if r.upper() in ['USER', 'ADMIN', 'ROLE_USER', 'ROLE_ADMIN']]
+        domain_specific_roles = [r for r in all_roles if r not in generic_roles]
 
-        # Build defense usage matrix using discovered exposures
-        defense_matrix = build_defense_usage_matrix(
-            exposures=self.discovered_exposures,
-            all_mechanisms=self.all_mechanisms,
-            defense_type='authorization'
-        )
+        roles = {
+            'used': list(all_roles),
+            'generic_count': len(generic_roles),
+            'domain_specific_count': len(domain_specific_roles)
+        }
+
+        # Calculate metrics from endpoints
+        total_endpoints = len(self.endpoints)
+        protected_endpoints = [e for e in self.endpoints if e.authorizations]
+        unprotected_endpoints = [e for e in self.endpoints if not e.authorizations]
+
+        coverage_metrics = {
+            'metric_type': 'endpoint_layer',
+            'exposures': total_endpoints,
+            'protected': len(protected_endpoints),
+            'unprotected': len(unprotected_endpoints),
+            'coverage': (len(protected_endpoints) / total_endpoints * 100) if total_endpoints > 0 else 0,
+            'explanation': f'{len(protected_endpoints)} protected out of {total_endpoints} total endpoints'
+        }
+
+        # Build defense usage matrix from endpoints (for backward compatibility with show_acm.py)
+        # This will be replaced once show_acm.py is updated to read from endpoints directly
+        defense_matrix = self._build_defense_matrix_from_endpoints()
 
         # Build proposed access control matrix with AI-powered role analysis
         # This provides a complete classification of ALL endpoints with suggested authorization
@@ -1968,17 +2006,64 @@ Return these EXACT values in JSON:
         test_discovery = self._discover_authorization_tests()
 
         evidence = {
-            'mechanisms': self.all_mechanisms,
-            'defense_usage_matrix': defense_matrix,  # Current state
+            'endpoints': [e.model_dump() for e in self.endpoints],  # NEW: Endpoint-centric data
+            'mechanisms': self.all_mechanisms,  # Keep for compatibility
+            'defense_usage_matrix': defense_matrix,  # Keep for compatibility with show_acm.py
             'roles': roles,
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
-            'coverage_metrics': coverage_metrics,  # AI-generated metrics
+            'coverage_metrics': coverage_metrics,  # Simplified metrics from endpoints
             'proposed_access_matrix': proposed_matrix,  # AI-generated classifications with ALL endpoints
             'verification': verification_report,  # Verification of unprotected routes
             'test_discovery': test_discovery  # Existing authorization tests
         }
 
         return evidence
+
+    def _build_defense_matrix_from_endpoints(self) -> Dict:
+        """
+        Build defense usage matrix from endpoints (backward compatibility)
+
+        This maintains compatibility with show_acm.py until it's updated to read from endpoints directly
+        """
+        # Extract unique roles
+        all_roles = set()
+        for endpoint in self.endpoints:
+            for auth in endpoint.authorizations:
+                if auth.authorization.type == "RBAC":
+                    all_roles.update(auth.authorization.roles_any_of or [])
+
+        columns = sorted(list(all_roles))
+
+        # Build matrix rows
+        rows = []
+        matrix = []
+        row_protected = []
+
+        for endpoint in self.endpoints:
+            # Row name: HTTP_METHOD /path
+            row_name = f"{endpoint.method} {endpoint.path}"
+            rows.append(row_name)
+
+            # Is this endpoint protected?
+            is_protected = len(endpoint.authorizations) > 0
+            row_protected.append(is_protected)
+
+            # Which roles grant access?
+            endpoint_roles = set()
+            for auth in endpoint.authorizations:
+                if auth.authorization.type == "RBAC":
+                    endpoint_roles.update(auth.authorization.roles_any_of or [])
+
+            # Build row: True if endpoint requires this role
+            row = [role in endpoint_roles for role in columns]
+            matrix.append(row)
+
+        return {
+            'rows': rows,
+            'columns': columns,
+            'matrix': matrix,
+            'row_protected': row_protected
+        }
 
     def _verify_unprotected_routes(self) -> Dict:
         """
@@ -1997,15 +2082,8 @@ Return these EXACT values in JSON:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] Skipping verification - no AI client")
 
-            # Calculate unprotected count
-            exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
-            protected_methods = set(
-                b.get('method', '')
-                for m in self.all_mechanisms
-                for b in m.get('behaviors', [])
-                if b.get('method', '') in exposure_methods
-            )
-            unprotected = len([e for e in self.discovered_exposures if e.get('method', '') not in protected_methods])
+            # Calculate unprotected count from endpoints
+            unprotected = len([e for e in self.endpoints if not e.authorizations])
 
             return {
                 'assessment': 'No AI verification performed',
@@ -2017,29 +2095,23 @@ Return these EXACT values in JSON:
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] AI review of findings...")
 
-        # Build protected and unprotected lists
-        exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
-        protected_exposures = []
-        unprotected_exposures = []
-        protected_methods = set()
+        # Build protected and unprotected lists from endpoints
+        protected_endpoints = []
+        unprotected_endpoints = []
 
-        for mechanism in self.all_mechanisms:
-            for behavior in mechanism.get('behaviors', []):
-                behavior_method = behavior.get('method', '')
-                if behavior_method in exposure_methods:
-                    protected_methods.add(behavior_method)
-                    protected_exposures.append({
-                        'endpoint': behavior.get('location', behavior_method[-60:]),
-                        'mechanism': behavior.get('mechanism', 'unknown'),
-                        'roles': behavior.get('roles', [])
-                    })
-
-        for exposure in self.discovered_exposures:
-            method = exposure.get('method', '')
-            if method and method not in protected_methods:
-                unprotected_exposures.append({
-                    'endpoint': method[-60:],  # Last 60 chars
-                    'httpMethod': exposure.get('httpMethod', 'UNKNOWN')
+        for endpoint in self.endpoints:
+            if endpoint.authorizations:
+                # Protected endpoint
+                protected_endpoints.append({
+                    'endpoint': f"{endpoint.method} {endpoint.path}",
+                    'layers': len(endpoint.authorizations),
+                    'effective': endpoint.effective_authorization.description
+                })
+            else:
+                # Unprotected endpoint
+                unprotected_endpoints.append({
+                    'endpoint': f"{endpoint.method} {endpoint.path}",
+                    'handler': endpoint.handler
                 })
 
         # Ask AI to review
@@ -2048,16 +2120,16 @@ Return these EXACT values in JSON:
         prompt = f"""Review our authorization analysis findings and assess if we missed anything.
 
 WHAT WE FOUND:
-- Total endpoints: {len(self.discovered_exposures)}
-- Protected: {len(protected_exposures)} endpoints
-- Unprotected: {len(unprotected_exposures)} endpoints
+- Total endpoints: {len(self.endpoints)}
+- Protected: {len(protected_endpoints)} endpoints
+- Unprotected: {len(unprotected_endpoints)} endpoints
 - Frameworks: {', '.join(frameworks)}
 
 SAMPLE PROTECTED ENDPOINTS (first 10):
-{json.dumps(protected_exposures[:10], indent=2)}
+{json.dumps(protected_endpoints[:10], indent=2)}
 
 SAMPLE UNPROTECTED ENDPOINTS (first 10):
-{json.dumps(unprotected_exposures[:10], indent=2)}
+{json.dumps(unprotected_endpoints[:10], indent=2)}
 
 PROTECTION MECHANISMS WE DETECTED:
 {json.dumps([{'framework': m.get('framework'), 'type': m.get('type'), 'count': len(m.get('behaviors', []))} for m in self.all_mechanisms], indent=2)}
@@ -2096,7 +2168,7 @@ Respond in JSON:
                         'assessment': result.get('assessment', 'Analysis reviewed'),
                         'confidence': result.get('confidence', 'medium'),
                         'concerns': result.get('concerns', []),
-                        'unprotected_count': len(unprotected_exposures),
+                        'unprotected_count': len(unprotected_endpoints),
                         'likely_complete': result.get('likely_complete', True)
                     }
         except Exception as e:
@@ -2108,7 +2180,7 @@ Respond in JSON:
             'assessment': 'AI review unavailable',
             'confidence': 'unknown',
             'concerns': ['Could not verify findings with AI'],
-            'unprotected_count': len(unprotected_exposures)
+            'unprotected_count': len(unprotected_endpoints)
         }
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
@@ -2372,6 +2444,57 @@ Step 5: BRIEFLY ACKNOWLEDGE existing tests:
 - Recommend reviewing tests to ensure they cover the updated access control matrix
 - Keep this section very brief (2-3 sentences max)"""
 
+    def _format_endpoint_sample(self, endpoints: List[Dict]) -> str:
+        """
+        Format a sample of endpoints for the AI prompt
+
+        Args:
+            endpoints: List of endpoint dicts
+
+        Returns:
+            JSON-formatted string showing endpoint samples
+        """
+        sample = []
+        for endpoint in endpoints:
+            sample.append({
+                'endpoint': f"{endpoint.get('method', 'UNKNOWN')} {endpoint.get('path', 'unknown')}",
+                'handler': endpoint.get('handler', 'unknown'),
+                'authorizations': [
+                    {
+                        'enforcement': auth.get('enforcement_point', 'unknown'),
+                        'type': auth.get('authorization', {}).get('type', 'UNKNOWN'),
+                        'roles': auth.get('authorization', {}).get('roles_any_of', []),
+                        'mechanism': auth.get('evidence', {}).get('mechanism_name', 'unknown')
+                    }
+                    for auth in endpoint.get('authorizations', [])
+                ],
+                'effective': endpoint.get('effective_authorization', {}).get('description', 'unknown')
+            })
+
+        return json.dumps(sample, indent=2)
+
+    def _summarize_enforcement_points(self, endpoints: List[Dict]) -> str:
+        """
+        Summarize where authorization is enforced across all endpoints
+
+        Args:
+            endpoints: List of endpoint dicts
+
+        Returns:
+            String summary of enforcement point counts
+        """
+        enforcement_counts = {}
+        for endpoint in endpoints:
+            for auth in endpoint.get('authorizations', []):
+                point = auth.get('enforcement_point', 'unknown')
+                enforcement_counts[point] = enforcement_counts.get(point, 0) + 1
+
+        if not enforcement_counts:
+            return "No authorization enforcement detected"
+
+        return "\n".join(f"  - {point}: {count} instances"
+                         for point, count in sorted(enforcement_counts.items()))
+
     def _build_recommendation_prompt(self, context: Dict, evidence: Dict) -> str:
         """Build detailed prompt for AI recommendation generation"""
         # Get architecture pattern info
@@ -2483,6 +2606,20 @@ NOTE: Coverage metrics are calculated based on authorization exposures:
 - If authorization is at the endpoint layer: Exposures = HTTP routes
 - If authorization is at the code layer: Exposures = protected code locations
 - Coverage % reflects protection of exposures at the detected architectural layer
+
+ENDPOINT ANALYSIS SUMMARY:
+We analyzed {len(evidence.get('endpoints', []))} endpoints with their complete authorization stacks.
+
+Sample endpoints with their authorization layers (first 20):
+{self._format_endpoint_sample(evidence.get('endpoints', [])[:20])}
+
+Authorization Enforcement Points Detected:
+{self._summarize_enforcement_points(evidence.get('endpoints', []))}
+
+This endpoint-centric view shows the COMPLETE authorization picture for each endpoint, including:
+- All authorization layers that apply (route_guard, controller_guard, endpoint_guard, etc.)
+- Effective authorization (the actual protection after applying precedence rules)
+- Evidence trail showing exactly where each authorization was found
 
 ROLES DEFINED:
 - Total roles: {len(context['roles_used'])}
