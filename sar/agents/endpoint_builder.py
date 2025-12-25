@@ -316,7 +316,7 @@ class EndpointBuilder:
         return EffectiveAuthorization(
             type=winning_auth.authorization.type,
             roles_any_of=winning_auth.authorization.roles_any_of,
-            description=f"{winning_auth.enforcement_point.value}: {winning_auth.description}"
+            description=f"{winning_auth.enforcement_point}: {winning_auth.description}"
         )
 
     def _format_handler(self, method_sig: str) -> str:
