@@ -797,7 +797,7 @@ class FrameworkGenerator:
         repo_url = repo_info.get('url', 'unknown') if repo_info else 'unknown'
 
         # Detect language to customize prompt
-        from compass.file_tool import FileTool
+        from sar.file_tool import FileTool
         file_tool = FileTool(library_path)
         language = file_tool.detect_primary_language()
 
@@ -947,7 +947,7 @@ Output:"""
         methods = []
 
         # Detect language to handle signatures differently
-        from compass.file_tool import FileTool
+        from sar.file_tool import FileTool
         file_tool = FileTool(joern.project_dir)
         language = file_tool.detect_primary_language()
 
@@ -1051,7 +1051,7 @@ Output:"""
         """Extract JavaDoc comment from source file using file_tool"""
         try:
             # Use file_tool's read_file_lines for better handling
-            from compass.file_tool import FileTool
+            from sar.file_tool import FileTool
             file_tool = FileTool(os.path.dirname(filename))
 
             with open(filename, 'r', encoding='utf-8', errors='ignore') as f:

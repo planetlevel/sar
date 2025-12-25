@@ -9,7 +9,6 @@ handles all complexity: loading frameworks, building queries, parsing results.
 This encapsulates ALL pattern searching logic in one place, keeping agents simple.
 """
 
-import yaml
 import json
 import re
 from pathlib import Path
@@ -25,7 +24,7 @@ class FrameworkTool:
     tool handles all complexity of searching, parsing, and returning results.
     """
 
-    def __init__(self, project_dir: str, frameworks_dir: str = None, cpg_tool=None):
+    def __init__(self, project_dir: str, frameworks_dir: str = None, cpg_tool=None, ai_client=None, debug=False):
         """
         Initialize framework tool
 
@@ -33,8 +32,12 @@ class FrameworkTool:
             project_dir: Directory containing the project
             frameworks_dir: Optional directory containing framework JSON files
             cpg_tool: Optional CPG tool instance (will create if not provided)
+            ai_client: Optional AI client for semantic code interpretation
+            debug: Enable debug output
         """
         self.project_dir = Path(project_dir)
+        self.ai_client = ai_client
+        self.debug = debug
 
         if frameworks_dir is None:
             # Get the sar package directory, then go up to find data/frameworks/
@@ -50,7 +53,7 @@ class FrameworkTool:
         self.available_frameworks = self._load_frameworks()
 
         # Initialize tools for file and code operations
-        from compass.file_tool import FileTool
+        from sar.file_tool import FileTool
         self.file_tool = FileTool(str(self.project_dir))
 
         # CPG tool for code pattern searching (lazy initialization)
@@ -449,13 +452,19 @@ class FrameworkTool:
 
         # Route to appropriate search method based on target
         if pattern_group.target == 'joern':
-            return self._search_joern_patterns(pattern_group, framework_id, category_path)
+            behaviors = self._search_joern_patterns(pattern_group, framework_id, category_path)
         elif pattern_group.target == 'filename':
-            return self._search_filename_patterns(pattern_group, framework_id, category_path)
+            behaviors = self._search_filename_patterns(pattern_group, framework_id, category_path)
         elif pattern_group.target == 'filecontent':
-            return self._search_filecontent_patterns(pattern_group, framework_id, category_path)
+            behaviors = self._search_filecontent_patterns(pattern_group, framework_id, category_path)
         else:
-            return []
+            behaviors = []
+
+        # AI enrichment if requested
+        if behaviors and hasattr(pattern_group, 'ai_interpret') and pattern_group.ai_interpret:
+            behaviors = self._enrich_behaviors_with_ai(behaviors, pattern_group, category_path)
+
+        return behaviors
 
 
     def _search_joern_patterns(
@@ -481,6 +490,8 @@ class FrameworkTool:
             return self._search_class_names(pattern_group, framework_id, category_path)
         elif search_type == 'import':
             return self._search_imports(pattern_group, framework_id, category_path)
+        elif search_type == 'method_parameter_type':
+            return self._search_method_parameter_types(pattern_group, framework_id, category_path)
         else:
             # Unsupported search type
             return []
@@ -517,50 +528,10 @@ class FrameworkTool:
           .method
           .map(m => {{
             val annot = m.annotation.name("({pattern_regex})").head
-            val annotValue = annot.parameterAssign.headOption.map(_.code).getOrElse("")
+            val annotParams = annot.parameterAssign.code.l.mkString(";;;")
             val className = m.typeDecl.headOption.map(_.fullName).getOrElse("Unknown")
 
-            // Extract route path and HTTP method from @XxxMapping annotations
-            val mappingAnnotOpt = m.annotation.name(".*Mapping").headOption
-            val routePath = mappingAnnotOpt.flatMap({{mapping =>
-              // Try to find value or path parameter (exclude method parameter)
-              mapping.parameterAssign.code
-                .find(c => !c.contains("RequestMethod"))
-                .map({{code =>
-                  // Extract just the string value from "value = \"/path\"" or "\"/path\""
-                  if (code.contains("=")) {{
-                    // Format: value = "/path" or path = "/path"
-                    val parts = code.split("=", 2)
-                    if (parts.length > 1) parts(1).trim else code
-                  }} else {{
-                    // Format: "/path"
-                    code.trim
-                  }}
-                }})
-            }}).getOrElse("<iterator>")
-
-            val httpMethod = mappingAnnotOpt.map({{mapping =>
-              val mappingName = mapping.name
-              // Extract from @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping
-              if (mappingName == "GetMapping") "GET"
-              else if (mappingName == "PostMapping") "POST"
-              else if (mappingName == "PutMapping") "PUT"
-              else if (mappingName == "DeleteMapping") "DELETE"
-              else if (mappingName == "PatchMapping") "PATCH"
-              else if (mappingName == "RequestMapping") {{
-                // For @RequestMapping, extract from method parameter
-                val methodParam = mapping.parameterAssign.code
-                  .find(c => c.contains("RequestMethod"))
-                  .getOrElse("")
-                val lastDot = methodParam.lastIndexOf(".")
-                if (lastDot >= 0) methodParam.substring(lastDot + 1)
-                else if (methodParam.nonEmpty) methodParam
-                else "REQUEST"
-              }}
-              else "UNKNOWN"
-            }}).getOrElse("UNKNOWN")
-
-            s"${{m.fullName}}|${{className}}|${{m.filename}}|${{m.lineNumber.headOption.getOrElse(0)}}|${{annot.name}}|${{annotValue}}|${{httpMethod}}|${{routePath}}"
+            s"${{m.fullName}}|${{className}}|${{m.filename}}|${{m.lineNumber.headOption.getOrElse(0)}}|${{annot.name}}|${{annotParams}}"
           }})
           .l
         '''
@@ -592,7 +563,7 @@ class FrameworkTool:
 
         for result in results:
             parts = result.split('|')
-            if len(parts) < 8:
+            if len(parts) < 6:
                 continue
 
             method_full = parts[0]
@@ -600,9 +571,15 @@ class FrameworkTool:
             file_path = parts[2]
             line_num = int(parts[3]) if parts[3].isdigit() else 0
             annot_name = parts[4]
-            annot_value = parts[5]
-            http_method = parts[6]
-            route_path = parts[7] if len(parts) > 7 else "<iterator>"
+            annot_params = parts[5]  # Raw annotation parameters (;;; delimited)
+
+            # Parse annotation parameters into dict
+            annotation_params = {}
+            if annot_params:
+                for param in annot_params.split(';;;'):
+                    param = param.strip()
+                    if param:
+                        annotation_params[param] = param
 
             # Determine location and location_type based on available context
             # Check if this is a controller class (endpoint layer)
@@ -614,16 +591,7 @@ class FrameworkTool:
             )
 
             # Determine location_type: endpoint, service, code, or unknown
-            if http_method and http_method != 'UNKNOWN':
-                # Use route path if available, otherwise fallback
-                if route_path and route_path != "<iterator>":
-                    # Clean up route path (remove quotes, backslashes, and whitespace)
-                    clean_route = route_path.replace('\\', '').strip().strip('"').strip("'").strip()
-                    location = f"{http_method} {clean_route}"
-                else:
-                    location = f"{http_method} <iterator>"
-                location_type = "endpoint"
-            elif is_controller:
+            if is_controller:
                 location = f'{class_name} (line {line_num})'
                 location_type = "endpoint"
             elif class_name:
@@ -649,15 +617,18 @@ class FrameworkTool:
                 'location_type': location_type
             }
 
-            # Extract roles from annotation value for authorization
-            if category == 'authorization' and annot_value:
-                roles = self._extract_roles_from_annotation(annot_value)
-                if roles:
-                    behavior['roles'] = roles
+            # Add raw annotation parameters if present
+            if annotation_params:
+                behavior['annotation_params'] = annotation_params
 
-            # Add HTTP method if available
-            if http_method and http_method != 'UNKNOWN':
-                behavior['httpMethod'] = http_method
+            # Extract roles from first annotation parameter for authorization (backward compatibility)
+            if category == 'authorization' and annot_params:
+                # Get first parameter for legacy role extraction
+                first_param = annot_params.split(';;;')[0].strip() if ';;;' in annot_params else annot_params
+                if first_param:
+                    roles = self._extract_roles_from_annotation(first_param)
+                    if roles:
+                        behavior['roles'] = roles
 
             behaviors.append(behavior)
 
@@ -841,6 +812,92 @@ class FrameworkTool:
         return []
 
 
+    def _search_method_parameter_types(
+        self,
+        pattern_group: PatternGroup,
+        framework_id: str,
+        category_path: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for methods that have a specific parameter type
+
+        Used for finding HttpSecurity configuration methods like:
+            configure(HttpSecurity http)
+
+        Builds Joern query like:
+            cpg.method.where(_.parameter.typeFullName("org.springframework.security.config.annotation.web.builders.HttpSecurity"))
+        """
+        parameter_type = pattern_group.parameter_type if hasattr(pattern_group, 'parameter_type') else None
+        if not parameter_type:
+            return []
+
+        # Build Joern query to find methods with this parameter type
+        query = f'''
+        cpg.method
+          .where(_.parameter.typeFullName("{parameter_type}"))
+          .map(m => {{
+            Map(
+              "method" -> m.fullName,
+              "file" -> m.file.name.headOption.getOrElse("unknown"),
+              "line" -> m.lineNumber.getOrElse(0),
+              "class" -> m.typeDecl.fullName.headOption.getOrElse("unknown"),
+              "location" -> m.fullName,
+              "parameterType" -> "{parameter_type}"
+            )
+          }}).toJson
+        '''
+
+        result = self.cpg_tool.query(query)
+
+        if not result.success or not result.output or not result.output.strip():
+            return []
+
+        # Parse JSON output - extract from Scala format
+        # Pattern: val res2: String = "[...]"
+        try:
+            # Extract JSON from Scala output
+            if 'String =' in result.output:
+                match = re.search(r'String = \"(.*)\"$', result.output, re.DOTALL)
+                if not match:
+                    return []
+                json_with_escapes = match.group(1)
+                # Replace escaped quotes
+                json_str = json_with_escapes.replace(r'\"', '"').replace(r'\\', '\\')
+            else:
+                json_str = result.output
+
+            behaviors_data = json.loads(json_str)
+
+            # Convert to Behavior format
+            behaviors = []
+            for behavior_data in behaviors_data:
+                method_name = behavior_data.get('method', '')
+                class_name = behavior_data.get('class', '')
+                file_path = behavior_data.get('file', '')
+                line_num = behavior_data.get('line', 0)
+
+                # Extract just method name (after last dot)
+                simple_method_name = method_name.split(':')[0].split('.')[-1] if method_name else 'unknown'
+
+                behaviors.append({
+                    'framework': framework_id,
+                    'category': category_path.split('.')[-1],  # Last part of path
+                    'type': 'http_security_config',
+                    'mechanism': f'{simple_method_name}({parameter_type.split(".")[-1]})',
+                    'method': method_name,
+                    'class': class_name,
+                    'file': file_path,
+                    'line': line_num,
+                    'location': f'{class_name}.{simple_method_name}',
+                    'location_type': 'code'
+                })
+
+            return behaviors
+
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON from method_parameter_type query: {e}")
+            return []
+
     def _search_imports(
         self,
         pattern_group: PatternGroup,
@@ -924,6 +981,166 @@ class FrameworkTool:
             List of database Behavior dicts
         """
         return self.search_patterns(frameworks, 'database.sql_queries')
+
+
+    def find_filters_interceptors(
+        self,
+        frameworks: Union[Dict[str, FrameworkDefinition], FrameworkDefinition]
+    ) -> List[Dict[str, Any]]:
+        """
+        Find all security filters and interceptors
+
+        Searches security.filters_interceptors patterns.
+
+        Args:
+            frameworks: Dict of frameworks or single FrameworkDefinition
+
+        Returns:
+            List of filter/interceptor Behavior dicts with AI interpretation
+        """
+        return self.search_patterns(frameworks, 'security.filters_interceptors')
+
+
+    # ========================================================================
+    # AI Enrichment Methods
+    # ========================================================================
+
+    def _read_source_context(self, file_path: str, line_num: int, context_lines: int = 30) -> str:
+        """
+        Read source code context around a specific line number
+
+        Args:
+            file_path: Path to file (relative to project_dir)
+            line_num: Line number to center on
+            context_lines: Number of lines to include (total, centered on line_num)
+
+        Returns:
+            Source code string with context
+        """
+        try:
+            full_path = self.project_dir / file_path
+            if not full_path.exists():
+                return f"# File not found: {file_path}"
+
+            with open(full_path, 'r') as f:
+                lines = f.readlines()
+
+            # Calculate range
+            half_context = context_lines // 2
+            start = max(0, line_num - half_context - 1)  # -1 because line_num is 1-indexed
+            end = min(len(lines), line_num + half_context)
+
+            context = ''.join(lines[start:end])
+            return context
+
+        except Exception as e:
+            return f"# Error reading {file_path}: {e}"
+
+    def _build_interpretation_prompt(self, pattern_group, behavior: Dict, source: str, category_path: str) -> str:
+        """
+        Build AI prompt for interpreting matched code/config
+
+        Args:
+            pattern_group: PatternGroup with ai_guidance
+            behavior: Behavior dict with file/line info
+            source: Source code/config content
+            category_path: Category path like 'security.authorization'
+
+        Returns:
+            Prompt string for AI
+        """
+        # Get guidance if provided
+        guidance_section = ""
+        if hasattr(pattern_group, 'ai_guidance') and pattern_group.ai_guidance:
+            guidance_section = f"\n{pattern_group.ai_guidance}\n"
+
+        prompt = f"""Analyze this {pattern_group.description or category_path}:
+
+FILE: {behavior.get('file', 'unknown')}
+LINE: {behavior.get('line', 'N/A')}
+{guidance_section}
+CODE/CONFIG:
+```
+{source}
+```
+
+Analyze this code and extract semantic meaning. Return JSON ONLY (no markdown, no explanation outside JSON):
+{{
+  "rules": ["list of security rules/behaviors/patterns found"],
+  "explanation": "what this configuration does and what it means"
+}}
+"""
+        return prompt
+
+    def _enrich_behaviors_with_ai(
+        self,
+        behaviors: List[Dict],
+        pattern_group,
+        category_path: str
+    ) -> List[Dict]:
+        """
+        Generic AI enrichment for matched behaviors
+
+        Reads source code for each behavior and uses AI to extract semantic meaning.
+        Works for both code patterns (Joern) and config patterns (filecontent).
+
+        Args:
+            behaviors: List of behavior dicts from pattern search
+            pattern_group: PatternGroup with ai_interpret=True
+            category_path: Category like 'security.authorization'
+
+        Returns:
+            Same behaviors list with 'ai_interpretation' field added
+        """
+        if not self.ai_client:
+            if self.debug:
+                print(f"[FRAMEWORK_TOOL] AI enrichment requested but no AI client available")
+            return behaviors
+
+        if self.debug:
+            print(f"[FRAMEWORK_TOOL] Enriching {len(behaviors)} behaviors with AI interpretation...")
+
+        for behavior in behaviors:
+            try:
+                # Read source context
+                file_path = behavior.get('file', '')
+                line_num = behavior.get('line', 0)
+
+                if not file_path or not line_num:
+                    continue
+
+                source = self._read_source_context(file_path, line_num, context_lines=30)
+
+                # Build prompt
+                prompt = self._build_interpretation_prompt(
+                    pattern_group,
+                    behavior,
+                    source,
+                    category_path
+                )
+
+                # Call AI
+                response = self.ai_client.call_claude(prompt, max_tokens=500, temperature=0.2)
+
+                if response:
+                    # Extract JSON from response
+                    import re
+                    match = re.search(r'\{.*\}', response, re.DOTALL)
+                    if match:
+                        ai_analysis = json.loads(match.group(0))
+                        behavior['ai_interpretation'] = ai_analysis
+
+                        if self.debug:
+                            explanation = ai_analysis.get('explanation', 'No explanation provided')[:80]
+                            print(f"[FRAMEWORK_TOOL]   ✓ {file_path}:{line_num} - {explanation}")
+
+            except Exception as e:
+                if self.debug:
+                    print(f"[FRAMEWORK_TOOL]   ✗ Failed to enrich {behavior.get('file')}:{behavior.get('line')}: {e}")
+                # Continue with other behaviors even if one fails
+                continue
+
+        return behaviors
 
 
 def main():

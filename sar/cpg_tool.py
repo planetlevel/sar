@@ -26,7 +26,7 @@ from typing import Dict, Any, List, Optional, Set
 import requests
 
 # Local imports
-from compass.file_tool import FileTool
+from sar.file_tool import FileTool
 
 # Set up module logger
 logger = logging.getLogger(__name__)

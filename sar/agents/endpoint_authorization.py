@@ -1,9 +1,12 @@
 """
 Endpoint Authorization Agent
 
-Analyzes route-level access control to determine if endpoints have appropriate
+Analyzes HTTP route-level access control to determine if endpoints have appropriate
 authorization checks. Discovers both standard framework patterns and custom
 authorization mechanisms through agentic AI investigation.
+
+SCOPE: HTTP endpoints only (controllers/routes). Does NOT cover @Scheduled jobs,
+@EventListener, message listeners, or internal service-to-service calls.
 
 Three-Phase Analysis:
 1. Mechanism Discovery - Find standard + custom authorization patterns
@@ -21,18 +24,22 @@ from sar.report_utils import build_defense_usage_matrix, build_defense_metadata,
 
 class EndpointAuthorizationAgent:
     """
-    Analyzes endpoint-level authorization (route access control)
+    Analyzes HTTP endpoint-level ROLE-BASED authorization (route access control)
 
     Scope:
-    - ✅ Can role X access endpoint Y?
-    - ✅ Which endpoints require which roles?
-    - ✅ Framework-based authorization (annotations, middleware)
-    - ✅ Custom authorization (meta-annotations, custom methods)
+    - ✅ Can role X access HTTP endpoint Y?
+    - ✅ Which HTTP endpoints require which roles?
+    - ✅ Framework-based role checks (annotations, middleware)
+    - ✅ Custom role authorization (meta-annotations, custom methods)
+    - ✅ Prevents unauthorized HTTP access via web framework
+    - ✅ Focus: ROLES (ADMIN, USER, VET, OWNER, etc.)
 
     Out of Scope:
+    - ❌ Fine-grained permissions/authorities (handled by separate agent)
     - ❌ Data-level authorization / IDOR
     - ❌ Authentication mechanisms
     - ❌ Session management
+    - ❌ Non-HTTP entry points (@Scheduled, @EventListener, message listeners, etc.)
     """
 
     def __init__(self,
@@ -139,6 +146,18 @@ YOUR TASK:
 
 3. Map existing roles to proposed roles (e.g., USER → OWNER)
 
+CRITICAL: NEVER SUGGEST "PUBLIC" AS A ROLE
+- PUBLIC is not a role - it means "no authentication required"
+- Public endpoints are configured at the HTTP/framework level with an allowlist, not with a role
+- Do NOT include PUBLIC, ANONYMOUS, or UNAUTHENTICATED in the proposed roles list
+- Roles are for AUTHENTICATED users with different permissions
+
+IMPORTANT CONTEXT:
+- Roles represent different business functions and their required operations
+- ADMIN = System administrator role for administrative operations (config, diagnostics, user management)
+- Other roles = Operational/functional roles for day-to-day business operations
+- Each role should correspond to a distinct set of responsibilities in the application domain
+
 Return JSON ONLY:
 {{
   "current_roles": ["ADMIN", "USER"],
@@ -213,30 +232,48 @@ Return JSON ONLY:
 
                 compact_endpoints.append(f"{idx} {http_method} {method_name} {current_bits}")
 
-            prompt = f"""Classify endpoints using role bitset encoding.
+            prompt = f"""You are creating a DEFENSE DEPLOYMENT MATRIX showing which role checks to apply at each endpoint.
 
 ROLES: {' '.join(f"{i}={role}" for i, role in enumerate(proposed_roles))}
+
+IMPORTANT: This matrix shows WHICH ROLE(S) TO CHECK at each endpoint, not who has access.
+- Each bit = "should this endpoint check for this role?"
+- Be thoughtful: which role(s) make sense to CHECK based on the operation?
+- ADMIN checks should ONLY appear on admin-specific operations (config, diagnostics, system management)
+- Most endpoints check for operational roles (VET, OWNER, RECEPTIONIST) NOT admin
 
 ENDPOINTS (compact format):
 {chr(10).join(compact_endpoints)}
 
 CLASSIFICATION CODES:
-- P = PUBLIC (permitAll in HTTP config - no authentication)
-- A = AUTHENTICATED (any logged-in user - isAuthenticated())
-- R = ROLE_SPECIFIC (specific role required - hasRole())
+- P = PUBLIC (no authentication required - configured at framework/HTTP layer)
+- A = AUTHENTICATED (any logged-in user - requires authentication but no specific role)
+- R = ROLE_SPECIFIC (check for specific role(s) - requires authentication + role check)
+
+CRITICAL: PUBLIC IS NOT A ROLE
+- P classification means "no authentication required" - configured at framework level, NOT a role check
+- Never set role bits for PUBLIC endpoints (bitset should be 0000)
+- PUBLIC endpoints are allowlisted at the HTTP/framework layer, they do NOT get role checks
 
 OUTPUT FORMAT (one line per endpoint):
 idx classification suggested_bits brief_reason
 
-Example:
-0 R 1010 admin+manager operations
-1 P 0000 public welcome page
-2 A 1111 any authenticated user
+Example (assuming roles: 0=VET 1=OWNER 2=RECEPTIONIST 3=ADMIN):
+0 R 1000 medical operations
+1 P 0000 public welcome (no role bits - framework allowlist)
+2 R 0001 crash testing
+3 R 0110 pet registration
+4 R 1110 visit scheduling
 
-CRITICAL: Return ONLY the {len(chunk)} data lines below, NO preamble, NO explanations, NO markdown.
-Just {len(chunk)} lines in the exact format shown above.
+INSTRUCTIONS:
+- P classification: bitset must be 0000 (no roles) - configured at framework/HTTP layer
+- A classification: bitset must be 0000 (no specific roles) - any authenticated user
+- R classification: set bits for which role(s) should be checked
+- ADMIN bit should ONLY be set for admin-specific operations (config, crash testing, system management)
+- For rationale: Brief phrase explaining the FUNCTION (don't repeat role names - the bitset shows that)
+- Return ONLY {len(chunk)} data lines, NO preamble, NO markdown
 
-YOUR RESPONSE (data lines only, no preamble):"""
+YOUR RESPONSE (data lines only):"""
 
             try:
                 response = self.ai.call_claude(prompt, max_tokens=2000, temperature=0.3)
@@ -322,8 +359,7 @@ YOUR RESPONSE (data lines only, no preamble):"""
             }
         """
         if not self.ai:
-            # Fallback to algorithmic approach if no AI
-            return self._algorithmic_matrix_analysis(defense_matrix, roles)
+            raise ValueError("AI client required for endpoint authorization agent - algorithmic fallback removed")
 
         rows = defense_matrix.get('rows', [])
         columns = defense_matrix.get('columns', [])
@@ -397,7 +433,6 @@ YOUR RESPONSE (data lines only, no preamble):"""
             'endpoint_classifications': endpoint_classifications,
             'total_endpoints': len(endpoint_classifications),
             'currently_protected': sum(1 for e in endpoint_classifications if e.get('current_auth')),
-            'suggested_public': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'PUBLIC'),
             'suggested_authenticated': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'AUTHENTICATED'),
             'suggested_role_specific': sum(1 for e in endpoint_classifications if e.get('suggested_auth') == 'ROLE_SPECIFIC')
         }
@@ -405,71 +440,10 @@ YOUR RESPONSE (data lines only, no preamble):"""
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] AI matrix analysis complete:")
             print(f"  Endpoints analyzed: {result['total_endpoints']}")
-            print(f"  Suggested PUBLIC: {result['suggested_public']}")
             print(f"  Suggested AUTHENTICATED: {result['suggested_authenticated']}")
             print(f"  Suggested ROLE_SPECIFIC: {result['suggested_role_specific']}")
 
         return result
-
-    def _algorithmic_matrix_analysis(self, defense_matrix: Dict, roles: Dict) -> Dict:
-        """
-        Fallback algorithmic analysis when AI unavailable
-
-        Simple heuristic-based classification
-        """
-        rows = defense_matrix.get('rows', [])
-        columns = defense_matrix.get('columns', [])
-        matrix = defense_matrix.get('matrix', [])
-        row_protected = defense_matrix.get('row_protected', [])
-
-        # Propose keeping existing roles
-        role_structure = {
-            'current_roles': roles.get('used', []),
-            'proposed_roles': roles.get('used', []),
-            'role_mapping': {role: role for role in roles.get('used', [])},
-            'rationale': f"Maintain existing {len(roles.get('used', []))} role structure"
-        }
-
-        # Simple endpoint classification
-        endpoint_classifications = []
-        for i, endpoint_name in enumerate(rows):
-            is_protected = row_protected[i] if i < len(row_protected) else False
-            endpoint_lower = endpoint_name.lower()
-
-            # Determine current authorization
-            current_auth = None
-            current_roles = []
-            if is_protected and i < len(matrix):
-                for j, has_role in enumerate(matrix[i]):
-                    if has_role and j < len(columns):
-                        current_roles.append(columns[j])
-                current_auth = ', '.join(current_roles) if current_roles else 'PROTECTED'
-
-            # Simple heuristics
-            if any(word in endpoint_lower for word in ['welcome', 'login', 'health']):
-                suggested = ('PUBLIC', None, 'Public endpoint')
-            elif any(word in endpoint_lower for word in ['admin', 'delete', 'remove']):
-                suggested = ('ROLE_SPECIFIC', 'ADMIN', 'Administrative operation')
-            else:
-                suggested = ('AUTHENTICATED', 'USER', 'Requires authentication')
-
-            endpoint_classifications.append({
-                'endpoint': endpoint_name,
-                'current_auth': current_auth,
-                'suggested_auth': suggested[0],
-                'suggested_role': suggested[1],
-                'rationale': suggested[2]
-            })
-
-        return {
-            'role_structure': role_structure,
-            'endpoint_classifications': endpoint_classifications,
-            'total_endpoints': len(endpoint_classifications),
-            'currently_protected': sum(1 for e in endpoint_classifications if e['current_auth']),
-            'suggested_public': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'PUBLIC'),
-            'suggested_authenticated': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'AUTHENTICATED'),
-            'suggested_role_specific': sum(1 for e in endpoint_classifications if e['suggested_auth'] == 'ROLE_SPECIFIC')
-        }
 
     def _build_proposed_access_matrix(self, evidence: Dict) -> Dict:
         """
@@ -493,101 +467,6 @@ YOUR RESPONSE (data lines only, no preamble):"""
 
         return self._ai_analyze_access_control_matrix(defense_matrix, roles)
 
-    def _suggest_endpoint_authorization(self, endpoint_name: str, current_auth: Optional[str]) -> Dict:
-        """
-        Suggest authorization classification for an endpoint based on its name/characteristics
-
-        Returns:
-            {
-                'classification': 'PUBLIC' | 'AUTHENTICATED' | 'ROLE_SPECIFIC',
-                'role': None | 'USER' | 'ADMIN',
-                'rationale': 'Why this classification'
-            }
-        """
-        endpoint_lower = endpoint_name.lower()
-
-        # Public endpoints - no authentication needed
-        public_patterns = [
-            'welcome', 'home', 'index', 'login', 'logout', 'register',
-            'health', 'actuator', 'swagger', 'api-docs', 'static',
-            'error', 'favicon', 'css', 'js', 'images'
-        ]
-
-        if any(pattern in endpoint_lower for pattern in public_patterns):
-            return {
-                'classification': 'PUBLIC',
-                'role': None,
-                'rationale': 'Public endpoint - no authentication required (add to permitAll() list)'
-            }
-
-        # Admin-only endpoints - sensitive operations (check more specifically)
-        admin_patterns = [
-            'delete', 'remove', 'config', 'settings', 'system', 'control'
-        ]
-
-        # Check for admin in the path/controller name, not just anywhere
-        has_admin_marker = 'admin' in endpoint_lower or 'superadmin' in endpoint_lower
-        has_admin_operation = any(pattern in endpoint_lower for pattern in admin_patterns)
-
-        if has_admin_marker or has_admin_operation:
-            return {
-                'classification': 'ROLE_SPECIFIC',
-                'role': 'ADMIN',
-                'rationale': 'Administrative function - restrict to ADMIN role'
-            }
-
-        # Update/Edit operations - might need specific role
-        if any(word in endpoint_lower for word in ['update', 'edit', 'modify', 'patch']):
-            if current_auth and 'ADMIN' in current_auth:
-                return {
-                    'classification': 'ROLE_SPECIFIC',
-                    'role': 'ADMIN',
-                    'rationale': 'Update operation - currently restricted to ADMIN, consider if USER should also have access'
-                }
-            else:
-                return {
-                    'classification': 'AUTHENTICATED',
-                    'role': 'USER',
-                    'rationale': 'Update operation - requires authentication, available to any logged-in user'
-                }
-
-        # Create/Post operations - authenticated users
-        if any(word in endpoint_lower for word in ['create', 'new', 'add', 'post', 'processCreation']):
-            return {
-                'classification': 'AUTHENTICATED',
-                'role': 'USER',
-                'rationale': 'Creation operation - requires authentication to track ownership'
-            }
-
-        # Read/View operations - typically authenticated
-        if any(word in endpoint_lower for word in ['show', 'view', 'get', 'find', 'list', 'display', 'init']):
-            # If it's an init form, probably needs auth
-            if 'init' in endpoint_lower or 'form' in endpoint_lower:
-                return {
-                    'classification': 'AUTHENTICATED',
-                    'role': 'USER',
-                    'rationale': 'Form initialization - requires authentication'
-                }
-            # If it's a public listing (vets, resources)
-            if any(word in endpoint_lower for word in ['vet', 'resource', 'list']):
-                return {
-                    'classification': 'PUBLIC',
-                    'role': None,
-                    'rationale': 'Public information - can be accessed without authentication'
-                }
-            # Default read operations need auth
-            return {
-                'classification': 'AUTHENTICATED',
-                'role': 'USER',
-                'rationale': 'Read operation - requires authentication to protect data privacy'
-            }
-
-        # Default: require authentication
-        return {
-            'classification': 'AUTHENTICATED',
-            'role': 'USER',
-            'rationale': 'Standard operation - requires authentication'
-        }
 
     def get_agent_id(self) -> str:
         return "endpoint_authorization"
@@ -599,7 +478,18 @@ YOUR RESPONSE (data lines only, no preamble):"""
         return "authorization"
 
     def should_run(self) -> Dict[str, Any]:
-        """Always run - authorization analysis is fundamental"""
+        """
+        Check if agent should run
+
+        Requires AI client for analysis
+        """
+        if not self.ai:
+            return {
+                'should_run': False,
+                'reason': 'AI client required for endpoint authorization agent (algorithmic fallback removed)',
+                'confidence': 1.0
+            }
+
         return {
             'should_run': True,
             'reason': 'Route-level authorization analysis is fundamental for security',
@@ -828,8 +718,11 @@ YOUR RESPONSE (data lines only, no preamble):"""
         AI acts as architectural detective to solve the puzzle of WHERE
         authorization is applied and WHY
         """
-        if not evidence or not self.ai:
-            return self._algorithmic_pattern_detection(evidence)
+        if not self.ai:
+            raise ValueError("AI client required for architecture analysis - algorithmic fallback removed")
+
+        if not evidence:
+            raise ValueError("No evidence provided for architecture analysis")
 
         # Build prompt with all evidence
         import json
@@ -908,52 +801,8 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
         except Exception as e:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] AI analysis failed: {e}")
+            raise ValueError(f"AI architecture analysis failed: {e}")
 
-        # Fallback to algorithmic detection
-        return self._algorithmic_pattern_detection(evidence)
-
-    def _algorithmic_pattern_detection(self, evidence: Dict) -> Dict:
-        """
-        Fallback algorithmic pattern detection when AI is unavailable
-
-        Uses simple heuristics based on evidence
-        """
-        if not evidence or evidence.get('total_auth_methods', 0) == 0:
-            return {
-                'pattern': 'none',
-                'confidence': 1.0,
-                'primary_layer': 'none',
-                'evidence_summary': 'No authorization mechanisms detected',
-                'coverage_approach': 'N/A',
-                'architecture_description': 'No authorization detected in codebase'
-            }
-
-        total = evidence['total_auth_methods']
-        http_count = evidence.get('http_mapping_presence', 0)
-        http_ratio = http_count / total if total > 0 else 0
-
-        # Simple heuristic: if >50% have HTTP mappings, it's endpoint-level
-        if http_ratio > 0.5:
-            pattern = 'endpoint_layer'
-            primary = 'HTTP endpoints (controllers)'
-            description = 'Authorization is primarily applied at the controller/endpoint layer'
-        elif http_ratio < 0.1:
-            pattern = 'service_layer'
-            primary = 'business logic (service layer)'
-            description = 'Authorization is primarily applied at the service layer'
-        else:
-            pattern = 'mixed'
-            primary = 'multiple layers'
-            description = 'Authorization is applied across multiple architectural layers'
-
-        return {
-            'pattern': pattern,
-            'confidence': 0.7,  # Lower confidence than AI
-            'primary_layer': primary,
-            'evidence_summary': f'{http_count}/{total} methods have HTTP mappings',
-            'coverage_approach': 'measure protection at identified layers',
-            'architecture_description': description
-        }
 
     def _detect_authorization_pattern(self) -> Dict:
         """
@@ -996,62 +845,6 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
     # layer and data-level authorization which is outside the scope of endpoint authorization agent.
     #
     # Removed 2025-12-21 per user feedback
-    def _run_ai_analysis_REMOVED(self) -> Optional[Dict]:
-        """
-        [REMOVED] ALWAYS run AI analysis to understand authorization architecture
-
-        AI investigates:
-        - How are standard mechanisms being used?
-        - Is coverage intentional or incomplete?
-        - Are there custom patterns not in framework definitions?
-        - Is the architecture sound?
-
-        Returns AI analysis result with insights
-        """
-        # Build context for AI
-        context = self._build_ai_context()
-
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}] AI Context:")
-            print(f"  Standard mechanisms: {len(self.standard_mechanisms)}")
-            print(f"  Frameworks matched: {context['frameworks_matched']}")
-
-        # Build AI prompt for architecture investigation
-        prompt = self._build_architecture_investigation_prompt(context)
-
-        try:
-            if self.debug:
-                print(f"\n{'='*70}")
-                print(f"[AI PROMPT] Architecture Investigation")
-                print(f"{'='*70}")
-                print(prompt)
-                print(f"{'='*70}\n")
-
-            response_text = self.ai.call_claude(
-                prompt=prompt,
-                max_tokens=3000,
-                temperature=0.3
-            )
-
-            if self.debug and response_text:
-                print(f"\n{'='*70}")
-                print(f"[AI RESPONSE] Architecture Investigation")
-                print(f"{'='*70}")
-                print(response_text)
-                print(f"{'='*70}\n")
-
-            if response_text:
-                # Parse AI's architecture analysis
-                analysis = self._parse_architecture_analysis(response_text)
-                if self.debug:
-                    print(f"[{self.get_agent_id().upper()}] AI identified pattern: {analysis.get('pattern', 'unknown')}")
-                return analysis
-
-        except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] AI analysis failed: {e}")
-
-        return None
 
     def _build_ai_context(self) -> Dict:
         """
@@ -1190,13 +983,6 @@ Respond in JSON:
         }
 
     # REMOVED: _extract_mechanisms_from_ai() - no longer needed after ai_insights removal
-    def _extract_mechanisms_from_ai_REMOVED(self) -> List[Dict]:
-        """
-        [REMOVED] Extract custom mechanisms discovered by AI analysis
-
-        Returns list of mechanisms in same format as standard_mechanisms
-        """
-        return []
 
     # ========================================================================
     # PHASE 1.5: CUSTOM DEFENSE DISCOVERY
@@ -1983,20 +1769,27 @@ If you see NO custom authorization patterns, return: {{"patterns_found": [], "ar
             exposure_description = "endpoints (default)"
 
         # Count protected exposures (those with authorization defenses)
-        # Filter by location_type based on detected pattern
+        # CRITICAL: Only count behaviors that match actual exposures in total_exposures
+        # Build set of exposure methods for fast lookup
+        exposure_methods = set(exp.get('method', '') for exp in total_exposures)
+
         protected_exposures = []
         for mechanism in self.standard_mechanisms:
             for behavior in mechanism.get('behaviors', []):
-                # Check if behavior matches the expected location type
-                if location_type_filter is None or behavior.get('location_type') == location_type_filter:
-                    protected_exposures.append({
-                        'method': behavior.get('method', ''),
-                        'class': behavior.get('class', ''),
-                        'httpMethod': behavior.get('httpMethod', 'UNKNOWN'),
-                        'route': behavior.get('location', ''),
-                        'mechanism': behavior.get('mechanism', ''),
-                        'line': behavior.get('line', 0)
-                    })
+                behavior_method = behavior.get('method', '')
+
+                # Check if this behavior protects an actual exposure
+                if behavior_method in exposure_methods:
+                    # Additional filter by location_type if specified
+                    if location_type_filter is None or behavior.get('location_type') == location_type_filter:
+                        protected_exposures.append({
+                            'method': behavior_method,
+                            'class': behavior.get('class', ''),
+                            'httpMethod': behavior.get('httpMethod', 'UNKNOWN'),
+                            'route': behavior.get('location', ''),
+                            'mechanism': behavior.get('mechanism', ''),
+                            'line': behavior.get('line', 0)
+                        })
 
         # Calculate metrics
         total_count = len(total_exposures)
@@ -2076,16 +1869,382 @@ Return these EXACT values in JSON:
             'roles': roles
         })
 
+        # Verify unprotected routes - check for additional protection mechanisms
+        verification_report = self._verify_unprotected_routes()
+
         evidence = {
             'mechanisms': self.all_mechanisms,
             'defense_usage_matrix': defense_matrix,  # Current state
             'roles': roles,
             'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
             'coverage_metrics': coverage_metrics,  # AI-generated metrics
-            'proposed_access_matrix': proposed_matrix  # AI-generated classifications and role structure
+            'proposed_access_matrix': proposed_matrix,  # AI-generated classifications with ALL endpoints
+            'verification': verification_report  # Verification of unprotected routes
         }
 
         return evidence
+
+    def _verify_unprotected_routes(self) -> Dict:
+        """
+        AI-driven verification of unprotected routes
+
+        Uses AI to:
+        1. Analyze what protection mechanisms we've already found
+        2. Propose additional mechanisms that might exist in this type of application
+        3. Generate Joern queries to search for those mechanisms
+        4. Execute queries and report findings
+
+        This is more flexible than hardcoded checks - AI adapts to the specific
+        application type, framework, and domain.
+
+        Returns verification report with:
+        - mechanisms_tested: List of protection types checked
+        - additional_protections_found: New protections discovered during verification
+        - verified_unprotected_count: Count of routes confirmed unprotected
+        - updated_coverage: New coverage if additional protections found
+        """
+        if not self.ai:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Skipping verification - no AI client")
+
+            # Calculate unprotected count consistently with main logic
+            # Only count behaviors that match actual exposures
+            exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
+            protected_methods = set(
+                b.get('method', '')
+                for m in self.all_mechanisms
+                for b in m.get('behaviors', [])
+                if b.get('method', '') in exposure_methods
+            )
+            unprotected = len([e for e in self.discovered_exposures if e.get('method', '') not in protected_methods])
+
+            return {
+                'mechanisms_tested': [],
+                'additional_protections_found': [],
+                'verified_unprotected_count': unprotected,
+                'updated_coverage': None
+            }
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}] AI-driven verification of unprotected routes...")
+
+        # Get list of unprotected exposures
+        # CRITICAL: Only count behaviors that match actual exposures (not config code like SecurityConfig)
+        unprotected_exposures = []
+        protected_methods = set()
+
+        # Build set of all exposure methods
+        exposure_methods = set(exp.get('method', '') for exp in self.discovered_exposures)
+
+        for mechanism in self.all_mechanisms:
+            for behavior in mechanism.get('behaviors', []):
+                behavior_method = behavior.get('method', '')
+                # Only count if this behavior protects an actual exposure
+                if behavior_method in exposure_methods:
+                    protected_methods.add(behavior_method)
+
+        for exposure in self.discovered_exposures:
+            method = exposure.get('method', '')
+            if method and method not in protected_methods:
+                unprotected_exposures.append(exposure)
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}]   Found {len(unprotected_exposures)} unprotected exposures to verify")
+
+        # Ask AI what other protection mechanisms to check for
+        verification_plan = self._ai_generate_verification_plan(unprotected_exposures)
+
+        if not verification_plan or not verification_plan.get('checks'):
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]   AI provided no additional checks")
+            return {
+                'mechanisms_tested': [],
+                'additional_protections_found': [],
+                'verified_unprotected_count': len(unprotected_exposures),
+                'updated_coverage': None
+            }
+
+        # Execute AI-generated verification checks
+        mechanisms_tested = []
+        additional_protections = []
+
+        for check in verification_plan['checks']:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]   Checking: {check['description']}")
+
+            # Execute the Joern query
+            protections = self._execute_verification_query(check, unprotected_exposures)
+
+            mechanisms_tested.append({
+                'type': check['type'],
+                'description': check['description'],
+                'checked': True,
+                'found': len(protections),
+                'query': check.get('query', '')[:200]  # Truncate for report
+            })
+            additional_protections.extend(protections)
+
+            if self.debug and protections:
+                print(f"[{self.get_agent_id().upper()}]     Found {len(protections)} protection(s)")
+
+        # Calculate updated coverage if additional protections found
+        original_protected = len(protected_methods)
+        new_protected = len(set(p.get('method') for p in additional_protections if p.get('method') != 'N/A'))
+        total_exposures = len(self.discovered_exposures)
+
+        updated_coverage = None
+        if new_protected > 0:
+            new_total_protected = original_protected + new_protected
+            updated_coverage = {
+                'exposures': total_exposures,
+                'protected': new_total_protected,
+                'unprotected': total_exposures - new_total_protected,
+                'coverage': (new_total_protected / total_exposures * 100) if total_exposures > 0 else 0
+            }
+
+        verified_unprotected = len(unprotected_exposures) - new_protected
+
+        if self.debug:
+            print(f"[{self.get_agent_id().upper()}]   Verification complete:")
+            print(f"[{self.get_agent_id().upper()}]     Tested {len(mechanisms_tested)} protection mechanism types")
+            print(f"[{self.get_agent_id().upper()}]     Found {new_protected} additional protections")
+            print(f"[{self.get_agent_id().upper()}]     Verified {verified_unprotected} routes as genuinely unprotected")
+
+        return {
+            'mechanisms_tested': mechanisms_tested,
+            'additional_protections_found': additional_protections,
+            'verified_unprotected_count': verified_unprotected,
+            'updated_coverage': updated_coverage
+        }
+
+    def _ai_generate_verification_plan(self, unprotected_exposures: List[Dict]) -> Dict:
+        """
+        Ask AI to generate a verification plan
+
+        AI analyzes:
+        - What we've already found (standard mechanisms)
+        - Sample of unprotected exposures
+        - Application framework/type
+
+        AI proposes:
+        - Additional protection mechanisms to check for
+        - Joern queries to find them
+        """
+        # Build context about what we've already found
+        found_mechanisms = []
+        for mechanism in self.all_mechanisms:
+            found_mechanisms.append({
+                'framework': mechanism.get('framework'),
+                'type': mechanism.get('type'),
+                'count': len(mechanism.get('behaviors', [])),
+                'patterns': mechanism.get('patterns', [])[:3]  # Sample
+            })
+
+        # Sample unprotected exposures
+        sample_size = min(20, len(unprotected_exposures))
+        sample = unprotected_exposures[:sample_size]
+
+        prompt = f"""You are analyzing a codebase to verify that routes marked as "unprotected" are genuinely unprotected.
+
+WHAT WE'VE ALREADY FOUND:
+{json.dumps(found_mechanisms, indent=2)}
+
+SAMPLE UNPROTECTED EXPOSURES ({sample_size} of {len(unprotected_exposures)}):
+{json.dumps(sample, indent=2)}
+
+FRAMEWORKS DETECTED:
+{', '.join(set(m.get('framework', 'unknown') for m in self.all_mechanisms))}
+
+YOUR TASK:
+Think critically about what SPECIFIC corner-case authorization/protection mechanisms might exist in THIS APPLICATION that we haven't checked yet.
+
+We're looking for mechanisms we might have MISSED - focus on corner cases and non-obvious patterns.
+
+Consider these specific types:
+- Class-level authorization annotations (not method-level)
+- HTTP security configuration files (SecurityConfig, WebSecurityConfigurerAdapter)
+  * Methods with HttpSecurity parameter that define .authorizeRequests() or .authorizeHttpRequests()
+  * Check for .anyRequest().permitAll() (makes ALL routes public!)
+  * Check for .requestMatchers("/pattern").permitAll() (specific public routes)
+- Security filters in filter chains
+- HandlerInterceptors registered in WebMvcConfigurer
+- AOP aspects with @Around/@Before on authorization
+- Custom domain-specific authorization annotations
+- Framework-specific security mechanisms (Spring Method Security, etc.)
+- Servlet filters with authorization logic
+
+For each mechanism type you want to check, provide:
+1. Type identifier (snake_case)
+2. Human-readable description
+3. Joern query to find it (or "READ_SOURCE" if you need to read actual source code)
+
+Return JSON ONLY:
+{{
+  "checks": [
+    {{
+      "type": "class_level_auth",
+      "description": "Authorization annotations on controller classes",
+      "query": "cpg.typeDecl.where(_.annotation.name.matches(\\".*Authorize.*\\")).map {{ t => Map(\\"class\\" -> t.fullName, \\"annotations\\" -> t.annotation.name.l) }}.toJson"
+    }},
+    {{
+      "type": "http_security_config",
+      "description": "HttpSecurity configuration methods - READ source to check for .anyRequest().permitAll()",
+      "query": "READ_SOURCE"
+    }}
+  ],
+  "rationale": "Why we're checking these specific mechanisms"
+}}
+
+IMPORTANT: If you need to READ and PARSE source code (like HttpSecurity configs), use "query": "READ_SOURCE"
+
+Limit to 5-8 most important checks. Focus on mechanisms likely to exist in this type of application.
+"""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=2000, temperature=0.3)
+            if response:
+                import re
+                match = re.search(r'\{.*\}', response, re.DOTALL)
+                if match:
+                    result = json.loads(match.group(0))
+                    if 'checks' in result:
+                        if self.debug:
+                            print(f"[{self.get_agent_id().upper()}]   AI proposed {len(result['checks'])} verification checks")
+                        return result
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]   AI verification plan failed: {e}")
+
+        return {}
+
+    def _execute_verification_query(self, check: Dict, unprotected_exposures: List[Dict]) -> List[Dict]:
+        """Execute a verification query generated by AI"""
+        query = check.get('query', '')
+        if not query:
+            return []
+
+        # Handle READ_SOURCE queries (need to read actual source files)
+        if query == "READ_SOURCE":
+            return self._read_and_parse_http_security_config(check, unprotected_exposures)
+
+        protections = []
+        try:
+            result = self.cpg_tool.query(query)
+            if result.success and result.output and result.output.strip():
+                data = self.cpg_tool.parse_json_result(result.output)
+
+                # Convert query results to protection records
+                for item in data:
+                    protections.append({
+                        'method': item.get('method', 'N/A'),
+                        'class': item.get('class', item.get('typeDecl', 'Unknown')),
+                        'mechanism': f"{check['type']}: {item.get('annotation', item.get('name', check['description']))}",
+                        'file': item.get('file', 'unknown'),
+                        'protection_type': check['type'],
+                        'note': f"Found by AI-driven verification: {check['description']}"
+                    })
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]     Query failed: {e}")
+
+        return protections
+
+    def _read_and_parse_http_security_config(self, check: Dict, unprotected_exposures: List[Dict]) -> List[Dict]:
+        """
+        Use AI to read and parse security configuration files to extract actual security rules
+
+        This is language-agnostic - AI figures out what the config means
+        """
+        protections = []
+
+        # Find config files that need parsing (from our framework detection)
+        config_behaviors = [m for m in self.all_mechanisms if m.get('type') == 'http_security_config']
+
+        if not config_behaviors:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}]     No security configs found to parse")
+            return protections
+
+        # Group configs by file to avoid reading same file multiple times
+        files_to_analyze = {}
+        for config in config_behaviors:
+            file_path = config.get('file', '')
+            if file_path and file_path not in files_to_analyze:
+                files_to_analyze[file_path] = config
+
+        # Have AI analyze each config file
+        for file_path, config in files_to_analyze.items():
+            try:
+                full_path = self.project_dir / file_path
+                if not full_path.exists():
+                    continue
+
+                with open(full_path, 'r') as f:
+                    source_code = f.read()
+
+                # Ask AI to parse the security configuration
+                prompt = f"""Analyze this security configuration file and extract HTTP-layer security rules.
+
+FILE: {file_path}
+CLASS: {config.get('class', 'Unknown')}
+
+SOURCE CODE:
+```
+{source_code}
+```
+
+TASK: Extract security rules that control HTTP request access. Look for:
+- Rules that affect all public (e.g., .anyRequest().permitAll())
+- Rules that require authentication for all routes
+- Specific route patterns that are public/protected
+- ANY HTTP-layer access control configuration
+
+Return JSON array of protection rules found:
+[
+  {{
+    "mechanism": "Brief description of what rule does",
+    "protection_type": "http_permitall|http_authenticated|http_pattern|custom",
+    "severity": "critical|high|medium|low",
+    "note": "Detailed explanation of security impact"
+  }}
+]
+
+If no HTTP security rules found, return: []
+"""
+
+                try:
+                    response = self.ai.call_claude(prompt, max_tokens=1500, temperature=0.2)
+                    if response:
+                        import re
+                        match = re.search(r'\[.*\]', response, re.DOTALL)
+                        if match:
+                            import json
+                            rules = json.loads(match.group(0))
+
+                            for rule in rules:
+                                protections.append({
+                                    'method': config.get('method', 'security_config'),
+                                    'class': config.get('class', 'Unknown'),
+                                    'mechanism': rule.get('mechanism', 'Security configuration'),
+                                    'file': file_path,
+                                    'protection_type': rule.get('protection_type', 'custom'),
+                                    'note': rule.get('note', 'Security rule found in configuration')
+                                })
+
+                                if self.debug:
+                                    severity = rule.get('severity', 'medium')
+                                    icon = '🚨' if severity == 'critical' else '⚠️' if severity == 'high' else 'ℹ️'
+                                    print(f"[{self.get_agent_id().upper()}]     {icon} {rule.get('mechanism')}")
+
+                except Exception as e:
+                    if self.debug:
+                        print(f"[{self.get_agent_id().upper()}]     AI parsing failed for {file_path}: {e}")
+
+            except Exception as e:
+                if self.debug:
+                    print(f"[{self.get_agent_id().upper()}]     Error reading {file_path}: {e}")
+
+        return protections
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
         """
@@ -2188,11 +2347,12 @@ Return these EXACT values in JSON:
 
         # Determine configuration style based on version
         if spring_boot and spring_boot.startswith('3'):
-            config_style = "Boot 3.x (Current)"
+            config_style = "Boot 3.x"
             config_guidance = """
-   - Use @EnableMethodSecurity(prePostEnabled = true) - NOT @EnableGlobalMethodSecurity
-   - Use SecurityFilterChain bean - NOT WebSecurityConfigurerAdapter (removed in Boot 3)
-   - Example:
+   - Continue using your existing configuration style
+   - If adding method security for the first time: @EnableMethodSecurity(prePostEnabled = true)
+   - If adding HTTP security for the first time: SecurityFilterChain bean (WebSecurityConfigurerAdapter removed in Boot 3)
+   - Example SecurityFilterChain pattern:
      @Bean
      public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
          http.authorizeHttpRequests(authz -> authz
@@ -2202,16 +2362,23 @@ Return these EXACT values in JSON:
          return http.build();
      }"""
         elif spring_boot and spring_boot.startswith('2.7'):
-            config_style = "Boot 2.7.x (Modern)"
+            config_style = "Boot 2.7.x"
             config_guidance = """
-   - PREFERRED: Use @EnableMethodSecurity(prePostEnabled = true) and SecurityFilterChain bean
-   - LEGACY (still works): @EnableGlobalMethodSecurity + WebSecurityConfigurerAdapter
-   - Recommend modern style for future compatibility with Boot 3"""
+   - Continue using your existing configuration style
+   - If adding method security: @EnableMethodSecurity (modern) or @EnableGlobalMethodSecurity (legacy, still works)
+   - If adding HTTP security: SecurityFilterChain bean (modern) or WebSecurityConfigurerAdapter (legacy, still works)
+   - Modern style is more future-proof for Boot 3 migration"""
+        elif spring_boot and spring_boot.startswith('2'):
+            config_style = f"Boot {spring_boot}"
+            config_guidance = """
+   - Continue using your existing configuration style
+   - If adding method security: @EnableGlobalMethodSecurity(prePostEnabled = true)
+   - If adding HTTP security: extend WebSecurityConfigurerAdapter"""
         else:
-            config_style = "Version not detected - use existing patterns"
+            config_style = "Version not detected"
             config_guidance = """
    - Continue with your existing configuration style
-   - If method security not enabled, add @EnableMethodSecurity or @EnableGlobalMethodSecurity"""
+   - If method security not enabled, enable it using your framework's standard mechanism"""
 
         return f"""
 SPRING SECURITY BEST PRACTICES (CRITICAL - FOLLOW EXACTLY):
@@ -2226,10 +2393,10 @@ Configuration Style: {config_style}
    - Leave public endpoints UNANNOTATED at method level (protected by HTTP security allowlist)
 
 2. Method Security Annotations (for protected endpoints):
-   - Use @PreAuthorize("hasRole('ADMIN')") for role checks
-   - Use @PreAuthorize("hasAuthority('ROLE_ADMIN')") if authorities include ROLE_ prefix
+   - Use @PreAuthorize("hasRole('ADMIN')") for role checks (this agent focuses on ROLES only)
    - Use @PreAuthorize("isAuthenticated()") for any authenticated user (no specific role)
    - For JSR-250 style: @RolesAllowed({{"ADMIN", "USER"}}) if enabled
+   - Note: Fine-grained permissions/authorities are handled by a separate agent
 
 3. Configuration:{config_guidance}
 
@@ -2243,6 +2410,45 @@ Configuration Style: {config_style}
    - Configure .anyRequest().authenticated() as the default
    - Explicitly allowlist public endpoints with .requestMatchers(...).permitAll()
    - This ensures new endpoints are secure by default"""
+
+    def _format_verification_mechanisms(self, verification: Dict) -> str:
+        """Format the list of protection mechanisms that were tested"""
+        mechanisms = verification.get('mechanisms_tested', [])
+        if not mechanisms:
+            return "None (verification not performed)"
+
+        lines = []
+        for mech in mechanisms:
+            status = "✓" if mech['found'] > 0 else "✗"
+            lines.append(f"  {status} {mech['description']}: {mech['found']} found")
+
+        return "\n".join(lines)
+
+    def _format_verification_results(self, verification: Dict) -> str:
+        """Format the verification results summary"""
+        additional = verification.get('additional_protections_found', [])
+        verified_unprotected = verification.get('verified_unprotected_count', 0)
+        updated_coverage = verification.get('updated_coverage')
+
+        if not additional:
+            return f"  ✓ No additional protections found\n  ✓ {verified_unprotected} routes confirmed as genuinely unprotected"
+
+        # Additional protections were found
+        lines = [f"  ⚠ Found {len(additional)} additional protection(s):"]
+        for prot in additional[:10]:  # Show first 10
+            lines.append(f"    - {prot.get('mechanism', 'Unknown')} on {prot.get('class', 'Unknown')}")
+            if 'note' in prot:
+                lines.append(f"      Note: {prot['note']}")
+
+        if len(additional) > 10:
+            lines.append(f"    ... and {len(additional) - 10} more")
+
+        if updated_coverage:
+            lines.append(f"\n  Updated Coverage: {updated_coverage['protected']}/{updated_coverage['exposures']} ({updated_coverage['coverage']:.1f}%)")
+
+        lines.append(f"  ✓ {verified_unprotected} routes confirmed as genuinely unprotected after verification")
+
+        return "\n".join(lines)
 
     def _build_recommendation_prompt(self, context: Dict, evidence: Dict) -> str:
         """Build detailed prompt for AI recommendation generation"""
@@ -2271,11 +2477,21 @@ Configuration Style: {config_style}
 
         return f"""You are a security architect analyzing authorization in an application.
 
+CRITICAL: Your output must be FRAMEWORK-SPECIFIC. Use the EXACT frameworks, versions, and APIs detected in this application. DO NOT write generic advice or use placeholders.
+
 APPLICATION CONTEXT:
 - Total endpoints: {context.get('total_endpoints', 0)}
 - Protected: {context['protected']} ({context['coverage']:.1f}%)
 - Unprotected: {context['unprotected']}
 - Frameworks detected: {', '.join(set(context['frameworks']))}
+
+CRITICAL - OUTPUT MUST BE FRAMEWORK-SPECIFIC:
+Your recommendation MUST use the EXACT detected frameworks and versions. DO NOT write generic advice.
+- Use actual API calls, annotations, and configuration syntax from the detected framework
+- Reference the specific versions detected above
+- Show concrete code examples using the framework's actual methods (not placeholders)
+- If multiple frameworks detected, integrate guidance for all of them
+- Example: Instead of "configure authorization in your framework", write "use @PreAuthorize in Spring Security 6.x"
 
 {spring_guidance}
 
@@ -2296,18 +2512,18 @@ NOTE: Coverage metrics are calculated based on authorization exposures:
 - If authorization is at the code layer: Exposures = protected code locations
 - Coverage % reflects protection of exposures at the detected architectural layer
 
-ARCHITECTURE EVALUATION (AI Task):
-You must evaluate the authorization architecture across four dimensions:
-- Consistency: Is authorization applied consistently across similar operations? Are there gaps or inconsistent patterns?
-- Centralization: Is the authorization approach unified, or is it fragmented across multiple mechanisms?
-- Boundaries: Are authorization decisions made at appropriate boundaries (e.g., HTTP layer, service layer)?
-- Maintainability: Is the architecture testable and maintainable (declarative vs imperative)?
-
 ROLES DEFINED:
 - Total roles: {len(context['roles_used'])}
 - Generic roles: {context['generic_role_count']} (e.g., USER, ADMIN)
 - Domain-specific roles: {context['domain_specific_role_count']}
 - Roles found: {', '.join(context['roles_used'][:20])}
+
+CRITICAL - SCOPE LIMITATION FOR THIS AGENT:
+This agent focuses on endpoint authorization only (which roles can access which endpoints).
+- Use role-based checks: Simple role names like ADMIN, USER, VET, OWNER
+- If you see permission/authority strings (e.g., APPLICATION_EDIT_VULNERABILITY_DELETE), IGNORE them - they are handled by a separate permissions agent
+- Focus your recommendations on assigning ROLES to endpoints, not fine-grained permissions
+- Use the framework's role-checking mechanism in your examples
 
 PROPOSED ACCESS CONTROL MATRIX:
 This section provides a complete classification of ALL {proposed_matrix['total_endpoints']} endpoints with suggested authorization.
@@ -2317,20 +2533,22 @@ Role Structure:
 - Proposed roles: {', '.join(proposed_matrix['role_structure']['proposed_roles'])}
 - Rationale: {proposed_matrix['role_structure']['rationale']}
 
-Endpoint Classification Summary:
-- Currently protected: {proposed_matrix['currently_protected']}/{proposed_matrix['total_endpoints']}
-- Suggested PUBLIC (permitAll in HTTP config): {proposed_matrix['suggested_public']}
-- Suggested AUTHENTICATED (any logged-in user): {proposed_matrix['suggested_authenticated']}
-- Suggested ROLE-SPECIFIC (admin/specific role): {proposed_matrix['suggested_role_specific']}
-
-Complete Endpoint Classifications:
-{json.dumps(proposed_matrix['endpoint_classifications'], indent=2)}
-
 IMPORTANT: This is a PROPOSED access control matrix. Review each classification and adjust based on:
 1. Business requirements and use cases
 2. Data sensitivity and privacy concerns
 3. Compliance and regulatory requirements
 4. Current application behavior and user expectations
+
+VERIFICATION OF UNPROTECTED ROUTES:
+To ensure unprotected routes are genuinely unprotected, we verified {context['unprotected']} unprotected routes against additional protection mechanisms.
+
+Protection Mechanisms Tested:
+{self._format_verification_mechanisms(evidence.get('verification', {}))}
+
+Verification Results:
+{self._format_verification_results(evidence.get('verification', {}))}
+
+This verification provides evidence that the reported unprotected routes are genuinely unprotected and not protected by alternative mechanisms we may have initially missed.
 
 TASK:
 Generate a tailored authorization recommendation for THIS specific application. You MUST:
@@ -2353,8 +2571,8 @@ Provide your recommendation in this exact JSON format:
 {{
   "title": "One-line recommendation title",
   "summary": "Brief 1-2 sentence summary acknowledging the current architecture pattern and what needs to be done",
-  "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss existing roles (NEVER recommend PUBLIC role - use permitAll() for public endpoints instead). Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
-  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST include:\\n- Step 0: Establish default-deny at HTTP layer (.anyRequest().authenticated())\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to permitAll() allowlist in HttpSecurity (NOT @PreAuthorize)\\n- Step 3: Add @PreAuthorize annotations to protected endpoints following the matrix\\n- Step 4: For each endpoint, reference its classification from the matrix and show exact annotation needed\\n- Include version-appropriate Spring Security configuration examples\\n- Include regression test that verifies all endpoints match the approved access control matrix\\nUse \\n for line breaks.",
+  "design_recommendation": "Strategic guidance (400-600 words). MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks? Then discuss existing roles. Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
+  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST be FRAMEWORK-SPECIFIC using exact detected frameworks and versions. MUST include:\\n- Step 0: Establish default-deny at HTTP layer - show ACTUAL framework configuration code (not generic)\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to allowlist - show ACTUAL framework config syntax for detected version\\n- Step 3: Add role check annotations to protected endpoints - use ACTUAL framework annotations from detected version\\n- Step 4: For 3-5 example endpoints from the matrix, show EXACT code with ACTUAL role names and framework syntax\\n- Step 5: Add CI test using detected test framework - show ACTUAL test code that enumerates endpoints and fails on unannotated routes\\n- All code examples MUST use framework-specific syntax, NOT placeholders or generic instructions\\nUse \\n for line breaks.",
   "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. IMPORTANT: Scope claims to HTTP access only - acknowledge that controller auth does NOT protect @Scheduled, @EventListener, message listeners, or internal service calls. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
 }}
 
@@ -2367,9 +2585,11 @@ CRITICAL REQUIREMENTS:
 - Scope protection claims to "prevents unauthorized HTTP access" not "prevents all access"
 - Each section must be 400-600 words (not 200-300)
 - Include actual code examples with real role names from the application: {', '.join(context['roles_used'][:10])}
-- Use version-appropriate Spring Security configuration based on detected versions
+- CRITICAL: All code examples MUST use framework-specific syntax from detected frameworks ({', '.join(set(context['frameworks']))})
+- CRITICAL: All configuration examples MUST reference the exact detected versions (see Spring Security guidance above)
+- NO GENERIC PLACEHOLDERS: Use actual framework API calls, annotations, methods - not "configure in your framework"
 - Provide concrete, actionable guidance referencing the matrix classifications
-- Include regression test that validates endpoints match the approved access control matrix
+- MUST include CI test recommendation (Step 5) that enumerates all endpoints and fails on unannotated routes - this prevents regression
 - Discuss whether the proposed role structure is appropriate or should be adjusted
 
 Generate the recommendation now:"""
