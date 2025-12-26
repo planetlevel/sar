@@ -227,7 +227,7 @@ Return JSON ONLY:
                 method_name = parts[1] if len(parts) > 1 else endpoint_name
 
                 # Build current protection bitset
-                current_roles_list = ep.get('roles', []) if ep.get('protected') else []
+                current_roles_list = ep.get('roles') or []
                 current_bits = ''.join('1' if role in current_roles_list else '0' for role in proposed_roles)
 
                 compact_endpoints.append(f"{idx} {http_method} {method_name} {current_bits}")
@@ -317,9 +317,10 @@ YOUR RESPONSE (data lines only):"""
 
                         if idx < len(chunk):
                             endpoint_data = chunk[idx]
+                            current_roles = endpoint_data.get('roles') or []
                             all_classifications.append({
                                 'endpoint': endpoint_data.get('endpoint', ''),
-                                'current_auth': ', '.join(endpoint_data.get('roles', [])) if endpoint_data.get('protected') else None,
+                                'current_auth': ', '.join(current_roles) if endpoint_data.get('protected') else None,
                                 'suggested_auth': suggested_auth,
                                 'suggested_role': suggested_role,
                                 'rationale': rationale
@@ -334,9 +335,10 @@ YOUR RESPONSE (data lines only):"""
 
                 # Fallback for this chunk: mark as needing review
                 for ep in chunk:
+                    current_roles = ep.get('roles') or []
                     all_classifications.append({
                         'endpoint': ep.get('endpoint', ''),
-                        'current_auth': ', '.join(ep.get('roles', [])) if ep.get('protected') else None,
+                        'current_auth': ', '.join(current_roles) if ep.get('protected') else None,
                         'suggested_auth': 'AUTHENTICATED',
                         'suggested_role': 'USER',
                         'rationale': 'Needs manual review (AI classification failed)'
@@ -550,7 +552,7 @@ YOUR RESPONSE (data lines only):"""
 
         from sar.agents.endpoint_builder import EndpointBuilder
 
-        builder = EndpointBuilder(cpg_tool=self.cpg_tool, debug=self.debug)
+        builder = EndpointBuilder(cpg_tool=self.cpg_tool, ai_client=self.ai, debug=self.debug)
 
         # Get all HTTP routes
         routes = self.utils.query_all_endpoint_methods(self.matched_frameworks)

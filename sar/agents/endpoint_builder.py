@@ -23,8 +23,9 @@ class EndpointBuilder:
     - Clear evidence trail for each authorization
     """
 
-    def __init__(self, cpg_tool, debug: bool = False):
+    def __init__(self, cpg_tool, ai_client=None, debug: bool = False):
         self.cpg_tool = cpg_tool
+        self.ai_client = ai_client
         self.debug = debug
 
     def build_endpoints(
@@ -62,7 +63,8 @@ class EndpointBuilder:
         # Build lookup maps:
         # 1. method_signature -> behaviors (method-specific)
         # 2. global behaviors (no method - apply to all endpoints)
-        behaviors_by_method, global_behaviors = self._index_behaviors(all_mechanisms)
+        # 3. http_security_rules (parsed URL patterns from HttpSecurity config)
+        behaviors_by_method, global_behaviors, http_security_rules = self._index_behaviors(all_mechanisms)
 
         for route in route_methods:
             method_sig = route.get('method', '')
@@ -89,7 +91,8 @@ class EndpointBuilder:
                 method_sig,
                 route_path,
                 behaviors_by_method,
-                global_behaviors
+                global_behaviors,
+                http_security_rules
             )
 
             # Compute effective authorization
@@ -115,40 +118,76 @@ class EndpointBuilder:
 
         return endpoints
 
-    def _index_behaviors(self, all_mechanisms: List[Dict]) -> tuple[Dict[str, List[Dict]], List[Dict]]:
+    def _index_behaviors(self, all_mechanisms: List[Dict]) -> tuple[Dict[str, List[Dict]], List[Dict], Optional[List[Dict]]]:
         """
         Build lookups for behaviors:
         1. method_signature -> behaviors (method-specific authorizations)
-        2. List of global behaviors (apply to ALL endpoints, e.g. HttpSecurity)
+        2. List of global behaviors (apply to ALL endpoints, e.g. filters)
+        3. HttpSecurity rules (parsed URL patterns with specific authorization)
 
         Returns:
-            (behaviors_by_method, global_behaviors)
+            (behaviors_by_method, global_behaviors, http_security_rules)
         """
         by_method = {}
         global_behaviors = []
+        http_security_rules = None
 
         for mechanism in all_mechanisms:
             for behavior in mechanism.get('behaviors', []):
                 method_sig = behavior.get('method', '')
+                behavior_type = behavior.get('type', '')
 
-                if method_sig:
+                if self.debug and mechanism.get('framework') == 'spring-security':
+                    print(f"[ENDPOINT_BUILDER] spring-security behavior: type={behavior_type}, method={method_sig[:80] if method_sig else 'NONE'}")
+
+                # Special handling for HttpSecurity configuration
+                if behavior_type == 'http_security_config':
+                    # Parse HttpSecurity with AI to extract specific rules
+                    parsed_rules = self._parse_http_security_with_ai(behavior)
+                    if parsed_rules:
+                        http_security_rules = parsed_rules
+                        # Store behavior reference for evidence
+                        for rule in parsed_rules:
+                            rule['_behavior'] = behavior
+                    # Don't add to global_behaviors if we have specific rules
+                    continue
+
+                # Check if this is a global authorization (applies to ALL endpoints)
+                # - Filters/interceptors without specific method
+                is_global = (
+                    'security_filter' in behavior_type.lower() or
+                    not method_sig
+                )
+
+                if is_global:
+                    # Global behavior - applies to all endpoints
+                    global_behaviors.append(behavior)
+                else:
                     # Method-specific behavior
                     if method_sig not in by_method:
                         by_method[method_sig] = []
                     by_method[method_sig].append(behavior)
-                else:
-                    # Global behavior (no method - applies to all endpoints)
-                    # E.g., HttpSecurity configuration
-                    global_behaviors.append(behavior)
 
-        return by_method, global_behaviors
+        if self.debug:
+            if http_security_rules:
+                print(f"[ENDPOINT_BUILDER] Parsed {len(http_security_rules)} HttpSecurity rules")
+                for rule in http_security_rules:
+                    roles_str = ', '.join(rule.get('roles', [])) if rule.get('roles') else 'none'
+                    print(f"[ENDPOINT_BUILDER]   - {rule['url_pattern']}: {rule['type']} [{roles_str}]")
+            if global_behaviors:
+                print(f"[ENDPOINT_BUILDER] Found {len(global_behaviors)} global behaviors (filters, etc.)")
+                for gb in global_behaviors:
+                    print(f"[ENDPOINT_BUILDER]   - {gb.get('mechanism', 'unknown')}: {gb.get('type', 'unknown')}")
+
+        return by_method, global_behaviors, http_security_rules
 
     def _find_authorizations_for_endpoint(
         self,
         endpoint_method: str,
         endpoint_path: str,
         behaviors_by_method: Dict[str, List[Dict]],
-        global_behaviors: List[Dict]
+        global_behaviors: List[Dict],
+        http_security_rules: Optional[List[Dict]] = None
     ) -> List[EndpointAuthorization]:
         """
         Find all authorizations that apply to this endpoint
@@ -157,7 +196,8 @@ class EndpointBuilder:
             endpoint_method: Full method signature
             endpoint_path: Route path (e.g., "/owners/{id}")
             behaviors_by_method: Method-specific behaviors
-            global_behaviors: Global behaviors (HttpSecurity, etc.)
+            global_behaviors: Global behaviors (filters, etc.)
+            http_security_rules: Parsed HttpSecurity URL patterns and rules
 
         Returns:
             List of EndpointAuthorization objects (ordered by precedence)
@@ -171,9 +211,16 @@ class EndpointBuilder:
             if auth:
                 authorizations.append(auth)
 
-        # 2. Global behaviors (HttpSecurity, filters, etc.)
-        # TODO: In future, filter by URL pattern matching (e.g., /api/** matches /api/users)
-        # For now, apply all global behaviors to all endpoints
+        # 2. HttpSecurity rules (URL pattern matching)
+        if http_security_rules and endpoint_path:
+            for rule in http_security_rules:
+                if self._url_matches_pattern(endpoint_path, rule['url_pattern']):
+                    auth = self._http_security_rule_to_authorization(rule)
+                    if auth:
+                        authorizations.append(auth)
+                        break  # First matching rule wins (Spring Security semantics)
+
+        # 3. Global behaviors (filters, etc.)
         for behavior in global_behaviors:
             auth = self._behavior_to_endpoint_authorization(behavior)
             if auth:
@@ -351,6 +398,236 @@ class EndpointBuilder:
             roles_any_of=winning_auth.authorization.roles_any_of,
             description=f"{winning_auth.enforcement_point}: {winning_auth.description}"
         )
+
+    def _url_matches_pattern(self, url: str, pattern: str) -> bool:
+        """
+        Check if URL matches Spring Security ant pattern
+
+        Examples:
+        - "/admin/**" matches "/admin/users", "/admin/config/settings"
+        - "/api/*" matches "/api/users" but not "/api/users/123"
+        - "/**" matches everything
+        """
+        import re
+
+        # Convert Spring ant pattern to regex
+        # ** = any number of path segments
+        # * = single path segment (no slashes)
+        # ? = single character
+
+        # Escape special regex chars except our wildcards
+        regex_pattern = re.escape(pattern)
+
+        # Replace ant wildcards with regex equivalents
+        regex_pattern = regex_pattern.replace(r'\*\*', '<<DOUBLESTAR>>')
+        regex_pattern = regex_pattern.replace(r'\*', '[^/]+')  # * matches within single segment
+        regex_pattern = regex_pattern.replace('<<DOUBLESTAR>>', '.*')  # ** matches across segments
+        regex_pattern = regex_pattern.replace(r'\?', '.')  # ? matches single char
+
+        # Anchor the pattern
+        regex_pattern = f'^{regex_pattern}$'
+
+        return bool(re.match(regex_pattern, url))
+
+    def _http_security_rule_to_authorization(self, rule: Dict) -> Optional[EndpointAuthorization]:
+        """
+        Convert HttpSecurity rule to EndpointAuthorization
+
+        Args:
+            rule: {
+                'url_pattern': '/admin/**',
+                'type': 'RBAC' | 'AUTHENTICATED' | 'PERMIT_ALL',
+                'roles': ['ADMIN'],
+                'description': '...',
+                '_behavior': {...}  # Original behavior for evidence
+            }
+        """
+        rule_type = rule.get('type', 'AUTHENTICATED')
+        roles = rule.get('roles', [])
+        behavior = rule.get('_behavior', {})
+
+        # Skip PERMIT_ALL rules (no authorization)
+        if rule_type == 'PERMIT_ALL':
+            return None
+
+        # Build authorization based on type
+        if rule_type == 'RBAC' and roles:
+            authorization = Authorization(
+                type=AuthorizationType.RBAC,
+                roles_any_of=roles,
+                rule=None
+            )
+            description = f"Requires any of: {', '.join(roles)}"
+        else:  # AUTHENTICATED
+            authorization = Authorization(
+                type=AuthorizationType.OTHER,
+                roles_any_of=None,
+                rule="Authentication required"
+            )
+            description = "Requires authentication"
+
+        # Build evidence from behavior
+        file_path = behavior.get('file', 'unknown')
+        line = behavior.get('line', 0)
+        mechanism_name = behavior.get('mechanism', 'HttpSecurity')
+
+        evidence = Evidence(
+            ref=f"{file_path}:{line}",
+            mechanism_name=mechanism_name
+        )
+
+        return EndpointAuthorization(
+            enforcement_point=EnforcementPoint.ROUTE_GUARD,
+            scope=Scope.UNKNOWN,
+            authorization=authorization,
+            description=description,
+            evidence=evidence
+        )
+
+    def _parse_http_security_with_ai(self, behavior: Dict) -> Optional[List[Dict]]:
+        """
+        Use AI to parse HttpSecurity configuration and extract authorization rules
+
+        Returns:
+            List of rule dicts: [
+                {
+                    'url_pattern': '/admin/**',
+                    'roles': ['ADMIN'],
+                    'type': 'RBAC',  # or 'AUTHENTICATED', 'PERMIT_ALL'
+                    'description': 'Admin endpoints require ADMIN role'
+                },
+                ...
+            ]
+            Returns None if configuration permits all or has no meaningful authorization
+        """
+        if not self.ai_client:
+            if self.debug:
+                print("[ENDPOINT_BUILDER] No AI client available for HttpSecurity parsing")
+            return None
+
+        # Get source code location from behavior
+        file_path = behavior.get('file', '')
+        line = behavior.get('line', 0)
+
+        if not file_path:
+            return None
+
+        # Make file path absolute if relative
+        import os
+        if not os.path.isabs(file_path):
+            # Try to get project root from cpg_tool
+            if hasattr(self.cpg_tool, 'project_dir'):
+                file_path = os.path.join(self.cpg_tool.project_dir, file_path)
+
+        # Read the source file and extract the configure method
+        try:
+            with open(file_path, 'r') as f:
+                source_lines = f.readlines()
+
+            # Extract the relevant method/configuration code
+            # Start from the behavior's line and extract the method body
+            method_start = max(0, line - 1)  # Line numbers are 1-indexed
+
+            # Find the method signature (go back if needed)
+            for i in range(method_start, max(0, method_start - 20), -1):
+                line_text = source_lines[i]
+                # Look for method declaration patterns (public/protected/private void/etc methodName(...))
+                if any(keyword in line_text for keyword in ['public ', 'protected ', 'private ', '@Override']) and '(' in line_text:
+                    method_start = i
+                    break
+
+            # Extract method body (find matching braces)
+            brace_count = 0
+            method_lines = []
+            for i in range(method_start, len(source_lines)):
+                line_text = source_lines[i]
+                method_lines.append(line_text)
+
+                brace_count += line_text.count('{')
+                brace_count -= line_text.count('}')
+
+                if brace_count == 0 and '{' in ''.join(method_lines):
+                    break
+
+            config_code = ''.join(method_lines)
+
+            if self.debug:
+                print(f"[ENDPOINT_BUILDER] Parsing HttpSecurity configuration with AI ({len(config_code)} chars)")
+
+            # Use AI to parse the configuration
+            prompt = f"""You are analyzing HTTP security configuration code to extract authorization rules.
+
+Here is the configuration code:
+
+```
+{config_code}
+```
+
+Your task: Parse the authorization rules and return a JSON array. Each rule should specify:
+1. url_pattern: URL pattern that this rule applies to (e.g., "/admin/**", "/api/**", "/**")
+2. type: One of: "RBAC" (role-based access), "AUTHENTICATED" (any authenticated user), or "PERMIT_ALL" (public/no auth)
+3. roles: Array of role names (for RBAC type), empty array otherwise
+4. description: Brief description of what this rule does
+
+IMPORTANT INSTRUCTIONS:
+- Look for URL patterns and what authorization they require (roles, authentication, or permitAll)
+- If configuration allows ALL requests without restriction (permitAll for everything), return empty array []
+- If configuration requires authentication but no specific roles, use type "AUTHENTICATED"
+- Extract ALL URL patterns with their authorization requirements
+- For role requirements, extract role names (strip any framework prefix like "ROLE_" if present)
+- Return rules in order from most specific to least specific (first match wins in most frameworks)
+
+Return ONLY valid JSON array, no explanations or markdown.
+
+Example outputs:
+
+If the code has specific role requirements:
+[
+  {{"url_pattern": "/admin/**", "type": "RBAC", "roles": ["ADMIN"], "description": "Admin area requires ADMIN role"}},
+  {{"url_pattern": "/api/**", "type": "AUTHENTICATED", "roles": [], "description": "API requires authentication"}},
+  {{"url_pattern": "/**", "type": "AUTHENTICATED", "roles": [], "description": "All other requests require authentication"}}
+]
+
+If the code permits everything (no real authorization):
+[]
+
+Now analyze the code above and return the authorization rules:
+"""
+
+            response = self.ai_client.call_claude(prompt)
+
+            if not response:
+                return None
+
+            # Parse JSON response
+            import json
+            try:
+                # Extract JSON from response (might have explanatory text)
+                json_start = response.find('[')
+                json_end = response.rfind(']') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_text = response[json_start:json_end]
+                    rules = json.loads(json_text)
+
+                    if self.debug:
+                        print(f"[ENDPOINT_BUILDER] Parsed {len(rules)} HttpSecurity rules")
+                        for rule in rules:
+                            print(f"[ENDPOINT_BUILDER]   - {rule['url_pattern']}: {rule['type']} {rule.get('roles', [])}")
+
+                    return rules if rules else None
+                else:
+                    if self.debug:
+                        print("[ENDPOINT_BUILDER] No JSON array found in AI response")
+                    return None
+            except json.JSONDecodeError as e:
+                if self.debug:
+                    print(f"[ENDPOINT_BUILDER] JSON parse error: {e}")
+                return None
+
+        except Exception as e:
+            if self.debug:
+                print(f"[ENDPOINT_BUILDER] Error parsing HttpSecurity: {e}")
+            return None
 
     def _format_handler(self, method_sig: str) -> str:
         """
