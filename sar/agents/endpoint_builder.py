@@ -446,10 +446,6 @@ class EndpointBuilder:
         roles = rule.get('roles', [])
         behavior = rule.get('_behavior', {})
 
-        # Skip PERMIT_ALL rules (no authorization)
-        if rule_type == 'PERMIT_ALL':
-            return None
-
         # Build authorization based on type
         if rule_type == 'RBAC' and roles:
             authorization = Authorization(
@@ -458,6 +454,14 @@ class EndpointBuilder:
                 rule=None
             )
             description = f"Requires any of: {', '.join(roles)}"
+        elif rule_type == 'PERMIT_ALL':
+            # Explicitly configured to permit all - report this!
+            authorization = Authorization(
+                type=AuthorizationType.OTHER,
+                roles_any_of=None,
+                rule="Permits all requests (no authorization required)"
+            )
+            description = "Explicitly configured to permit all requests"
         else:  # AUTHENTICATED
             authorization = Authorization(
                 type=AuthorizationType.OTHER,
@@ -571,11 +575,12 @@ Your task: Parse the authorization rules and return a JSON array. Each rule shou
 
 IMPORTANT INSTRUCTIONS:
 - Look for URL patterns and what authorization they require (roles, authentication, or permitAll)
-- If configuration allows ALL requests without restriction (permitAll for everything), return empty array []
+- If configuration explicitly permits all requests (permitAll), use type "PERMIT_ALL"
 - If configuration requires authentication but no specific roles, use type "AUTHENTICATED"
 - Extract ALL URL patterns with their authorization requirements
 - For role requirements, extract role names (strip any framework prefix like "ROLE_" if present)
 - Return rules in order from most specific to least specific (first match wins in most frameworks)
+- ALWAYS return rules for permitAll configurations - they show intentional public access
 
 Return ONLY valid JSON array, no explanations or markdown.
 
@@ -588,7 +593,12 @@ If the code has specific role requirements:
   {{"url_pattern": "/**", "type": "AUTHENTICATED", "roles": [], "description": "All other requests require authentication"}}
 ]
 
-If the code permits everything (no real authorization):
+If the code explicitly permits everything (permitAll on all requests):
+[
+  {{"url_pattern": "/**", "type": "PERMIT_ALL", "roles": [], "description": "Permits all requests without authorization"}}
+]
+
+If there's NO security configuration or it's unclear:
 []
 
 Now analyze the code above and return the authorization rules:
