@@ -474,10 +474,12 @@ class EndpointBuilder:
         file_path = behavior.get('file', 'unknown')
         line = behavior.get('line', 0)
         mechanism_name = behavior.get('mechanism', 'HttpSecurity')
+        config_code = rule.get('_config_code', '')
 
         evidence = Evidence(
             ref=f"{file_path}:{line}",
-            mechanism_name=mechanism_name
+            mechanism_name=mechanism_name,
+            config_snippet=config_code if config_code else None
         )
 
         return EndpointAuthorization(
@@ -623,6 +625,10 @@ Now analyze the code above and return the authorization rules:
                         print(f"[ENDPOINT_BUILDER] Parsed {len(rules)} HttpSecurity rules")
                         for rule in rules:
                             print(f"[ENDPOINT_BUILDER]   - {rule['url_pattern']}: {rule['type']} {rule.get('roles', [])}")
+
+                    # Add the config code to each rule for evidence
+                    for rule in rules:
+                        rule['_config_code'] = config_code
 
                     return rules if rules else None
                 else:

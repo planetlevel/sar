@@ -68,6 +68,10 @@ class Evidence(BaseModel):
         ...,
         description="Mechanism observed (e.g., @PreAuthorize, HttpSecurity, middleware X)"
     )
+    config_snippet: Optional[str] = Field(
+        None,
+        description="Actual configuration code snippet showing the authorization"
+    )
 
 
 class EndpointAuthorization(BaseModel):
