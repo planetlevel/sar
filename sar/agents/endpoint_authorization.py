@@ -344,7 +344,7 @@ YOUR RESPONSE (data lines only):"""
 
         return all_classifications
 
-    def _ai_analyze_access_control_matrix(self, defense_matrix: Dict, roles: Dict) -> Dict:
+    def _ai_analyze_access_control_matrix(self, endpoints: List[Dict], roles: Dict) -> Dict:
         """
         Two-phase AI analysis:
         1. Sample 30 random endpoints → discover domain-specific roles
@@ -361,22 +361,20 @@ YOUR RESPONSE (data lines only):"""
         if not self.ai:
             raise ValueError("AI client required for endpoint authorization agent - algorithmic fallback removed")
 
-        rows = defense_matrix.get('rows', [])
-        columns = defense_matrix.get('columns', [])
-        matrix = defense_matrix.get('matrix', [])
-        row_protected = defense_matrix.get('row_protected', [])
-
-        # Build current state summary
+        # Build current state summary from endpoints
         current_state = []
-        for i, endpoint_name in enumerate(rows):
-            is_protected = row_protected[i] if i < len(row_protected) else False
+        for endpoint in endpoints:
+            # Extract current authorization
             current_roles = []
+            is_protected = len(endpoint.get('authorizations', [])) > 0
 
-            if is_protected and i < len(matrix):
-                for j, has_role in enumerate(matrix[i]):
-                    if has_role and j < len(columns):
-                        current_roles.append(columns[j])
+            if is_protected:
+                for auth in endpoint.get('authorizations', []):
+                    auth_data = auth.get('authorization', {})
+                    if auth_data.get('type') == 'RBAC':
+                        current_roles.extend(auth_data.get('roles_any_of', []))
 
+            endpoint_name = f"{endpoint.get('method', 'GET')} {endpoint.get('path', 'unknown')}"
             current_state.append({
                 'endpoint': endpoint_name,
                 'protected': is_protected,
@@ -458,14 +456,14 @@ YOUR RESPONSE (data lines only):"""
         - Suggested authorization with rationale
         - Proposed role structure
         """
-        defense_matrix = evidence.get('defense_usage_matrix', {})
         roles = evidence.get('roles', {})
+        endpoints = evidence.get('endpoints', [])
 
-        # Use AI to analyze matrix and propose role structure + endpoint classifications
+        # Use AI to analyze endpoints and propose role structure + classifications
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Using AI to analyze access control matrix...")
 
-        return self._ai_analyze_access_control_matrix(defense_matrix, roles)
+        return self._ai_analyze_access_control_matrix(endpoints, roles)
 
 
     def get_agent_id(self) -> str:
@@ -570,9 +568,16 @@ YOUR RESPONSE (data lines only):"""
             print(f"[{self.get_agent_id().upper()}] Phase 3: Finding Generation")
 
         evidence = self._build_evidence()
-        defense_metadata = build_defense_metadata(self.all_mechanisms)
         metrics = calculate_metrics(evidence)
         recommendation = self._generate_recommendation(evidence)
+
+        # Build defense metadata from endpoints
+        defense_metadata = {
+            'defense_name': ', '.join(evidence.get('frameworks', ['unknown'])),
+            'defense_type': 'standard',
+            'defense_mechanism': 'annotation',
+            'defense_patterns': []
+        }
 
         return {
             'agent_id': self.get_agent_id(),
@@ -1959,10 +1964,16 @@ Return these EXACT values in JSON:
         """Build comprehensive evidence for recommendation generation"""
         # Extract roles from all endpoints' authorizations
         all_roles = set()
+        frameworks = set()
+
         for endpoint in self.endpoints:
             for auth in endpoint.authorizations:
                 if auth.authorization.type == "RBAC":
                     all_roles.update(auth.authorization.roles_any_of or [])
+                # Extract framework from mechanism name (e.g., "PreAuthorize" -> "spring-security")
+                mechanism = auth.evidence.mechanism_name
+                if 'PreAuthorize' in mechanism or 'Secured' in mechanism or 'RolesAllowed' in mechanism:
+                    frameworks.add('spring-security')
 
         # Classify roles
         generic_roles = [r for r in all_roles if r.upper() in ['USER', 'ADMIN', 'ROLE_USER', 'ROLE_ADMIN']]
@@ -1988,15 +1999,11 @@ Return these EXACT values in JSON:
             'explanation': f'{len(protected_endpoints)} protected out of {total_endpoints} total endpoints'
         }
 
-        # Build defense usage matrix from endpoints (for backward compatibility with show_acm.py)
-        # This will be replaced once show_acm.py is updated to read from endpoints directly
-        defense_matrix = self._build_defense_matrix_from_endpoints()
-
         # Build proposed access control matrix with AI-powered role analysis
-        # This provides a complete classification of ALL endpoints with suggested authorization
+        endpoints_serialized = [e.model_dump(exclude_none=True) for e in self.endpoints]
         proposed_matrix = self._build_proposed_access_matrix({
-            'defense_usage_matrix': defense_matrix,
-            'roles': roles
+            'roles': roles,
+            'endpoints': endpoints_serialized
         })
 
         # Verify unprotected routes - check for additional protection mechanisms
@@ -2006,64 +2013,17 @@ Return these EXACT values in JSON:
         test_discovery = self._discover_authorization_tests()
 
         evidence = {
-            'endpoints': [e.model_dump(exclude_none=True) for e in self.endpoints],  # NEW: Endpoint-centric data
-            'mechanisms': self.all_mechanisms,  # Keep for compatibility
-            'defense_usage_matrix': defense_matrix,  # Keep for compatibility with show_acm.py
+            'endpoints': [e.model_dump(exclude_none=True) for e in self.endpoints],
             'roles': roles,
-            'auth_pattern': self.auth_pattern,  # Architecture pattern (endpoint vs service level)
-            'coverage_metrics': coverage_metrics,  # Simplified metrics from endpoints
-            'proposed_access_matrix': proposed_matrix,  # AI-generated classifications with ALL endpoints
-            'verification': verification_report,  # Verification of unprotected routes
-            'test_discovery': test_discovery  # Existing authorization tests
+            'frameworks': list(frameworks),
+            'auth_pattern': self.auth_pattern,
+            'coverage_metrics': coverage_metrics,
+            'proposed_access_matrix': proposed_matrix,
+            'verification': verification_report,
+            'test_discovery': test_discovery
         }
 
         return evidence
-
-    def _build_defense_matrix_from_endpoints(self) -> Dict:
-        """
-        Build defense usage matrix from endpoints (backward compatibility)
-
-        This maintains compatibility with show_acm.py until it's updated to read from endpoints directly
-        """
-        # Extract unique roles
-        all_roles = set()
-        for endpoint in self.endpoints:
-            for auth in endpoint.authorizations:
-                if auth.authorization.type == "RBAC":
-                    all_roles.update(auth.authorization.roles_any_of or [])
-
-        columns = sorted(list(all_roles))
-
-        # Build matrix rows
-        rows = []
-        matrix = []
-        row_protected = []
-
-        for endpoint in self.endpoints:
-            # Row name: HTTP_METHOD /path
-            row_name = f"{endpoint.method} {endpoint.path}"
-            rows.append(row_name)
-
-            # Is this endpoint protected?
-            is_protected = len(endpoint.authorizations) > 0
-            row_protected.append(is_protected)
-
-            # Which roles grant access?
-            endpoint_roles = set()
-            for auth in endpoint.authorizations:
-                if auth.authorization.type == "RBAC":
-                    endpoint_roles.update(auth.authorization.roles_any_of or [])
-
-            # Build row: True if endpoint requires this role
-            row = [role in endpoint_roles for role in columns]
-            matrix.append(row)
-
-        return {
-            'rows': rows,
-            'columns': columns,
-            'matrix': matrix,
-            'row_protected': row_protected
-        }
 
     def _verify_unprotected_routes(self) -> Dict:
         """
@@ -2114,8 +2074,13 @@ Return these EXACT values in JSON:
                     'handler': endpoint.handler
                 })
 
-        # Ask AI to review
-        frameworks = list(set(m.get('framework', 'unknown') for m in self.all_mechanisms))
+        # Extract frameworks from endpoint authorizations
+        frameworks = set()
+        for endpoint in self.endpoints:
+            for auth in endpoint.authorizations:
+                mechanism = auth.evidence.mechanism_name
+                if 'PreAuthorize' in mechanism or 'Secured' in mechanism:
+                    frameworks.add('spring-security')
 
         prompt = f"""Review our authorization analysis findings and assess if we missed anything.
 
@@ -2123,16 +2088,13 @@ WHAT WE FOUND:
 - Total endpoints: {len(self.endpoints)}
 - Protected: {len(protected_endpoints)} endpoints
 - Unprotected: {len(unprotected_endpoints)} endpoints
-- Frameworks: {', '.join(frameworks)}
+- Frameworks: {', '.join(frameworks) if frameworks else 'None detected'}
 
 SAMPLE PROTECTED ENDPOINTS (first 10):
 {json.dumps(protected_endpoints[:10], indent=2)}
 
 SAMPLE UNPROTECTED ENDPOINTS (first 10):
 {json.dumps(unprotected_endpoints[:10], indent=2)}
-
-PROTECTION MECHANISMS WE DETECTED:
-{json.dumps([{'framework': m.get('framework'), 'type': m.get('type'), 'count': len(m.get('behaviors', []))} for m in self.all_mechanisms], indent=2)}
 
 YOUR TASK:
 Review these findings and assess:
@@ -2216,7 +2178,11 @@ Respond in JSON:
         # Build context for AI
         coverage_metrics = evidence['coverage_metrics']
         roles = evidence['roles']
-        mechanisms = evidence['mechanisms']
+        frameworks = evidence.get('frameworks', [])
+        endpoints = evidence['endpoints']
+
+        # Count protection mechanisms from endpoints
+        mechanism_count = sum(len(ep.get('authorizations', [])) for ep in endpoints)
 
         # Prepare context summary
         context = {
@@ -2228,8 +2194,8 @@ Respond in JSON:
             'roles_used': roles['used'],
             'generic_role_count': roles['generic_count'],
             'domain_specific_role_count': roles['domain_specific_count'],
-            'mechanism_count': len(mechanisms),
-            'frameworks': [m.get('framework') for m in mechanisms]
+            'mechanism_count': mechanism_count,
+            'frameworks': frameworks
         }
 
         # Create AI prompt
@@ -2502,17 +2468,25 @@ Step 5: BRIEFLY ACKNOWLEDGE existing tests:
         pattern_type = auth_pattern.get('pattern', 'unknown')
         primary_layer = auth_pattern.get('primary_layer', 'unknown')
 
-        # Count locations by type
+        # Count locations by enforcement point from endpoints
         location_counts = {
             'endpoint': 0,
             'service': 0,
             'code': 0,
             'unknown': 0
         }
-        for mechanism in evidence.get('mechanisms', []):
-            for behavior in mechanism.get('behaviors', []):
-                location_type = behavior.get('location_type', 'unknown')
-                location_counts[location_type] += 1
+        for endpoint in evidence.get('endpoints', []):
+            for auth in endpoint.get('authorizations', []):
+                enforcement_point = auth.get('enforcement_point', 'unknown')
+                # Map enforcement points to location types
+                if enforcement_point in ['endpoint_guard', 'controller_guard']:
+                    location_counts['endpoint'] += 1
+                elif enforcement_point == 'service_guard':
+                    location_counts['service'] += 1
+                elif enforcement_point in ['route_guard', 'middleware_guard']:
+                    location_counts['code'] += 1
+                else:
+                    location_counts['unknown'] += 1
 
         # Get generic role consistency guidance (applies to all frameworks)
         role_consistency_guidance = self._build_role_consistency_guidance()
