@@ -65,13 +65,22 @@ class EndpointBuilder:
         for route in route_methods:
             method_sig = route.get('method', '')
             http_method = route.get('httpMethod', '*')
-            route_path = route.get('route', route.get('path', 'unknown'))
+            route_path = route.get('route', route.get('path', ''))
 
             # Parse handler name from method signature
             handler = self._format_handler(method_sig)
 
-            # Generate endpoint ID
-            endpoint_id = f"{http_method}_{route_path}"
+            # Determine if we have a real route path (starts with /) or need fallback
+            has_real_path = route_path and route_path.startswith('/')
+
+            # FALLBACK: If no route path from query, use ClassName.methodName format
+            # This handles the case where Joern route extraction fails
+            display_path = route_path if has_real_path else handler
+
+            # Generate unique endpoint ID
+            # If real route path available, use method_path format: "GET_/owners/new"
+            # If route unavailable, use method_handler format: "GET_OwnerController.initCreationForm"
+            endpoint_id = f"{http_method}_{display_path}"
 
             # Find all authorizations for this endpoint
             authorizations = self._find_authorizations_for_endpoint(
@@ -86,7 +95,7 @@ class EndpointBuilder:
             endpoint = Endpoint(
                 id=endpoint_id,
                 method=http_method,
-                path=route_path,
+                path=display_path,
                 handler=handler,
                 authorizations=authorizations,
                 effective_authorization=effective_auth
@@ -324,23 +333,32 @@ class EndpointBuilder:
         Format method signature as human-readable handler
 
         Examples:
-        - 'org.springframework.samples.petclinic.owner.OwnerController.updateOwner(...)'
+        - 'org.springframework.samples.petclinic.owner.OwnerController.updateOwner:String(int)'
           → 'OwnerController.updateOwner'
-        - 'com.example.PetService.findPet(Long)'
+        - 'com.example.PetService.findPet:Pet(Long)'
           → 'PetService.findPet'
+
+        Handles full Joern signatures: package.Class.method:returnType(params)
         """
         if not method_sig:
             return 'unknown'
 
-        # Remove package prefix (everything before last dot before class name)
-        # Example: org.springframework.samples.petclinic.owner.OwnerController.updateOwner
-        parts = method_sig.split('.')
+        # Format: package.Class.method:returnType(params)
+        # Step 1: Split on colon to separate method from signature
+        if ':' in method_sig:
+            method_part = method_sig.split(':')[0]
+        else:
+            method_part = method_sig
+
+        # Step 2: Remove parameter list if present (shouldn't be, but handle it)
+        if '(' in method_part:
+            method_part = method_part.split('(')[0]
+
+        # Step 3: Get ClassName.methodName from package.path
+        # Example: org.springframework.samples.petclinic.owner.OwnerController.initCreationForm
+        #          → OwnerController.initCreationForm
+        parts = method_part.split('.')
         if len(parts) >= 2:
-            # Take last 2 parts: ClassName.methodName
-            class_and_method = '.'.join(parts[-2:])
-            # Remove parameter list if present
-            if '(' in class_and_method:
-                class_and_method = class_and_method.split('(')[0]
-            return class_and_method
+            return f"{parts[-2]}.{parts[-1]}"
 
         return method_sig

@@ -2006,7 +2006,7 @@ Return these EXACT values in JSON:
         test_discovery = self._discover_authorization_tests()
 
         evidence = {
-            'endpoints': [e.model_dump() for e in self.endpoints],  # NEW: Endpoint-centric data
+            'endpoints': [e.model_dump(exclude_none=True) for e in self.endpoints],  # NEW: Endpoint-centric data
             'mechanisms': self.all_mechanisms,  # Keep for compatibility
             'defense_usage_matrix': defense_matrix,  # Keep for compatibility with show_acm.py
             'roles': roles,

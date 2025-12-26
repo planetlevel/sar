@@ -321,23 +321,54 @@ class AuthorizationUtils:
                 case n if n.contains("DeleteMapping") || n.contains("DELETE") => "DELETE"
                 case n if n.contains("PatchMapping") || n.contains("PATCH") => "PATCH"
                 case n if n.contains("RequestMapping") || n.contains("Path") =>
-                  // Try to extract method from annotation code
-                  val codeStr = ann.code
-                  if (codeStr.contains("method.*GET")) "GET"
-                  else if (codeStr.contains("method.*POST")) "POST"
-                  else if (codeStr.contains("method.*PUT")) "PUT"
-                  else if (codeStr.contains("method.*DELETE")) "DELETE"
-                  else "GET"  // Default
+                  // Extract HTTP method from annotation code
+                  // Example: @RequestMapping(value = "/path", method = RequestMethod.POST)
+                  val annCode = ann.code
+
+                  // Check for method parameter value
+                  if (annCode.contains("RequestMethod.POST") || annCode.contains("POST")) "POST"
+                  else if (annCode.contains("RequestMethod.PUT") || annCode.contains("PUT")) "PUT"
+                  else if (annCode.contains("RequestMethod.DELETE") || annCode.contains("DELETE")) "DELETE"
+                  else if (annCode.contains("RequestMethod.PATCH") || annCode.contains("PATCH")) "PATCH"
+                  else if (annCode.contains("RequestMethod.GET") || annCode.contains("GET")) "GET"
+                  else "GET"  // Default to GET if no method parameter specified
                 case _ => "UNKNOWN"
               }
 
-              val route = ann.parameter.assignment
-                .where(_.argument(1).code("value|path"))
-                .argument(2).code.headOption.getOrElse("")
-                .replaceAll("^\\\"|\\\"$", "")
+              // Extract route from annotation code using regex
+              // Handles: @GetMapping("/path"), @PostMapping(value = "/path"), @RequestMapping("/path")
+              val annCodeForPath = ann.code
+              val routePattern = """(?:value\s*=\s*)?\"([^\"]+)\"""".r
+              val route = routePattern.findFirstMatchIn(annCodeForPath)
+                .map(_.group(1))
+                .getOrElse("")
 
               Map("httpMethod" -> httpMethod, "route" -> route)
             }.getOrElse(Map("httpMethod" -> "UNKNOWN", "route" -> ""))
+
+            // Extract class-level @RequestMapping path (if any)
+            val classAnnotation = m.typeDecl.annotation.name("RequestMapping").headOption
+            val classPath = classAnnotation.map { classAnn =>
+              val classCode = classAnn.code
+              val routePattern = """(?:value\s*=\s*)?\"([^\"]+)\"""".r
+              routePattern.findFirstMatchIn(classCode)
+                .map(_.group(1))
+                .getOrElse("")
+            }.getOrElse("")
+
+            // Merge class-level and method-level paths
+            val methodPath = routeInfo.getOrElse("route", "")
+            val fullPath = if (classPath.nonEmpty && methodPath.nonEmpty) {
+              // Both exist: merge them
+              // Ensure no double slashes: /owners + /pets/new -> /owners/pets/new
+              val normalizedClass = if (classPath.endsWith("/")) classPath.dropRight(1) else classPath
+              val normalizedMethod = if (methodPath.startsWith("/")) methodPath else "/" + methodPath
+              normalizedClass + normalizedMethod
+            } else if (classPath.nonEmpty) {
+              classPath
+            } else {
+              methodPath
+            }
 
             Map(
               "method" -> m.fullName,
@@ -345,7 +376,7 @@ class AuthorizationUtils:
               "line" -> m.lineNumber.getOrElse(0),
               "class" -> m.typeDecl.fullName.headOption.getOrElse("unknown"),
               "httpMethod" -> routeInfo.getOrElse("httpMethod", "UNKNOWN"),
-              "route" -> routeInfo.getOrElse("route", "")
+              "route" -> fullPath
             )
           }.toJson
         '''.replace('{pattern}', pattern)

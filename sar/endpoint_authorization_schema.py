@@ -52,6 +52,11 @@ class Authorization(BaseModel):
     class Config:
         use_enum_values = True
 
+    def model_dump(self, **kwargs):
+        """Override to exclude None values by default"""
+        kwargs.setdefault('exclude_none', True)
+        return super().model_dump(**kwargs)
+
 
 class Evidence(BaseModel):
     """Evidence of where authorization was discovered"""
@@ -94,6 +99,11 @@ class EffectiveAuthorization(BaseModel):
 
     class Config:
         use_enum_values = True
+
+    def model_dump(self, **kwargs):
+        """Override to exclude None values by default"""
+        kwargs.setdefault('exclude_none', True)
+        return super().model_dump(**kwargs)
 
 
 class Endpoint(BaseModel):
