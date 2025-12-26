@@ -59,8 +59,10 @@ class EndpointBuilder:
 
         endpoints = []
 
-        # Build a lookup map: method_signature -> all behaviors that apply to it
-        behaviors_by_method = self._index_behaviors_by_method(all_mechanisms)
+        # Build lookup maps:
+        # 1. method_signature -> behaviors (method-specific)
+        # 2. global behaviors (no method - apply to all endpoints)
+        behaviors_by_method, global_behaviors = self._index_behaviors(all_mechanisms)
 
         for route in route_methods:
             method_sig = route.get('method', '')
@@ -85,7 +87,9 @@ class EndpointBuilder:
             # Find all authorizations for this endpoint
             authorizations = self._find_authorizations_for_endpoint(
                 method_sig,
-                behaviors_by_method
+                route_path,
+                behaviors_by_method,
+                global_behaviors
             )
 
             # Compute effective authorization
@@ -111,46 +115,66 @@ class EndpointBuilder:
 
         return endpoints
 
-    def _index_behaviors_by_method(self, all_mechanisms: List[Dict]) -> Dict[str, List[Dict]]:
+    def _index_behaviors(self, all_mechanisms: List[Dict]) -> tuple[Dict[str, List[Dict]], List[Dict]]:
         """
-        Build lookup: method_signature -> behaviors
+        Build lookups for behaviors:
+        1. method_signature -> behaviors (method-specific authorizations)
+        2. List of global behaviors (apply to ALL endpoints, e.g. HttpSecurity)
 
-        This allows fast lookup of all behaviors that apply to a given method
+        Returns:
+            (behaviors_by_method, global_behaviors)
         """
-        index = {}
+        by_method = {}
+        global_behaviors = []
 
         for mechanism in all_mechanisms:
             for behavior in mechanism.get('behaviors', []):
                 method_sig = behavior.get('method', '')
-                if method_sig:
-                    if method_sig not in index:
-                        index[method_sig] = []
-                    index[method_sig].append(behavior)
 
-        return index
+                if method_sig:
+                    # Method-specific behavior
+                    if method_sig not in by_method:
+                        by_method[method_sig] = []
+                    by_method[method_sig].append(behavior)
+                else:
+                    # Global behavior (no method - applies to all endpoints)
+                    # E.g., HttpSecurity configuration
+                    global_behaviors.append(behavior)
+
+        return by_method, global_behaviors
 
     def _find_authorizations_for_endpoint(
         self,
         endpoint_method: str,
-        behaviors_by_method: Dict[str, List[Dict]]
+        endpoint_path: str,
+        behaviors_by_method: Dict[str, List[Dict]],
+        global_behaviors: List[Dict]
     ) -> List[EndpointAuthorization]:
         """
         Find all authorizations that apply to this endpoint
 
         Args:
             endpoint_method: Full method signature
-            behaviors_by_method: Lookup map from _index_behaviors_by_method
+            endpoint_path: Route path (e.g., "/owners/{id}")
+            behaviors_by_method: Method-specific behaviors
+            global_behaviors: Global behaviors (HttpSecurity, etc.)
 
         Returns:
             List of EndpointAuthorization objects (ordered by precedence)
         """
         authorizations = []
 
-        # Get behaviors for this method
-        behaviors = behaviors_by_method.get(endpoint_method, [])
+        # 1. Method-specific behaviors (annotations on this specific method)
+        method_behaviors = behaviors_by_method.get(endpoint_method, [])
+        for behavior in method_behaviors:
+            auth = self._behavior_to_endpoint_authorization(behavior)
+            if auth:
+                authorizations.append(auth)
 
-        for behavior in behaviors:
-            # Convert behavior to EndpointAuthorization
+        # 2. Global behaviors (HttpSecurity, filters, etc.)
+        # TODO: In future, filter by URL pattern matching (e.g., /api/** matches /api/users)
+        # For now, apply all global behaviors to all endpoints
+        for behavior in global_behaviors:
             auth = self._behavior_to_endpoint_authorization(behavior)
             if auth:
                 authorizations.append(auth)
