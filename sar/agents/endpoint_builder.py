@@ -399,30 +399,6 @@ class EndpointBuilder:
             description=f"{winning_auth.enforcement_point}: {winning_auth.description}"
         )
 
-    def _is_global_pattern(self, url_pattern: str) -> bool:
-        """
-        Check if a URL pattern is a catch-all (global) pattern
-
-        Examples of global patterns:
-        - "/**" - matches all paths
-        - "/*" - matches all single-level paths
-        - "/" - root only (not global)
-        - "" or "*" - empty/wildcard
-
-        Args:
-            url_pattern: URL pattern from HttpSecurity rule
-
-        Returns:
-            True if pattern applies globally, False otherwise
-        """
-        if not url_pattern:
-            return False
-
-        # Common catch-all patterns (framework-agnostic)
-        catch_all_patterns = ['/**', '/*', '*', '**']
-
-        return url_pattern in catch_all_patterns
-
     def _url_matches_pattern(self, url: str, pattern: str) -> bool:
         """
         Check if URL matches ant-style pattern
@@ -495,9 +471,10 @@ class EndpointBuilder:
             )
             description = "Requires authentication"
 
-        # Determine scope based on URL pattern
-        # Catch-all patterns like /** = global scope
-        scope = Scope.GLOBAL if self._is_global_pattern(url_pattern) else Scope.UNKNOWN
+        # Determine scope based on AI's applies_globally flag
+        # If AI says this rule applies globally, mark it as GLOBAL scope
+        applies_globally = rule.get('applies_globally', False)
+        scope = Scope.GLOBAL if applies_globally else Scope.UNKNOWN
 
         # Build evidence from behavior
         file_path = behavior.get('file', 'unknown')
@@ -602,12 +579,16 @@ Your task: Parse the authorization rules and return a JSON array. Each rule shou
 1. url_pattern: URL pattern that this rule applies to (e.g., "/admin/**", "/api/**", "/**")
 2. type: One of: "RBAC" (role-based access), "AUTHENTICATED" (any authenticated user), or "PERMIT_ALL" (public/no auth)
 3. roles: Array of role names (for RBAC type), empty array otherwise
-4. description: Brief description of what this rule does
+4. is_permissive: true if this allows access (like permitAll), false if it restricts/requires auth
+5. applies_globally: true if this rule applies to all or most endpoints (like anyRequest() or /**), false for specific paths
+6. description: Brief description of what this rule does
 
 IMPORTANT INSTRUCTIONS:
 - Look for URL patterns and what authorization they require (roles, authentication, or permitAll)
-- If configuration explicitly permits all requests (permitAll), use type "PERMIT_ALL"
-- If configuration requires authentication but no specific roles, use type "AUTHENTICATED"
+- If configuration explicitly permits all requests (permitAll), use type "PERMIT_ALL" and is_permissive: true
+- If configuration requires authentication but no specific roles, use type "AUTHENTICATED" and is_permissive: false
+- For RBAC, is_permissive: false (it restricts access to specific roles)
+- applies_globally should be true for catch-all patterns (anyRequest(), /**) or rules affecting most/all endpoints
 - Extract ALL URL patterns with their authorization requirements
 - For role requirements, extract role names (strip any framework prefix like "ROLE_" if present)
 - Return rules in order from most specific to least specific (first match wins in most frameworks)
@@ -619,14 +600,14 @@ Example outputs:
 
 If the code has specific role requirements:
 [
-  {{"url_pattern": "/admin/**", "type": "RBAC", "roles": ["ADMIN"], "description": "Admin area requires ADMIN role"}},
-  {{"url_pattern": "/api/**", "type": "AUTHENTICATED", "roles": [], "description": "API requires authentication"}},
-  {{"url_pattern": "/**", "type": "AUTHENTICATED", "roles": [], "description": "All other requests require authentication"}}
+  {{"url_pattern": "/admin/**", "type": "RBAC", "roles": ["ADMIN"], "is_permissive": false, "applies_globally": false, "description": "Admin area requires ADMIN role"}},
+  {{"url_pattern": "/api/**", "type": "AUTHENTICATED", "roles": [], "is_permissive": false, "applies_globally": false, "description": "API requires authentication"}},
+  {{"url_pattern": "/**", "type": "AUTHENTICATED", "roles": [], "is_permissive": false, "applies_globally": true, "description": "All other requests require authentication"}}
 ]
 
 If the code explicitly permits everything (permitAll on all requests):
 [
-  {{"url_pattern": "/**", "type": "PERMIT_ALL", "roles": [], "description": "Permits all requests without authorization"}}
+  {{"url_pattern": "/**", "type": "PERMIT_ALL", "roles": [], "is_permissive": true, "applies_globally": true, "description": "Permits all requests without authorization"}}
 ]
 
 If there's NO security configuration or it's unclear:
