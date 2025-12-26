@@ -399,9 +399,33 @@ class EndpointBuilder:
             description=f"{winning_auth.enforcement_point}: {winning_auth.description}"
         )
 
+    def _is_global_pattern(self, url_pattern: str) -> bool:
+        """
+        Check if a URL pattern is a catch-all (global) pattern
+
+        Examples of global patterns:
+        - "/**" - matches all paths
+        - "/*" - matches all single-level paths
+        - "/" - root only (not global)
+        - "" or "*" - empty/wildcard
+
+        Args:
+            url_pattern: URL pattern from HttpSecurity rule
+
+        Returns:
+            True if pattern applies globally, False otherwise
+        """
+        if not url_pattern:
+            return False
+
+        # Common catch-all patterns (framework-agnostic)
+        catch_all_patterns = ['/**', '/*', '*', '**']
+
+        return url_pattern in catch_all_patterns
+
     def _url_matches_pattern(self, url: str, pattern: str) -> bool:
         """
-        Check if URL matches Spring Security ant pattern
+        Check if URL matches ant-style pattern
 
         Examples:
         - "/admin/**" matches "/admin/users", "/admin/config/settings"
@@ -445,6 +469,7 @@ class EndpointBuilder:
         rule_type = rule.get('type', 'AUTHENTICATED')
         roles = rule.get('roles', [])
         behavior = rule.get('_behavior', {})
+        url_pattern = rule.get('url_pattern', '')
 
         # Build authorization based on type
         if rule_type == 'RBAC' and roles:
@@ -470,6 +495,10 @@ class EndpointBuilder:
             )
             description = "Requires authentication"
 
+        # Determine scope based on URL pattern
+        # Catch-all patterns like /** = global scope
+        scope = Scope.GLOBAL if self._is_global_pattern(url_pattern) else Scope.UNKNOWN
+
         # Build evidence from behavior
         file_path = behavior.get('file', 'unknown')
         line = behavior.get('line', 0)
@@ -484,7 +513,7 @@ class EndpointBuilder:
 
         return EndpointAuthorization(
             enforcement_point=EnforcementPoint.ROUTE_GUARD,
-            scope=Scope.UNKNOWN,
+            scope=scope,
             authorization=authorization,
             description=description,
             evidence=evidence

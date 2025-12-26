@@ -592,6 +592,44 @@ YOUR RESPONSE (data lines only):"""
         }
 
     # ========================================================================
+    # HELPER METHODS
+    # ========================================================================
+
+    def _is_endpoint_protected(self, endpoint) -> bool:
+        """
+        Check if an endpoint is actually protected
+
+        An endpoint is only protected if it has authorizations that restrict access.
+        Endpoints with only permitAll() are NOT considered protected.
+
+        Args:
+            endpoint: Endpoint object
+
+        Returns:
+            True if endpoint has protective authorization, False otherwise
+        """
+        if not endpoint.authorizations:
+            return False
+
+        # Check if any authorization actually restricts access
+        for auth in endpoint.authorizations:
+            # RBAC with roles = protected
+            if auth.authorization.type == 'RBAC' and auth.authorization.roles_any_of:
+                return True
+
+            # OTHER type that requires authentication = protected
+            if auth.authorization.type == 'OTHER':
+                rule = auth.authorization.rule or ''
+                # NOT protected if explicitly permits all
+                if 'permit' in rule.lower() and 'all' in rule.lower():
+                    continue
+                # If it's not permitAll, assume it's protective
+                if rule and 'authentication' in rule.lower():
+                    return True
+
+        return False
+
+    # ========================================================================
     # PHASE 1: MECHANISM DISCOVERY
     # ========================================================================
 
@@ -1990,29 +2028,8 @@ Return these EXACT values in JSON:
         # Calculate metrics from endpoints
         total_endpoints = len(self.endpoints)
 
-        # Helper to check if an endpoint is actually protected
-        # An endpoint is only protected if it has authorizations that restrict access
-        def is_protected(endpoint) -> bool:
-            if not endpoint.authorizations:
-                return False
-            # Check if any authorization actually restricts access
-            for auth in endpoint.authorizations:
-                # RBAC with roles = protected
-                if auth.authorization.type == 'RBAC' and auth.authorization.roles_any_of:
-                    return True
-                # OTHER type that requires authentication = protected
-                if auth.authorization.type == 'OTHER':
-                    rule = auth.authorization.rule or ''
-                    # NOT protected if explicitly permits all
-                    if 'permit' in rule.lower() and 'all' in rule.lower():
-                        continue
-                    # If it's not permitAll, assume it's protective
-                    if rule and 'authentication' in rule.lower():
-                        return True
-            return False
-
-        protected_endpoints = [e for e in self.endpoints if is_protected(e)]
-        unprotected_endpoints = [e for e in self.endpoints if not is_protected(e)]
+        protected_endpoints = [e for e in self.endpoints if self._is_endpoint_protected(e)]
+        unprotected_endpoints = [e for e in self.endpoints if not self._is_endpoint_protected(e)]
 
         coverage_metrics = {
             'metric_type': 'endpoint_layer',
@@ -2066,8 +2083,8 @@ Return these EXACT values in JSON:
             if self.debug:
                 print(f"[{self.get_agent_id().upper()}] Skipping verification - no AI client")
 
-            # Calculate unprotected count from endpoints
-            unprotected = len([e for e in self.endpoints if not e.authorizations])
+            # Calculate unprotected count from endpoints using same logic as metrics
+            unprotected = len([e for e in self.endpoints if not self._is_endpoint_protected(e)])
 
             return {
                 'assessment': 'No AI verification performed',
@@ -2079,23 +2096,24 @@ Return these EXACT values in JSON:
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] AI review of findings...")
 
-        # Build protected and unprotected lists from endpoints
+        # Build protected and unprotected lists from endpoints using same logic as metrics
         protected_endpoints = []
         unprotected_endpoints = []
 
         for endpoint in self.endpoints:
-            if endpoint.authorizations:
-                # Protected endpoint
+            if self._is_endpoint_protected(endpoint):
+                # Protected endpoint - has authorizations that restrict access
                 protected_endpoints.append({
                     'endpoint': f"{endpoint.method} {endpoint.path}",
                     'layers': len(endpoint.authorizations),
                     'effective': endpoint.effective_authorization.description
                 })
             else:
-                # Unprotected endpoint
+                # Unprotected endpoint - no authorizations or only permitAll
                 unprotected_endpoints.append({
                     'endpoint': f"{endpoint.method} {endpoint.path}",
-                    'handler': endpoint.handler
+                    'handler': endpoint.handler,
+                    'authorizations': len(endpoint.authorizations)  # Show it has auths but they don't protect
                 })
 
         # Extract frameworks from endpoint authorizations
