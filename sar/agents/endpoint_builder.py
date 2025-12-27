@@ -81,6 +81,12 @@ class EndpointBuilder:
             # This handles the case where Joern route extraction fails
             display_path = route_path if has_real_path else handler
 
+            # Normalize path variables: Convert * wildcards to {var} syntax for consistency
+            # Spring allows both /owners/*/pets and /owners/{ownerId}/pets
+            # We normalize to consistent {var} format
+            if has_real_path:
+                display_path = self._normalize_path_variables(display_path)
+
             # Generate unique endpoint ID
             # If real route path available, use method_path format: "GET_/owners/new"
             # If route unavailable, use method_handler format: "GET_OwnerController.initCreationForm"
@@ -717,3 +723,67 @@ Now analyze the code above and return the authorization rules:
             return f"{parts[-2]}.{parts[-1]}"
 
         return method_sig
+
+    def _normalize_path_variables(self, path: str) -> str:
+        """
+        Normalize path variables to consistent {var} syntax
+
+        Spring and other frameworks allow wildcards (*) as anonymous path variables.
+        For consistency, convert these to named path variable syntax.
+
+        Examples:
+        - "/owners/*/pets/{petId}" → "/owners/{ownerId}/pets/{petId}"
+        - "/api/*/resources" → "/api/{var}/resources"
+        - "/owners/{ownerId}/pets" → "/owners/{ownerId}/pets" (unchanged)
+
+        Strategy:
+        - Look at path segments to infer variable names from context
+        - If context unclear, use generic {var}, {var2}, etc.
+
+        Args:
+            path: Route path potentially containing * wildcards
+
+        Returns:
+            Normalized path with {var} syntax
+        """
+        if '*' not in path:
+            return path
+
+        # Split path into segments
+        segments = path.split('/')
+
+        # Track variable counter for generic names
+        var_counter = 0
+
+        normalized_segments = []
+        for i, segment in enumerate(segments):
+            if segment == '*':
+                # Try to infer variable name from context
+                # Look at previous segment to guess what this variable represents
+                if i > 0:
+                    prev_segment = segments[i - 1]
+
+                    # Common patterns:
+                    # /owners/* → /owners/{ownerId}
+                    # /users/* → /users/{userId}
+                    # /pets/* → /pets/{petId}
+                    # /items/* → /items/{itemId}
+                    if prev_segment.endswith('s'):  # Plural form
+                        # Singular form + Id
+                        singular = prev_segment.rstrip('s')
+                        var_name = f"{singular}Id"
+                    else:
+                        # Use generic name
+                        var_name = f"var{var_counter}" if var_counter > 0 else "var"
+                        var_counter += 1
+
+                    normalized_segments.append(f"{{{var_name}}}")
+                else:
+                    # No context, use generic name
+                    var_name = f"var{var_counter}" if var_counter > 0 else "var"
+                    var_counter += 1
+                    normalized_segments.append(f"{{{var_name}}}")
+            else:
+                normalized_segments.append(segment)
+
+        return '/'.join(normalized_segments)
