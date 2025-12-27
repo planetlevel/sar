@@ -33,6 +33,7 @@ class Scope(str, Enum):
 class AuthorizationType(str, Enum):
     """Type of authorization mechanism"""
     RBAC = "RBAC"  # Role-Based Access Control
+    PUBLIC = "PUBLIC"  # Explicitly configured as public/permitAll (no authorization required)
     OTHER = "OTHER"  # Other mechanisms (described in 'rule' field)
     UNKNOWN = "UNKNOWN"
 

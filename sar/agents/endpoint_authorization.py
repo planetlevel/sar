@@ -563,6 +563,9 @@ YOUR RESPONSE (data lines only):"""
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Built {len(self.endpoints)} endpoints")
 
+        # Update auth_pattern with parsed HttpSecurity information
+        self._enrich_auth_pattern_with_http_security()
+
         # Phase 2: Architecture Evaluation (handled by AI in recommendation generation)
 
         # Phase 3: Finding Generation
@@ -574,10 +577,31 @@ YOUR RESPONSE (data lines only):"""
         recommendation = self._generate_recommendation(evidence)
 
         # Build defense metadata from endpoints
+        # Determine defense mechanism: annotation, config, or mixed
+        has_annotations = any(
+            auth.enforcement_point in ['endpoint_guard', 'controller_guard']
+            for endpoint in self.endpoints
+            for auth in endpoint.authorizations
+        )
+        has_config = any(
+            auth.enforcement_point == 'route_guard'
+            for endpoint in self.endpoints
+            for auth in endpoint.authorizations
+        )
+
+        if has_annotations and has_config:
+            defense_mechanism = 'mixed'
+        elif has_config:
+            defense_mechanism = 'config'
+        elif has_annotations:
+            defense_mechanism = 'annotation'
+        else:
+            defense_mechanism = 'unknown'
+
         defense_metadata = {
             'defense_name': ', '.join(evidence.get('frameworks', ['unknown'])),
             'defense_type': 'standard',
-            'defense_mechanism': 'annotation',
+            'defense_mechanism': defense_mechanism,
             'defense_patterns': []
         }
 
@@ -617,10 +641,14 @@ YOUR RESPONSE (data lines only):"""
             if auth.authorization.type == 'RBAC' and auth.authorization.roles_any_of:
                 return True
 
+            # PUBLIC type = NOT protected (explicitly configured as permitAll)
+            if auth.authorization.type == 'PUBLIC':
+                continue
+
             # OTHER type that requires authentication = protected
             if auth.authorization.type == 'OTHER':
                 rule = auth.authorization.rule or ''
-                # NOT protected if explicitly permits all
+                # NOT protected if explicitly permits all (legacy check for backward compatibility)
                 if 'permit' in rule.lower() and 'all' in rule.lower():
                     continue
                 # If it's not permitAll, assume it's protective
@@ -920,6 +948,88 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
             print(f"[{self.get_agent_id().upper()}]   Summary: {architecture.get('evidence_summary')}")
 
         return architecture
+
+    def _enrich_auth_pattern_with_http_security(self):
+        """
+        Update auth_pattern with actual parsed HttpSecurity configuration
+
+        Called AFTER endpoints are built so we have access to parsed HTTP security rules
+        """
+        if not self.endpoints:
+            return
+
+        # Look for route_guard authorizations with global scope
+        http_security_rules = []
+        for endpoint in self.endpoints:
+            for auth in endpoint.authorizations:
+                if auth.enforcement_point == 'route_guard' and auth.scope == 'global':
+                    # Extract the rule information
+                    rule_info = {
+                        'type': auth.authorization.type,
+                        'description': auth.description,
+                        'evidence_ref': auth.evidence.ref if auth.evidence else None
+                    }
+                    if auth.authorization.type == 'RBAC' and auth.authorization.roles_any_of:
+                        rule_info['roles'] = auth.authorization.roles_any_of
+                    elif auth.authorization.rule:
+                        rule_info['rule'] = auth.authorization.rule
+
+                    # Only add if not already present (avoid duplicates)
+                    if rule_info not in http_security_rules:
+                        http_security_rules.append(rule_info)
+                    break  # Only need one example per endpoint
+
+        if not http_security_rules:
+            # No HTTP security configuration found
+            return
+
+        # Update auth_pattern narrative with actual findings
+        current_summary = self.auth_pattern.get('evidence_summary', '')
+        current_arch = self.auth_pattern.get('architecture_description', '')
+
+        # Build description of HTTP security config
+        http_desc_parts = []
+        for rule in http_security_rules:
+            if rule['type'] == 'PUBLIC':
+                http_desc_parts.append("permits all requests (anyRequest().permitAll())")
+            elif rule['type'] == 'OTHER' and 'permit' in rule.get('rule', '').lower():
+                http_desc_parts.append("permits all requests (anyRequest().permitAll())")
+            elif rule['type'] == 'RBAC':
+                roles_str = ', '.join(rule.get('roles', []))
+                http_desc_parts.append(f"requires roles: {roles_str}")
+            else:
+                http_desc_parts.append("requires authentication")
+
+        http_desc = '; '.join(http_desc_parts) if http_desc_parts else "unknown configuration"
+
+        # Update evidence_summary to replace "Cannot determine" with actual config
+        if 'Cannot determine' in current_summary or 'without seeing' in current_summary:
+            # Replace vague language with specific findings
+            updated_summary = current_summary.replace(
+                'Cannot determine specific HTTP security rules without seeing SecurityConfig implementation',
+                f'SecurityConfig.configure(HttpSecurity) {http_desc}'
+            ).replace(
+                'Cannot determine specific HTTP rules without seeing SecurityConfig implementation',
+                f'SecurityConfig {http_desc}'
+            ).replace(
+                "though actual rules can't be determined without seeing config content",
+                f"with {http_desc}"
+            )
+            self.auth_pattern['evidence_summary'] = updated_summary
+
+        # Update architecture_description similarly
+        if 'Unable to determine' in current_arch or 'without seeing' in current_arch:
+            updated_arch = current_arch.replace(
+                'Unable to determine specific HTTP security rules without seeing SecurityConfig implementation details',
+                f'HTTP security configuration {http_desc}'
+            ).replace(
+                'without seeing SecurityConfig implementation details',
+                f'- SecurityConfig {http_desc}'
+            ).replace(
+                'though specific rules not visible',
+                f'with {http_desc}'
+            )
+            self.auth_pattern['architecture_description'] = updated_arch
 
     # REMOVED: _run_ai_analysis() - ai_insights was redundant with main recommendation
     # This method generated architecture_summary, coverage_gaps, recommendations, sound_design, reasoning

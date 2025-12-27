@@ -137,9 +137,6 @@ class EndpointBuilder:
                 method_sig = behavior.get('method', '')
                 behavior_type = behavior.get('type', '')
 
-                if self.debug and mechanism.get('framework') == 'spring-security':
-                    print(f"[ENDPOINT_BUILDER] spring-security behavior: type={behavior_type}, method={method_sig[:80] if method_sig else 'NONE'}")
-
                 # Special handling for HttpSecurity configuration
                 if behavior_type == 'http_security_config':
                     # Parse HttpSecurity with AI to extract specific rules
@@ -393,36 +390,53 @@ class EndpointBuilder:
         winning_auth = authorizations[0]
 
         # Build effective authorization from winning auth
+        # Note: enforcement_point might be either an enum or already converted to string by Pydantic's use_enum_values
+        if isinstance(winning_auth.enforcement_point, str):
+            enforcement_point_str = winning_auth.enforcement_point
+        else:
+            enforcement_point_str = winning_auth.enforcement_point.value
+
         return EffectiveAuthorization(
             type=winning_auth.authorization.type,
             roles_any_of=winning_auth.authorization.roles_any_of,
-            description=f"{winning_auth.enforcement_point}: {winning_auth.description}"
+            description=f"{enforcement_point_str}: {winning_auth.description}"
         )
 
     def _url_matches_pattern(self, url: str, pattern: str) -> bool:
         """
-        Check if URL matches ant-style pattern
+        Check if URL matches standard pattern format
 
-        Examples:
+        The AI translates framework-specific patterns to this standard format:
         - "/admin/**" matches "/admin/users", "/admin/config/settings"
         - "/api/*" matches "/api/users" but not "/api/users/123"
         - "/**" matches everything
+        - "/owners/{ownerId}" matches "/owners/123", "/owners/456"
+
+        Args:
+            url: Actual endpoint path like "/owners/123"
+            pattern: Standard format pattern like "/owners/{ownerId}" or "/admin/**"
+
+        Returns:
+            True if URL matches pattern, False otherwise
         """
         import re
 
-        # Convert Spring ant pattern to regex
-        # ** = any number of path segments
+        # Convert standard pattern to regex
+        # ** = any number of path segments (including nested)
         # * = single path segment (no slashes)
-        # ? = single character
+        # {var} = path variable (matches any value)
 
-        # Escape special regex chars except our wildcards
+        # Escape special regex chars except our wildcards and path variables
         regex_pattern = re.escape(pattern)
 
-        # Replace ant wildcards with regex equivalents
-        regex_pattern = regex_pattern.replace(r'\*\*', '<<DOUBLESTAR>>')
-        regex_pattern = regex_pattern.replace(r'\*', '[^/]+')  # * matches within single segment
-        regex_pattern = regex_pattern.replace('<<DOUBLESTAR>>', '.*')  # ** matches across segments
-        regex_pattern = regex_pattern.replace(r'\?', '.')  # ? matches single char
+        # Replace standard pattern elements with regex equivalents
+        regex_pattern = regex_pattern.replace(r'\*\*', '<<DOUBLESTAR>>')  # Placeholder for **
+        regex_pattern = regex_pattern.replace(r'\*', '[^/]+')  # * matches single segment
+        regex_pattern = regex_pattern.replace('<<DOUBLESTAR>>', '.*')  # ** matches any segments
+
+        # Handle path variables: {varName} matches any value
+        # After escaping, they look like: \{varName\}
+        regex_pattern = re.sub(r'\\{[^}]+\\}', '[^/]+', regex_pattern)  # {var} matches any value
 
         # Anchor the pattern
         regex_pattern = f'^{regex_pattern}$'
@@ -456,11 +470,11 @@ class EndpointBuilder:
             )
             description = f"Requires any of: {', '.join(roles)}"
         elif rule_type == 'PERMIT_ALL':
-            # Explicitly configured to permit all - report this!
+            # Explicitly configured to permit all - use PUBLIC type
             authorization = Authorization(
-                type=AuthorizationType.OTHER,
+                type=AuthorizationType.PUBLIC,
                 roles_any_of=None,
-                rule="Permits all requests (no authorization required)"
+                rule=None
             )
             description = "Explicitly configured to permit all requests"
         else:  # AUTHENTICATED
@@ -576,12 +590,26 @@ Here is the configuration code:
 ```
 
 Your task: Parse the authorization rules and return a JSON array. Each rule should specify:
-1. url_pattern: URL pattern that this rule applies to (e.g., "/admin/**", "/api/**", "/**")
+1. url_pattern: URL pattern TRANSLATED TO STANDARD FORMAT (see below)
 2. type: One of: "RBAC" (role-based access), "AUTHENTICATED" (any authenticated user), or "PERMIT_ALL" (public/no auth)
 3. roles: Array of role names (for RBAC type), empty array otherwise
 4. is_permissive: true if this allows access (like permitAll), false if it restricts/requires auth
 5. applies_globally: true if this rule applies to all or most endpoints (like anyRequest() or /**), false for specific paths
 6. description: Brief description of what this rule does
+
+STANDARD URL PATTERN FORMAT (translate all patterns to this format):
+- Literal paths: "/admin" matches exactly "/admin"
+- Single wildcard: "/api/*" matches any single segment like "/api/users" but not "/api/users/123"
+- Multi-wildcard: "/admin/**" matches any path starting with "/admin/" including nested paths
+- Catch-all: "/**" matches all paths
+- Path variables: "/owners/{{ownerId}}" matches "/owners/123", "/owners/456", etc.
+
+Examples of pattern translation:
+- Spring "anyRequest()" → "/**"
+- Spring "/admin/**" → "/admin/**" (already standard)
+- Express "/admin/*" → "/admin/**" (translate Express to standard multi-wildcard)
+- Django "^/admin/.*$" → "/admin/**" (translate regex to standard)
+- Spring "/owners/{{id:\\d+}}" → "/owners/{{ownerId}}" (simplify to standard path variable)
 
 IMPORTANT INSTRUCTIONS:
 - Look for URL patterns and what authorization they require (roles, authentication, or permitAll)
