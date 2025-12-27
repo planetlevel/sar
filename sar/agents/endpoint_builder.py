@@ -27,6 +27,9 @@ class EndpointBuilder:
         self.cpg_tool = cpg_tool
         self.ai_client = ai_client
         self.debug = debug
+        # Sources dict for de-duplicating config snippets
+        # Format: {source_id: {'ref': 'file:line', 'mechanism': 'name', 'code': 'snippet'}}
+        self.sources = {}
 
     def build_endpoints(
         self,
@@ -502,10 +505,19 @@ class EndpointBuilder:
         mechanism_name = behavior.get('mechanism', 'HttpSecurity')
         config_code = rule.get('_config_code', '')
 
+        # Register config snippet in sources dict if present, get source ID
+        config_source_id = None
+        if config_code:
+            config_source_id = self._register_config_source(
+                ref=f"{file_path}:{line}",
+                mechanism_name=mechanism_name,
+                config_code=config_code
+            )
+
         evidence = Evidence(
             ref=f"{file_path}:{line}",
             mechanism_name=mechanism_name,
-            config_snippet=config_code if config_code else None
+            config_source_id=config_source_id
         )
 
         return EndpointAuthorization(
@@ -723,6 +735,37 @@ Now analyze the code above and return the authorization rules:
             return f"{parts[-2]}.{parts[-1]}"
 
         return method_sig
+
+    def _register_config_source(self, ref: str, mechanism_name: str, config_code: str) -> str:
+        """
+        Register a config snippet in the sources dict and return its ID
+
+        De-duplicates config snippets - if same snippet already registered,
+        returns existing ID.
+
+        Args:
+            ref: Source reference (file:line)
+            mechanism_name: Mechanism name (e.g., "configure(HttpSecurity)")
+            config_code: The actual config code snippet
+
+        Returns:
+            Source ID to use in config_source_id field
+        """
+        import hashlib
+
+        # Generate ID from content hash (for de-duplication)
+        content_hash = hashlib.sha256(config_code.encode()).hexdigest()[:12]
+        source_id = f"src_{content_hash}"
+
+        # Only add if not already present
+        if source_id not in self.sources:
+            self.sources[source_id] = {
+                'ref': ref,
+                'mechanism': mechanism_name,
+                'code': config_code
+            }
+
+        return source_id
 
     def _normalize_path_variables(self, path: str) -> str:
         """

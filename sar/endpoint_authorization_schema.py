@@ -71,7 +71,11 @@ class Evidence(BaseModel):
     )
     config_snippet: Optional[str] = Field(
         None,
-        description="Actual configuration code snippet showing the authorization"
+        description="(Deprecated) Actual configuration code snippet showing the authorization. Use config_source_id and sources section instead to avoid duplication."
+    )
+    config_source_id: Optional[str] = Field(
+        None,
+        description="ID referencing entry in evidence.sources section. Use this instead of config_snippet to avoid duplication."
     )
 
 

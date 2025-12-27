@@ -560,8 +560,13 @@ YOUR RESPONSE (data lines only):"""
         # Build Endpoint objects with all their authorization layers
         self.endpoints = builder.build_endpoints(routes, self.all_mechanisms)
 
+        # Capture sources dict from builder for de-duplicated config snippets
+        self.sources = builder.sources
+
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Built {len(self.endpoints)} endpoints")
+            if self.sources:
+                print(f"[{self.get_agent_id().upper()}] Registered {len(self.sources)} config sources for de-duplication")
 
         # Update auth_pattern with parsed HttpSecurity information
         self._enrich_auth_pattern_with_http_security()
@@ -2233,7 +2238,8 @@ Return these EXACT values in JSON:
             'coverage_metrics': coverage_metrics,
             'proposed_access_matrix': proposed_matrix,
             'verification': verification_report,
-            'test_discovery': test_discovery
+            'test_discovery': test_discovery,
+            'sources': self.sources if hasattr(self, 'sources') else {}
         }
 
         return evidence
