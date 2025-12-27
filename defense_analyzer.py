@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 import sys
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add compass to path if needed
 compass_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,6 +47,23 @@ class DefenseAnalyzer:
             self.ai = AIClient(debug=debug)
         else:
             self.ai = ai_client
+
+        # Test AI connection early - fail fast if auth issues
+        if self.ai.is_available():
+            try:
+                print("[Analyzer] Testing AI connection...")
+                self.ai.test_connection()
+                print("[Analyzer] ✓ AI connection verified")
+            except RuntimeError as e:
+                print(f"[Analyzer] ✗ AI connection failed: {e}")
+                print("\nPlease check:")
+                print("  - For Bedrock: Run ./login.sh to authenticate AWS SSO")
+                print("  - For Anthropic API: Set ANTHROPIC_API_KEY environment variable")
+                raise SystemExit(1)
+        else:
+            print("[Analyzer] WARNING: No AI client available")
+            print("  - For Bedrock: Configure AWS credentials")
+            print("  - For Anthropic API: Set ANTHROPIC_API_KEY environment variable")
 
         # Agent registry
         self.agents = []
@@ -193,7 +210,7 @@ class DefenseAnalyzer:
             'version': 1,
             'serialNumber': f'urn:uuid:{uuid.uuid4()}',
             'metadata': {
-                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 'tools': [
                     {
                         'vendor': 'Contrast Security',

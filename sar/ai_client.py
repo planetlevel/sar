@@ -109,6 +109,39 @@ class AIClient:
         """Check if any AI client is available"""
         return self.bedrock_client is not None or self.anthropic_client is not None
 
+    def test_connection(self) -> bool:
+        """Test AI connection with a minimal call to verify authentication
+
+        Returns:
+            True if connection works, False otherwise
+
+        Raises:
+            RuntimeError: If connection test fails with auth error
+        """
+        if not self.is_available():
+            raise RuntimeError("No AI client available (Bedrock or Anthropic API)")
+
+        if self.debug:
+            print("[AI CLIENT] Testing connection with minimal prompt...")
+
+        try:
+            # Minimal test prompt (costs ~$0.0001)
+            response = self.call_claude("Say 'OK'", max_tokens=10, temperature=0)
+
+            if self.debug:
+                print(f"[AI CLIENT] Connection test successful: {response}")
+
+            return True
+        except Exception as e:
+            error_msg = str(e)
+
+            # Check for auth-related errors
+            if any(keyword in error_msg.lower() for keyword in ['auth', 'credential', 'permission', 'unauthorized', 'forbidden', 'access denied']):
+                raise RuntimeError(f"AI authentication failed: {error_msg}")
+
+            # Other errors
+            raise RuntimeError(f"AI connection test failed: {error_msg}")
+
     def call_claude(self, prompt: str, max_tokens: int = 4096, temperature: float = 0.3) -> str:
         """
         Call Claude with the given prompt
