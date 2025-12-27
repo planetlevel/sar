@@ -611,11 +611,15 @@ YOUR RESPONSE (data lines only):"""
             'defense_patterns': []
         }
 
+        # Build security overview from critical configuration findings
+        security_overview = self._build_security_overview(evidence)
+
         return {
             'agent_id': self.get_agent_id(),
             'agent_name': self.get_agent_name(),
             'ran': True,
             'defense_metadata': defense_metadata,
+            'security_overview': security_overview,
             'evidence': evidence,
             'metrics': metrics,
             'recommendation': recommendation
@@ -2243,6 +2247,116 @@ Return these EXACT values in JSON:
         }
 
         return evidence
+
+    def _build_security_overview(self, evidence: Dict) -> Dict:
+        """
+        Build security overview highlighting critical configuration findings
+
+        Uses AI to analyze config snippets and identify security concerns
+        in a framework-agnostic way.
+
+        Args:
+            evidence: Evidence dict from _build_evidence()
+
+        Returns:
+            Dict with security overview findings
+        """
+        if not self.ai:
+            # No AI - return minimal overview
+            return {
+                'severity': 'info',
+                'findings': [],
+                'summary': 'Security overview requires AI analysis'
+            }
+
+        # Get config sources to analyze
+        sources = evidence.get('sources', {})
+
+        if not sources:
+            # No sources to analyze
+            return {
+                'severity': 'info',
+                'findings': [],
+                'summary': 'No security configuration sources found'
+            }
+
+        # Build prompt for AI to analyze config snippets
+        sources_for_analysis = []
+        for source_id, source_data in sources.items():
+            sources_for_analysis.append({
+                'id': source_id,
+                'ref': source_data.get('ref', ''),
+                'mechanism': source_data.get('mechanism', ''),
+                'code': source_data.get('code', '')[:500]  # Limit to 500 chars per source
+            })
+
+        prompt = f"""Analyze these security configuration snippets and identify critical findings.
+
+CONFIGURATION SOURCES:
+{json.dumps(sources_for_analysis, indent=2)}
+
+YOUR TASK:
+Identify immediate security concerns in these configurations. Focus on:
+1. Global authorization bypass (e.g., "permits all requests", "no authentication required")
+2. CSRF protection disabled/missing
+3. Insecure defaults
+4. Missing authentication at HTTP/entry layer
+5. Other critical misconfigurations
+
+For EACH critical finding, return:
+- type: snake_case identifier (e.g., "http_security_permits_all", "csrf_disabled")
+- severity: "critical", "warning", or "info"
+- title: Short title (5-8 words)
+- description: 1-2 sentence explanation of the concern and impact
+- source_ref: Reference from the source (file:line)
+
+Return JSON array of findings. If no critical concerns, return empty array.
+
+Example output:
+[
+  {{
+    "type": "http_security_permits_all",
+    "severity": "warning",
+    "title": "HTTP layer permits all requests",
+    "description": "Entry point security configured to allow all requests without authentication. Authorization depends entirely on downstream guards.",
+    "source_ref": "src/main/java/.../SecurityConfig.java:18"
+  }}
+]
+
+Return ONLY valid JSON array, no explanations.
+"""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=1000, temperature=0.3)
+            if response:
+                # Parse JSON from response
+                import re
+                json_match = re.search(r'\[.*\]', response, re.DOTALL)
+                if json_match:
+                    findings = json.loads(json_match.group(0))
+
+                    # Determine overall severity from findings
+                    severity = "info"
+                    if any(f.get('severity') == 'critical' for f in findings):
+                        severity = "critical"
+                    elif any(f.get('severity') == 'warning' for f in findings):
+                        severity = "warning"
+
+                    return {
+                        'severity': severity,
+                        'findings': findings,
+                        'summary': f"Found {len(findings)} security configuration finding{'s' if len(findings) != 1 else ''}"
+                    }
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Security overview AI analysis failed: {e}")
+
+        # Fallback: no findings
+        return {
+            'severity': 'info',
+            'findings': [],
+            'summary': 'Security overview analysis unavailable'
+        }
 
     def _verify_unprotected_routes(self) -> Dict:
         """
