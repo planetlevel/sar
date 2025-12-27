@@ -563,10 +563,15 @@ YOUR RESPONSE (data lines only):"""
         # Capture sources dict from builder for de-duplicated config snippets
         self.sources = builder.sources
 
+        # Capture authorizations dict from builder for de-duplicated authorization objects
+        self.authorizations = builder.authorizations
+
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Built {len(self.endpoints)} endpoints")
             if self.sources:
                 print(f"[{self.get_agent_id().upper()}] Registered {len(self.sources)} config sources for de-duplication")
+            if self.authorizations:
+                print(f"[{self.get_agent_id().upper()}] Registered {len(self.authorizations)} unique authorizations")
 
         # Update auth_pattern with parsed HttpSecurity information
         self._enrich_auth_pattern_with_http_security()
@@ -2243,7 +2248,8 @@ Return these EXACT values in JSON:
             'proposed_access_matrix': proposed_matrix,
             'verification': verification_report,
             'test_discovery': test_discovery,
-            'sources': self.sources if hasattr(self, 'sources') else {}
+            'sources': self.sources if hasattr(self, 'sources') else {},
+            'authorizations': self.authorizations if hasattr(self, 'authorizations') else {}
         }
 
         return evidence

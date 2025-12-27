@@ -133,9 +133,13 @@ class Endpoint(BaseModel):
         ...,
         description="Human-readable handler identifier (e.g., OwnerController.updateOwner)"
     )
-    authorizations: List[EndpointAuthorization] = Field(
-        default_factory=list,
-        description="All authorizations applied to this endpoint (ordered by precedence)"
+    authorizations: Optional[List[EndpointAuthorization]] = Field(
+        None,
+        description="(Deprecated) Inline authorization objects. Use authorization_ids instead to avoid duplication."
+    )
+    authorization_ids: Optional[List[str]] = Field(
+        None,
+        description="List of authorization IDs referencing entries in evidence.authorizations section. Preferred over inline authorizations."
     )
     effective_authorization: EffectiveAuthorization = Field(
         ...,

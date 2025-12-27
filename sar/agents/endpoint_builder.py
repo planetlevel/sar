@@ -30,6 +30,9 @@ class EndpointBuilder:
         # Sources dict for de-duplicating config snippets
         # Format: {source_id: {'ref': 'file:line', 'mechanism': 'name', 'code': 'snippet'}}
         self.sources = {}
+        # Authorizations dict for de-duplicating authorization objects
+        # Format: {auth_id: EndpointAuthorization_as_dict}
+        self.authorizations = {}
 
     def build_endpoints(
         self,
@@ -104,16 +107,26 @@ class EndpointBuilder:
                 http_security_rules
             )
 
+            # Register authorizations and get IDs
+            authorization_ids = []
+            for auth in authorizations:
+                auth_id = self._register_authorization(auth)
+                authorization_ids.append(auth_id)
+
             # Compute effective authorization
             effective_auth = self._compute_effective_authorization(authorizations)
 
-            # Create Endpoint
+            # Create Endpoint with BOTH formats for now:
+            # - authorization_ids: new format (references to authorizations section)
+            # - authorizations: old format (inline objects) for backward compatibility
+            # Eventually can deprecate inline authorizations field once consumers migrate
             endpoint = Endpoint(
                 id=endpoint_id,
                 method=http_method,
                 path=display_path,
                 handler=handler,
-                authorizations=authorizations,
+                authorizations=authorizations,  # Keep for backward compatibility
+                authorization_ids=authorization_ids,  # New format
                 effective_authorization=effective_auth
             )
 
@@ -735,6 +748,88 @@ Now analyze the code above and return the authorization rules:
             return f"{parts[-2]}.{parts[-1]}"
 
         return method_sig
+
+    def _generate_authorization_id(self, auth: 'EndpointAuthorization') -> str:
+        """
+        Generate semantic ID for authorization
+
+        Creates human-readable, deterministic IDs based on authorization properties.
+
+        Examples:
+        - PUBLIC_ROUTE_GUARD_GLOBAL
+        - RBAC_USER_ENDPOINT_GUARD
+        - RBAC_ADMIN_OWNER_ENDPOINT_GUARD
+        - PREAUTHORIZE_ENDPOINT_GUARD
+
+        Args:
+            auth: EndpointAuthorization object
+
+        Returns:
+            Semantic authorization ID
+        """
+        # Get enforcement point
+        enforcement = auth.enforcement_point.value if hasattr(auth.enforcement_point, 'value') else str(auth.enforcement_point)
+        enforcement_upper = enforcement.upper()
+
+        # Get scope
+        scope = auth.scope.value if hasattr(auth.scope, 'value') else str(auth.scope)
+
+        # Get authorization type
+        auth_type = auth.authorization.type.value if hasattr(auth.authorization.type, 'value') else str(auth.authorization.type)
+
+        if auth_type == "PUBLIC":
+            # PUBLIC_ROUTE_GUARD_GLOBAL or PUBLIC_ENDPOINT_GUARD
+            if scope == "global":
+                return f"PUBLIC_{enforcement_upper}_GLOBAL"
+            else:
+                return f"PUBLIC_{enforcement_upper}"
+
+        elif auth_type == "RBAC":
+            # RBAC_ADMIN_USER_ENDPOINT_GUARD (sorted roles)
+            roles = auth.authorization.roles_any_of or []
+            roles_sorted = sorted(roles)
+            roles_str = "_".join(roles_sorted)
+            return f"RBAC_{roles_str}_{enforcement_upper}"
+
+        else:
+            # OTHER type - use mechanism name
+            mechanism = auth.evidence.mechanism_name
+            # Clean mechanism name: remove special chars, convert to snake_case
+            safe_mechanism = mechanism.replace(" ", "_").replace("(", "").replace(")", "").replace("@", "")
+            return f"{safe_mechanism.upper()}_{enforcement_upper}"
+
+    def _register_authorization(self, auth: 'EndpointAuthorization') -> str:
+        """
+        Register an authorization in the authorizations dict and return its ID
+
+        De-duplicates authorization objects - if same authorization already registered,
+        returns existing ID.
+
+        Args:
+            auth: EndpointAuthorization object
+
+        Returns:
+            Authorization ID to use in authorization_ids field
+        """
+        # Generate semantic ID
+        auth_id = self._generate_authorization_id(auth)
+
+        # Only add if not already present
+        if auth_id not in self.authorizations:
+            # Store as dict (will be serialized to JSON)
+            self.authorizations[auth_id] = {
+                'enforcement_point': auth.enforcement_point.value if hasattr(auth.enforcement_point, 'value') else str(auth.enforcement_point),
+                'scope': auth.scope.value if hasattr(auth.scope, 'value') else str(auth.scope),
+                'authorization': auth.authorization.model_dump(exclude_none=True),
+                'description': auth.description,
+                'evidence': {
+                    'ref': auth.evidence.ref,
+                    'mechanism_name': auth.evidence.mechanism_name,
+                    'config_source_id': auth.evidence.config_source_id
+                }
+            }
+
+        return auth_id
 
     def _register_config_source(self, ref: str, mechanism_name: str, config_code: str) -> str:
         """
