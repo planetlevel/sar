@@ -573,7 +573,8 @@ YOUR RESPONSE (data lines only):"""
             print(f"[{self.get_agent_id().upper()}] Phase 3: Finding Generation")
 
         evidence = self._build_evidence()
-        metrics = calculate_metrics(evidence)
+        # Use the new nested metrics structure directly (don't call calculate_metrics which expects old flat structure)
+        metrics = evidence['coverage_metrics']
         recommendation = self._generate_recommendation(evidence)
 
         # Build defense metadata from endpoints
@@ -1030,6 +1031,19 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
                 f'with {http_desc}'
             )
             self.auth_pattern['architecture_description'] = updated_arch
+
+        # Update coverage_approach to reflect that we now KNOW the config
+        current_coverage_approach = self.auth_pattern.get('coverage_approach', '')
+        if 'examine SecurityConfig' in current_coverage_approach or 'without seeing' in current_coverage_approach:
+            # Determine simplified coverage approach based on what we found
+            if 'permits all requests' in http_desc:
+                new_approach = "HTTP-layer globally permits all requests; authorization relies on method-level guards (@PreAuthorize, etc.)"
+            elif 'requires roles' in http_desc:
+                new_approach = f"HTTP-layer {http_desc}; method-level guards (@PreAuthorize) provide additional endpoint-specific restrictions"
+            else:
+                new_approach = f"HTTP-layer {http_desc}; method-level guards (@PreAuthorize) enforce endpoint-specific authorization"
+
+            self.auth_pattern['coverage_approach'] = new_approach
 
     # REMOVED: _run_ai_analysis() - ai_insights was redundant with main recommendation
     # This method generated architecture_summary, coverage_gaps, recommendations, sound_design, reasoning
@@ -2135,19 +2149,67 @@ Return these EXACT values in JSON:
             'domain_specific_count': len(domain_specific_roles)
         }
 
-        # Calculate metrics from endpoints
+        # Calculate metrics from endpoints - TWO DISTINCT CONCEPTS:
+        # 1. Endpoint guard coverage (method/endpoint-level annotations)
+        # 2. Effective authorization (actual access outcomes)
+
         total_endpoints = len(self.endpoints)
 
-        protected_endpoints = [e for e in self.endpoints if self._is_endpoint_protected(e)]
-        unprotected_endpoints = [e for e in self.endpoints if not self._is_endpoint_protected(e)]
+        # Endpoint guard coverage: How many have method/controller-level checks?
+        endpoint_guard_protected = []
+        endpoint_guard_unprotected = []
+
+        for endpoint in self.endpoints:
+            has_endpoint_guard = any(
+                auth.enforcement_point in ['endpoint_guard', 'controller_guard']
+                for auth in endpoint.authorizations
+            )
+            if has_endpoint_guard:
+                endpoint_guard_protected.append(endpoint)
+            else:
+                endpoint_guard_unprotected.append(endpoint)
+
+        # Effective authorization: What's the actual access outcome?
+        effective_public = []
+        effective_rbac = []
+        effective_authenticated = []
+        effective_other = []
+        effective_unknown = []
+
+        for endpoint in self.endpoints:
+            eff_type = endpoint.effective_authorization.type
+            if eff_type == 'PUBLIC':
+                effective_public.append(endpoint)
+            elif eff_type == 'RBAC':
+                effective_rbac.append(endpoint)
+            elif eff_type == 'OTHER':
+                # Check if it's authenticated
+                rule = endpoint.effective_authorization.description or ''
+                if 'authentication' in rule.lower() or 'authenticated' in rule.lower():
+                    effective_authenticated.append(endpoint)
+                else:
+                    effective_other.append(endpoint)
+            elif eff_type == 'UNKNOWN':
+                effective_unknown.append(endpoint)
+            else:
+                effective_other.append(endpoint)
 
         coverage_metrics = {
-            'metric_type': 'endpoint_layer',
-            'exposures': total_endpoints,
-            'protected': len(protected_endpoints),
-            'unprotected': len(unprotected_endpoints),
-            'coverage': (len(protected_endpoints) / total_endpoints * 100) if total_endpoints > 0 else 0,
-            'explanation': f'{len(protected_endpoints)} protected out of {total_endpoints} total endpoints'
+            'endpoint_guard': {
+                'protected': len(endpoint_guard_protected),
+                'unprotected': len(endpoint_guard_unprotected),
+                'coverage': (len(endpoint_guard_protected) / total_endpoints * 100) if total_endpoints > 0 else 0,
+                'explanation': f'{len(endpoint_guard_protected)} endpoints have method/controller-level guards'
+            },
+            'effective_authorization': {
+                'total': total_endpoints,
+                'public': len(effective_public),
+                'rbac': len(effective_rbac),
+                'authenticated': len(effective_authenticated),
+                'other': len(effective_other),
+                'unknown': len(effective_unknown),
+                'explanation': f'{len(effective_public)} public, {len(effective_rbac)} RBAC-protected, {len(effective_authenticated)} require authentication'
+            }
         }
 
         # Build proposed access control matrix with AI-powered role analysis
@@ -2206,25 +2268,36 @@ Return these EXACT values in JSON:
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] AI review of findings...")
 
-        # Build protected and unprotected lists from endpoints using same logic as metrics
-        protected_endpoints = []
-        unprotected_endpoints = []
+        # Build categorized lists based on effective authorization
+        rbac_protected = []
+        public_endpoints = []
+        endpoint_guard_only = []
+        route_guard_only = []
 
         for endpoint in self.endpoints:
-            if self._is_endpoint_protected(endpoint):
-                # Protected endpoint - has authorizations that restrict access
-                protected_endpoints.append({
-                    'endpoint': f"{endpoint.method} {endpoint.path}",
-                    'layers': len(endpoint.authorizations),
-                    'effective': endpoint.effective_authorization.description
-                })
-            else:
-                # Unprotected endpoint - no authorizations or only permitAll
-                unprotected_endpoints.append({
-                    'endpoint': f"{endpoint.method} {endpoint.path}",
-                    'handler': endpoint.handler,
-                    'authorizations': len(endpoint.authorizations)  # Show it has auths but they don't protect
-                })
+            eff_type = endpoint.effective_authorization.type
+
+            # Categorize by effective outcome
+            endpoint_info = {
+                'endpoint': f"{endpoint.method} {endpoint.path}",
+                'handler': endpoint.handler,
+                'effective': endpoint.effective_authorization.type,
+                'layers': len(endpoint.authorizations)
+            }
+
+            if eff_type == 'RBAC':
+                rbac_protected.append(endpoint_info)
+            elif eff_type == 'PUBLIC':
+                public_endpoints.append(endpoint_info)
+
+            # Also note enforcement strategy
+            has_endpoint_guard = any(a.enforcement_point in ['endpoint_guard', 'controller_guard'] for a in endpoint.authorizations)
+            has_route_guard = any(a.enforcement_point == 'route_guard' for a in endpoint.authorizations)
+
+            if has_endpoint_guard and not has_route_guard:
+                endpoint_guard_only.append(endpoint_info)
+            elif has_route_guard and not has_endpoint_guard:
+                route_guard_only.append(endpoint_info)
 
         # Extract frameworks from endpoint authorizations
         frameworks = set()
@@ -2234,33 +2307,43 @@ Return these EXACT values in JSON:
                 if 'PreAuthorize' in mechanism or 'Secured' in mechanism:
                     frameworks.add('spring-security')
 
-        prompt = f"""Review our authorization analysis findings and assess if we missed anything.
+        prompt = f"""Review our endpoint authorization analysis and identify potential gaps.
 
 WHAT WE FOUND:
 - Total endpoints: {len(self.endpoints)}
-- Protected: {len(protected_endpoints)} endpoints
-- Unprotected: {len(unprotected_endpoints)} endpoints
+- RBAC-protected: {len(rbac_protected)} endpoints (require specific roles)
+- Public: {len(public_endpoints)} endpoints (globally permitted by HTTP config)
 - Frameworks: {', '.join(frameworks) if frameworks else 'None detected'}
 
-SAMPLE PROTECTED ENDPOINTS (first 10):
-{json.dumps(protected_endpoints[:10], indent=2)}
+ENFORCEMENT STRATEGY:
+- Endpoint guards only: {len(endpoint_guard_only)} endpoints
+- Route guards only: {len(route_guard_only)} endpoints
 
-SAMPLE UNPROTECTED ENDPOINTS (first 10):
-{json.dumps(unprotected_endpoints[:10], indent=2)}
+SAMPLE RBAC-PROTECTED (first 5):
+{json.dumps(rbac_protected[:5], indent=2)}
+
+SAMPLE PUBLIC ENDPOINTS (first 5):
+{json.dumps(public_endpoints[:5], indent=2)}
+
+CRITICAL CONTEXT:
+- Public endpoints are intentionally configured as public at HTTP layer (permitAll)
+- They may lack endpoint guards but that's expected if they're meant to be public
+- RBAC endpoints have method-level checks that restrict access by role
 
 YOUR TASK:
-Review these findings and assess:
-1. Did we likely miss any protection mechanisms? (class-level auth, security configs, interceptors, filters, etc.)
-2. Are these unprotected endpoints genuinely unprotected?
-3. Any concerns or areas needing manual review?
+Assess whether we may have missed protection mechanisms:
+1. Could there be class-level guards we didn't detect?
+2. Could there be interceptors/filters enforcing authorization?
+3. Are the public endpoints appropriately public, or security gaps?
+4. Are there non-controller entry points (WebSocket, @Scheduled, etc.) we didn't analyze?
 
-BE HONEST - express uncertainty if you can't be sure.
+BE HONEST - focus on what we might have MISSED, not what we found.
 
 Respond in JSON:
 {{
-  "assessment": "Your overall assessment (2-3 sentences)",
-  "confidence": "high|medium|low - how confident are you in our findings",
-  "concerns": ["list", "of", "potential", "gaps", "or", "uncertainties"],
+  "assessment": "Overall assessment of completeness (2-3 sentences)",
+  "confidence": "high|medium|low - confidence in our coverage",
+  "concerns": ["specific", "mechanisms", "we", "might", "have", "missed"],
   "likely_complete": true/false
 }}"""
 
@@ -2282,7 +2365,8 @@ Respond in JSON:
                         'assessment': result.get('assessment', 'Analysis reviewed'),
                         'confidence': result.get('confidence', 'medium'),
                         'concerns': result.get('concerns', []),
-                        'unprotected_count': len(unprotected_endpoints),
+                        'rbac_protected_count': len(rbac_protected),
+                        'public_count': len(public_endpoints),
                         'likely_complete': result.get('likely_complete', True)
                     }
         except Exception as e:
@@ -2294,7 +2378,8 @@ Respond in JSON:
             'assessment': 'AI review unavailable',
             'confidence': 'unknown',
             'concerns': ['Could not verify findings with AI'],
-            'unprotected_count': len(unprotected_endpoints)
+            'rbac_protected_count': len(rbac_protected),
+            'public_count': len(public_endpoints)
         }
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
@@ -2303,10 +2388,13 @@ Respond in JSON:
 
         Falls back to rule-based if AI unavailable
         """
-        coverage = evidence['coverage_metrics']['coverage']
-        unprotected = evidence['coverage_metrics']['unprotected']
-        # Use exposures if available, fall back to total_endpoints for backward compatibility
-        total = evidence['coverage_metrics'].get('exposures', evidence['coverage_metrics'].get('total_endpoints', 0))
+        # Extract new metric structure
+        endpoint_guard = evidence['coverage_metrics']['endpoint_guard']
+        effective_auth = evidence['coverage_metrics']['effective_authorization']
+
+        coverage = endpoint_guard['coverage']
+        unprotected = endpoint_guard['unprotected']
+        total = effective_auth['total']
 
         # Try AI generation
         try:
