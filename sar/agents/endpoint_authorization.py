@@ -518,9 +518,9 @@ YOUR RESPONSE (data lines only):"""
         try:
             self.auth_pattern = self._detect_authorization_pattern()
         except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] WARNING: Pattern detection failed: {e}")
-                print(f"[{self.get_agent_id().upper()}] Using fallback pattern (unknown)")
+            print(f"[{self.get_agent_id().upper()}] ERROR: Authorization pattern detection failed: {e}")
+            print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
+            raise RuntimeError(f"AI pattern detection failed: {e}")
             # Graceful fallback when AI pattern detection fails
             self.auth_pattern = {
                 'pattern': 'unknown',
@@ -2354,15 +2354,9 @@ Return ONLY valid JSON array, no explanations.
                         'summary': f"Found {len(findings)} security configuration finding{'s' if len(findings) != 1 else ''}"
                     }
         except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] Security overview AI analysis failed: {e}")
-
-        # Fallback: no findings
-        return {
-            'severity': 'info',
-            'findings': [],
-            'summary': 'Security overview analysis unavailable'
-        }
+            print(f"[{self.get_agent_id().upper()}] ERROR: Security overview AI analysis failed: {e}")
+            print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
+            raise RuntimeError(f"Security overview AI analysis failed: {e}")
 
     def _verify_unprotected_routes(self) -> Dict:
         """
@@ -2496,17 +2490,9 @@ Respond in JSON:
                         'likely_complete': result.get('likely_complete', True)
                     }
         except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}]   AI review failed: {e}")
-
-        # Fallback
-        return {
-            'assessment': 'AI review unavailable',
-            'confidence': 'unknown',
-            'concerns': ['Could not verify findings with AI'],
-            'rbac_protected_count': len(rbac_protected),
-            'public_count': len(public_endpoints)
-        }
+            print(f"[{self.get_agent_id().upper()}] ERROR: Verification AI review failed: {e}")
+            print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
+            raise RuntimeError(f"Verification AI review failed: {e}")
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
         """
@@ -2522,17 +2508,17 @@ Respond in JSON:
         unprotected = endpoint_guard['unprotected']
         total = effective_auth['total']
 
-        # Try AI generation
+        # Try AI generation - no fallback allowed
         try:
             recommendation = self._generate_ai_recommendation(evidence)
             if recommendation:
                 return recommendation
+            else:
+                raise RuntimeError("AI recommendation generation returned None")
         except Exception as e:
-            if self.debug:
-                print(f"[{self.get_agent_id().upper()}] AI recommendation failed: {e}, using fallback")
-
-        # Fallback to rule-based (delegated to utils) - no evaluation data available
-        return self.utils.generate_fallback_recommendation(coverage, unprotected, total, None)
+            print(f"[{self.get_agent_id().upper()}] ERROR: AI recommendation generation failed: {e}")
+            print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
+            raise RuntimeError(f"AI recommendation generation failed: {e}")
 
     def _generate_ai_recommendation(self, evidence: Dict) -> Optional[Dict]:
         """
@@ -2550,13 +2536,17 @@ Respond in JSON:
         # Count protection mechanisms from endpoints
         mechanism_count = sum(len(ep.get('authorizations', [])) for ep in endpoints)
 
+        # Extract from nested coverage_metrics structure
+        endpoint_guard = coverage_metrics['endpoint_guard']
+        effective_auth = coverage_metrics['effective_authorization']
+
         # Prepare context summary
         context = {
-            'coverage': coverage_metrics['coverage'],
-            'exposures': coverage_metrics.get('exposures', coverage_metrics.get('total_endpoints', 0)),
-            'total_endpoints': coverage_metrics.get('total_endpoints', 0),  # Keep for compatibility
-            'protected': coverage_metrics['protected'],
-            'unprotected': coverage_metrics['unprotected'],
+            'coverage': endpoint_guard['coverage'],
+            'exposures': effective_auth['total'],
+            'total_endpoints': effective_auth['total'],
+            'protected': endpoint_guard['protected'],
+            'unprotected': endpoint_guard['unprotected'],
             'roles_used': roles['used'],
             'generic_role_count': roles['generic_count'],
             'domain_specific_role_count': roles['domain_specific_count'],
