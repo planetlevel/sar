@@ -2788,6 +2788,17 @@ Return ONLY the description text, no preamble."""
         endpoint_guard = coverage_metrics['endpoint_guard']
         effective_auth = coverage_metrics['effective_authorization']
 
+        # Calculate HTTP Security two-dimension metrics from endpoints
+        # This is critical for AI to understand permitAll vs actual security
+        http_security_policy_coverage = len([e for e in self.endpoints if any(
+            a.enforcement_point == 'route_guard' for a in e.authorizations
+        )])
+        http_security_restrictiveness = len([e for e in self.endpoints if any(
+            a.enforcement_point == 'route_guard' and a.authorization.type != 'PUBLIC'
+            for a in e.authorizations
+        )])
+        total_endpoints = len(self.endpoints)
+
         # Prepare context summary
         context = {
             'coverage': endpoint_guard['coverage'],
@@ -2799,7 +2810,15 @@ Return ONLY the description text, no preamble."""
             'generic_role_count': roles['generic_count'],
             'domain_specific_role_count': roles['domain_specific_count'],
             'mechanism_count': mechanism_count,
-            'frameworks': frameworks
+            'frameworks': frameworks,
+            # HTTP Security two-dimension metrics
+            'http_security': {
+                'policy_coverage': (http_security_policy_coverage / total_endpoints * 100) if total_endpoints else 0,
+                'policy_coverage_count': http_security_policy_coverage,
+                'restrictiveness': (http_security_restrictiveness / total_endpoints * 100) if total_endpoints else 0,
+                'restrictiveness_count': http_security_restrictiveness,
+                'total_endpoints': total_endpoints
+            }
         }
 
         # Create AI prompt
@@ -3135,15 +3154,28 @@ Recommend implementing basic authorization at all HTTP entry points:
         framework_list = context.get('frameworks', [])
         framework_display = ', '.join([f['name'] for f in framework_list] if framework_list and isinstance(framework_list[0], dict) else framework_list)
 
+        # Extract HTTP Security metrics for display
+        http_sec = context.get('http_security', {})
+        http_policy_cov = http_sec.get('policy_coverage', 0)
+        http_restrictiveness = http_sec.get('restrictiveness', 0)
+        http_policy_count = http_sec.get('policy_coverage_count', 0)
+        http_restrict_count = http_sec.get('restrictiveness_count', 0)
+        http_total = http_sec.get('total_endpoints', 0)
+
         return f"""You are a security architect analyzing authorization in an application.
 
 CRITICAL: Your output must be FRAMEWORK-SPECIFIC. Use the EXACT frameworks, versions, and APIs detected in this application. DO NOT write generic advice or use placeholders.
 
 APPLICATION CONTEXT:
 - Total endpoints: {context.get('total_endpoints', 0)}
-- Protected: {context['protected']} ({context['coverage']:.1f}%)
-- Unprotected: {context['unprotected']}
+- Protected by endpoint guards: {context['protected']} ({context['coverage']:.1f}%)
+- Unprotected by endpoint guards: {context['unprotected']}
 - Frameworks detected: {framework_display}
+
+HTTP SECURITY LAYER (CRITICAL - TWO DIMENSIONS):
+- Policy Coverage: {http_policy_cov:.1f}% ({http_policy_count}/{http_total} endpoints have HTTP-layer decision)
+- Restrictiveness: {http_restrictiveness:.1f}% ({http_restrict_count}/{http_total} endpoints actually restricted)
+{"⚠️ CRITICAL: HTTP Security has " + str(int(http_policy_cov)) + "% policy coverage but only " + str(int(http_restrictiveness)) + "% restrictiveness - this means the HTTP layer makes decisions but doesn't restrict access (likely permitAll)!" if http_policy_cov > 50 and http_restrictiveness < 30 else ""}
 
 CRITICAL - OUTPUT MUST BE FRAMEWORK-SPECIFIC:
 Your recommendation MUST use the EXACT detected frameworks and versions. DO NOT write generic advice.
