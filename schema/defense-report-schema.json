@@ -73,38 +73,35 @@
           "default": null,
           "title": "Reason"
         },
-        "defense_metadata": {
+        "defenses": {
           "anyOf": [
             {
-              "$ref": "#/$defs/DefenseMetadata"
+              "items": {
+                "$ref": "#/$defs/DefenseSection"
+              },
+              "type": "array"
             },
             {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Defenses"
         },
-        "evidence": {
+        "frameworks": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Evidence"
+              "items": {
+                "$ref": "#/$defs/Framework"
+              },
+              "type": "array"
             },
             {
               "type": "null"
             }
           ],
-          "default": null
-        },
-        "metrics": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Metrics"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+          "default": null,
+          "title": "Frameworks"
         },
         "recommendation": {
           "anyOf": [
@@ -124,39 +121,6 @@
         "ran"
       ],
       "title": "AgentRecommendation",
-      "type": "object"
-    },
-    "ArchitectureEvaluation": {
-      "description": "Architecture quality evaluation",
-      "properties": {
-        "consistency": {
-          "additionalProperties": true,
-          "title": "Consistency",
-          "type": "object"
-        },
-        "centralization": {
-          "additionalProperties": true,
-          "title": "Centralization",
-          "type": "object"
-        },
-        "boundaries": {
-          "additionalProperties": true,
-          "title": "Boundaries",
-          "type": "object"
-        },
-        "maintainability": {
-          "additionalProperties": true,
-          "title": "Maintainability",
-          "type": "object"
-        }
-      },
-      "required": [
-        "consistency",
-        "centralization",
-        "boundaries",
-        "maintainability"
-      ],
-      "title": "ArchitectureEvaluation",
       "type": "object"
     },
     "AuthPattern": {
@@ -343,11 +307,27 @@
       "type": "object"
     },
     "CoverageMetrics": {
-      "description": "Coverage metrics",
+      "description": "Coverage metrics with two dimensions:\n- policy_coverage: does this defense make a decision? (permitAll = yes)\n- restrictiveness: does it restrict access? (permitAll = no)",
       "properties": {
         "metric_type": {
           "title": "Metric Type",
           "type": "string"
+        },
+        "dimension": {
+          "anyOf": [
+            {
+              "enum": [
+                "policy_coverage",
+                "restrictiveness"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dimension"
         },
         "exposures": {
           "title": "Exposures",
@@ -381,19 +361,54 @@
       "title": "CoverageMetrics",
       "type": "object"
     },
+    "DefenseMatrix": {
+      "description": "Matrix showing how all defenses apply to each endpoint",
+      "properties": {
+        "endpoints": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Endpoints",
+          "type": "array"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Summary"
+        }
+      },
+      "required": [
+        "endpoints"
+      ],
+      "title": "DefenseMatrix",
+      "type": "object"
+    },
     "DefenseMetadata": {
       "description": "Defense mechanism metadata",
       "properties": {
+        "defense_id": {
+          "title": "Defense Id",
+          "type": "string"
+        },
+        "defense_mechanism": {
+          "title": "Defense Mechanism",
+          "type": "string"
+        },
         "defense_name": {
           "title": "Defense Name",
           "type": "string"
         },
         "defense_type": {
           "title": "Defense Type",
-          "type": "string"
-        },
-        "defense_mechanism": {
-          "title": "Defense Mechanism",
           "type": "string"
         },
         "defense_patterns": {
@@ -410,15 +425,78 @@
           },
           "title": "Defense Patterns",
           "type": "array"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
         }
       },
       "required": [
+        "defense_id",
+        "defense_mechanism",
         "defense_name",
         "defense_type",
-        "defense_mechanism",
         "defense_patterns"
       ],
       "title": "DefenseMetadata",
+      "type": "object"
+    },
+    "DefenseSection": {
+      "description": "FACTUAL description of a single defense mechanism (no evaluation/judgement)",
+      "properties": {
+        "defense_metadata": {
+          "$ref": "#/$defs/DefenseMetadata"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Evidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metrics": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/CoverageMetrics"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metrics"
+        },
+        "defense_matrix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DefenseMatrix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "defense_metadata"
+      ],
+      "title": "DefenseSection",
       "type": "object"
     },
     "DefenseUsageMatrix": {
@@ -576,17 +654,6 @@
           ],
           "default": null
         },
-        "evaluation": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/ArchitectureEvaluation"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
         "coverage_metrics": {
           "anyOf": [
             {
@@ -619,9 +686,111 @@
             }
           ],
           "default": null
+        },
+        "endpoints": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endpoints"
+        },
+        "sources": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sources"
+        },
+        "frameworks": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Framework"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frameworks"
+        },
+        "authorizations": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Authorizations"
+        },
+        "test_discovery": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Test Discovery"
         }
       },
       "title": "Evidence",
+      "type": "object"
+    },
+    "Framework": {
+      "description": "Framework with version information",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Framework",
       "type": "object"
     },
     "Mechanism": {
@@ -781,35 +950,6 @@
         "component"
       ],
       "title": "Metadata",
-      "type": "object"
-    },
-    "Metrics": {
-      "description": "Standardized metrics",
-      "properties": {
-        "exposures": {
-          "title": "Exposures",
-          "type": "integer"
-        },
-        "protected": {
-          "title": "Protected",
-          "type": "integer"
-        },
-        "unprotected": {
-          "title": "Unprotected",
-          "type": "integer"
-        },
-        "coverage": {
-          "title": "Coverage",
-          "type": "number"
-        }
-      },
-      "required": [
-        "exposures",
-        "protected",
-        "unprotected",
-        "coverage"
-      ],
-      "title": "Metrics",
       "type": "object"
     },
     "Property": {

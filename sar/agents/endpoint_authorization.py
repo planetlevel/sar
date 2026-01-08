@@ -70,6 +70,7 @@ class EndpointAuthorizationAgent:
         # State from Phase 1
         self.standard_mechanisms = []
         self.all_mechanisms = []
+        self.matched_frameworks = {}  # Will be populated during mechanism discovery
 
         # State from Phase 2
         self.architecture_evaluation = {}
@@ -77,39 +78,88 @@ class EndpointAuthorizationAgent:
         # State from Phase 3
         self.discovered_exposures = []  # Exposures discovered during metrics calculation
 
-        # Detect Spring versions for version-specific recommendations
-        self.spring_versions = self._detect_spring_versions()
+        # Framework versions - will be detected after mechanism discovery
+        self.framework_versions = {}
 
-    def _detect_spring_versions(self) -> Dict[str, Optional[str]]:
+    def _detect_framework_versions(self) -> Dict[str, str]:
         """
-        Detect Spring Boot and Spring Security versions from architecture report
+        Detect versions of frameworks that are actually used in the application.
 
-        Returns dict with 'spring_boot' and 'spring_security' version strings
+        Cross-references matched frameworks with architecture report libraries
+        to get exact versions.
+
+        Returns dict mapping framework names to version strings.
         """
-        versions = {
-            'spring_boot': None,
-            'spring_security': None
-        }
+        versions = {}
 
         if not self.architecture_report:
             return versions
 
-        # Extract from architecture report libraries section
+        # Get detected frameworks (populated by _discover_standard_mechanisms)
+        if not hasattr(self, 'matched_frameworks') or not self.matched_frameworks:
+            # Fallback: return all library versions if frameworks not yet detected
+            libraries = self.architecture_report.get('libraries', [])
+            for lib in libraries:
+                name = lib.get('name', '').lower()
+                version = lib.get('version', '')
+                if version:
+                    versions[name] = version
+            return versions
+
+        # Build library lookup by artifact name for fast matching
         libraries = self.architecture_report.get('libraries', [])
-
+        lib_versions = {}
         for lib in libraries:
-            name = lib.get('name', '').lower()
-            version = lib.get('version', '')
+            lib_name = lib.get('name', '')
+            lib_version = lib.get('version', '')
+            if lib_name and lib_version:
+                # Store by full name (e.g., "org.springframework.security:spring-security-core")
+                lib_versions[lib_name.lower()] = lib_version
+                # Also store by artifact only (e.g., "spring-security-core")
+                if ':' in lib_name:
+                    artifact_only = lib_name.split(':')[-1]
+                    lib_versions[artifact_only.lower()] = lib_version
 
-            if 'spring-boot' in name and not versions['spring_boot']:
-                versions['spring_boot'] = version
-            elif 'spring-security' in name and not versions['spring_security']:
-                versions['spring_security'] = version
+        # Match each detected framework with its library version
+        for framework_id, framework_def in self.matched_frameworks.items():
+            # Try to find version from detection.dependencies patterns
+            if not framework_def.detection:
+                continue
 
-        if self.debug:
-            print(f"[{self.get_agent_id().upper()}] Detected Spring versions:")
-            print(f"  Spring Boot: {versions['spring_boot'] or 'not detected'}")
-            print(f"  Spring Security: {versions['spring_security'] or 'not detected'}")
+            dependencies = framework_def.detection.dependencies or {}
+
+            # Check pom.xml artifacts
+            pom_deps = dependencies.get('pom.xml', []) if isinstance(dependencies, dict) else []
+            for dep in pom_deps:
+                artifact = dep.artifact if hasattr(dep, 'artifact') else None
+                if artifact:
+                    # Try exact match and partial matches
+                    for lib_key, lib_ver in lib_versions.items():
+                        if artifact.lower() in lib_key or lib_key in artifact.lower():
+                            # Use framework ID as key (e.g., "spring-security")
+                            versions[framework_id] = lib_ver
+                            break
+                    if framework_id in versions:
+                        break
+
+            # Check build.gradle patterns
+            if framework_id not in versions:
+                gradle_deps = dependencies.get('build.gradle', []) if isinstance(dependencies, dict) else []
+                for dep in gradle_deps:
+                    pattern = dep.pattern if hasattr(dep, 'pattern') else None
+                    if pattern:
+                        # Match pattern against library names
+                        for lib_key, lib_ver in lib_versions.items():
+                            if pattern.lower() in lib_key:
+                                versions[framework_id] = lib_ver
+                                break
+                        if framework_id in versions:
+                            break
+
+        if self.debug and versions:
+            print(f"[{self.get_agent_id().upper()}] Detected framework versions:")
+            for fw, ver in versions.items():
+                print(f"  {fw}: {ver}")
 
         return versions
 
@@ -582,53 +632,37 @@ YOUR RESPONSE (data lines only):"""
         if self.debug:
             print(f"[{self.get_agent_id().upper()}] Phase 3: Finding Generation")
 
+        # Build shared data (roles, frameworks)
         evidence = self._build_evidence()
-        # Use the new nested metrics structure directly (don't call calculate_metrics which expects old flat structure)
-        metrics = evidence['coverage_metrics']
+
+        # Build separate defense sections (each with its own matrix)
+        defenses = self._build_defense_sections(evidence)
+
+        # Build evaluation sections (recommendation only)
         recommendation = self._generate_recommendation(evidence)
 
-        # Build defense metadata from endpoints
-        # Determine defense mechanism: annotation, config, or mixed
-        has_annotations = any(
-            auth.enforcement_point in ['endpoint_guard', 'controller_guard']
-            for endpoint in self.endpoints
-            for auth in endpoint.authorizations
+        # Extract shared data
+        fw_list = evidence.get('frameworks', [])
+        roles = evidence.get('roles')
+
+        # Build AgentRecommendation using Pydantic model for validation
+        from sar.defense_report_schema import AgentRecommendation, Framework
+
+        # Convert frameworks to Pydantic models
+        framework_models = [Framework(**fw) for fw in fw_list] if fw_list else None
+
+        # Create validated AgentRecommendation
+        agent_recommendation = AgentRecommendation(
+            agent_id=self.get_agent_id(),
+            agent_name=self.get_agent_name(),
+            ran=True,
+            defenses=defenses,
+            frameworks=framework_models,
+            recommendation=recommendation
         )
-        has_config = any(
-            auth.enforcement_point == 'route_guard'
-            for endpoint in self.endpoints
-            for auth in endpoint.authorizations
-        )
 
-        if has_annotations and has_config:
-            defense_mechanism = 'mixed'
-        elif has_config:
-            defense_mechanism = 'config'
-        elif has_annotations:
-            defense_mechanism = 'annotation'
-        else:
-            defense_mechanism = 'unknown'
-
-        defense_metadata = {
-            'defense_name': ', '.join(evidence.get('frameworks', ['unknown'])),
-            'defense_type': 'standard',
-            'defense_mechanism': defense_mechanism,
-            'defense_patterns': []
-        }
-
-        # Build security overview from critical configuration findings
-        security_overview = self._build_security_overview(evidence)
-
-        return {
-            'agent_id': self.get_agent_id(),
-            'agent_name': self.get_agent_name(),
-            'ran': True,
-            'defense_metadata': defense_metadata,
-            'security_overview': security_overview,
-            'evidence': evidence,
-            'metrics': metrics,
-            'recommendation': recommendation
-        }
+        # Return as dict for compatibility with orchestrator
+        return agent_recommendation.model_dump(exclude_none=True)
 
     # ========================================================================
     # HELPER METHODS
@@ -710,6 +744,9 @@ YOUR RESPONSE (data lines only):"""
             print(f"[{self.get_agent_id().upper()}] Detected {len(frameworks)} frameworks")
             for fw_id, fw_def in frameworks.items():
                 print(f"[{self.get_agent_id().upper()}]   - {fw_id}: {fw_def.name}")
+
+        # Detect framework versions now that we have matched frameworks
+        self.framework_versions = self._detect_framework_versions()
 
         # Find all authorization patterns
         all_behaviors = tool.find_authorization_patterns(frameworks)
@@ -966,98 +1003,117 @@ Respond in JSON ONLY (no markdown, no explanations outside JSON):
 
     def _enrich_auth_pattern_with_http_security(self):
         """
-        Update auth_pattern with actual parsed HttpSecurity configuration
+        Update auth_pattern with AI-analyzed HTTP/route-level security configuration.
 
-        Called AFTER endpoints are built so we have access to parsed HTTP security rules
+        Framework-agnostic: Analyzes source code from ANY framework to understand
+        HTTP-layer authorization architecture.
+
+        Called AFTER endpoints are built so we have access to parsed security rules
+        and configuration source code.
         """
-        if not self.endpoints:
+        if not self.endpoints or not self.sources:
             return
 
-        # Look for route_guard authorizations with global scope
-        http_security_rules = []
+        # Find HTTP/route-level security configuration source code
+        http_security_sources = []
         for endpoint in self.endpoints:
             for auth in endpoint.authorizations:
                 if auth.enforcement_point == 'route_guard' and auth.scope == 'global':
-                    # Extract the rule information
-                    rule_info = {
-                        'type': auth.authorization.type,
-                        'description': auth.description,
-                        'evidence_ref': auth.evidence.ref if auth.evidence else None
-                    }
-                    if auth.authorization.type == 'RBAC' and auth.authorization.roles_any_of:
-                        rule_info['roles'] = auth.authorization.roles_any_of
-                    elif auth.authorization.rule:
-                        rule_info['rule'] = auth.authorization.rule
+                    if auth.evidence and auth.evidence.config_source_id:
+                        source_id = auth.evidence.config_source_id
+                        if source_id in self.sources and self.sources[source_id] not in http_security_sources:
+                            http_security_sources.append(self.sources[source_id])
 
-                    # Only add if not already present (avoid duplicates)
-                    if rule_info not in http_security_rules:
-                        http_security_rules.append(rule_info)
-                    break  # Only need one example per endpoint
-
-        if not http_security_rules:
-            # No HTTP security configuration found
+        if not http_security_sources:
             return
 
-        # Update auth_pattern narrative with actual findings
-        current_summary = self.auth_pattern.get('evidence_summary', '')
-        current_arch = self.auth_pattern.get('architecture_description', '')
+        # Use AI to analyze HTTP security configuration (framework-agnostic)
+        try:
+            analysis = self._analyze_http_config_with_ai(http_security_sources)
+            if analysis:
+                self._apply_http_config_analysis(analysis)
+        except Exception as e:
+            print(f"[{self.get_agent_id().upper()}] Warning: Failed to analyze HTTP config: {e}")
 
-        # Build description of HTTP security config
-        http_desc_parts = []
-        for rule in http_security_rules:
-            if rule['type'] == 'PUBLIC':
-                http_desc_parts.append("permits all requests (anyRequest().permitAll())")
-            elif rule['type'] == 'OTHER' and 'permit' in rule.get('rule', '').lower():
-                http_desc_parts.append("permits all requests (anyRequest().permitAll())")
-            elif rule['type'] == 'RBAC':
-                roles_str = ', '.join(rule.get('roles', []))
-                http_desc_parts.append(f"requires roles: {roles_str}")
-            else:
-                http_desc_parts.append("requires authentication")
+    def _analyze_http_config_with_ai(self, sources: List[Dict]) -> Optional[Dict]:
+        """
+        Framework-agnostic AI analysis of HTTP-layer security configuration.
 
-        http_desc = '; '.join(http_desc_parts) if http_desc_parts else "unknown configuration"
+        Analyzes source code to understand what the HTTP/route-level configuration does,
+        without assuming any specific framework or language.
+        """
+        # Build source code context
+        source_snippets = []
+        for source in sources:
+            snippet = f"File: {source['ref']}\nMethod/Function: {source.get('mechanism', 'unknown')}\n\n{source['code']}"
+            source_snippets.append(snippet)
 
-        # Update evidence_summary to replace "Cannot determine" with actual config
-        if 'Cannot determine' in current_summary or 'without seeing' in current_summary:
-            # Replace vague language with specific findings
-            updated_summary = current_summary.replace(
-                'Cannot determine specific HTTP security rules without seeing SecurityConfig implementation',
-                f'SecurityConfig.configure(HttpSecurity) {http_desc}'
-            ).replace(
-                'Cannot determine specific HTTP rules without seeing SecurityConfig implementation',
-                f'SecurityConfig {http_desc}'
-            ).replace(
-                "though actual rules can't be determined without seeing config content",
-                f"with {http_desc}"
-            )
-            self.auth_pattern['evidence_summary'] = updated_summary
+        combined_sources = "\n\n---\n\n".join(source_snippets)
 
-        # Update architecture_description similarly
-        if 'Unable to determine' in current_arch or 'without seeing' in current_arch:
-            updated_arch = current_arch.replace(
-                'Unable to determine specific HTTP security rules without seeing SecurityConfig implementation details',
-                f'HTTP security configuration {http_desc}'
-            ).replace(
-                'without seeing SecurityConfig implementation details',
-                f'- SecurityConfig {http_desc}'
-            ).replace(
-                'though specific rules not visible',
-                f'with {http_desc}'
-            )
-            self.auth_pattern['architecture_description'] = updated_arch
+        # Framework-agnostic prompt - no framework names, just ask AI to understand the code
+        prompt = f"""You are analyzing HTTP/route-level authorization configuration code. Your goal is to understand the ARCHITECTURE - what this configuration does and how it works with the application's authorization model.
 
-        # Update coverage_approach to reflect that we now KNOW the config
-        current_coverage_approach = self.auth_pattern.get('coverage_approach', '')
-        if 'examine SecurityConfig' in current_coverage_approach or 'without seeing' in current_coverage_approach:
-            # Determine simplified coverage approach based on what we found
-            if 'permits all requests' in http_desc:
-                new_approach = "HTTP-layer globally permits all requests; authorization relies on method-level guards (@PreAuthorize, etc.)"
-            elif 'requires roles' in http_desc:
-                new_approach = f"HTTP-layer {http_desc}; method-level guards (@PreAuthorize) provide additional endpoint-specific restrictions"
-            else:
-                new_approach = f"HTTP-layer {http_desc}; method-level guards (@PreAuthorize) enforce endpoint-specific authorization"
+Here is the configuration source code:
 
-            self.auth_pattern['coverage_approach'] = new_approach
+{combined_sources}
+
+Analyze this code and describe:
+
+1. **config_summary** (2-3 sentences): What does this HTTP/route-level configuration do? What requests does it permit/restrict? Focus on the behavior, not implementation details.
+
+2. **integration_description** (2-3 sentences): How does this HTTP-layer config integrate with method/endpoint-level authorization? Does it delegate to method-level checks, provide base authentication, or handle all authorization itself?
+
+Return JSON only:
+```json
+{{
+  "config_summary": "Description of what the HTTP config does",
+  "integration_description": "How it integrates with endpoint-level authorization"
+}}
+```"""
+
+        try:
+            response_text = self.ai.call_claude(prompt, temperature=0.0, max_tokens=1000)
+
+            # Extract JSON
+            import json, re
+            json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1))
+            return json.loads(response_text)
+        except Exception as e:
+            print(f"[{self.get_agent_id().upper()}] AI analysis error: {e}")
+            return None
+
+    def _apply_http_config_analysis(self, analysis: Dict):
+        """Apply AI analysis to auth_pattern fields"""
+        config_summary = analysis.get('config_summary', '')
+        integration = analysis.get('integration_description', '')
+
+        if not config_summary:
+            return
+
+        # Replace vague "cannot determine" language in auth_pattern fields
+        import re
+
+        # Update evidence_summary
+        current = self.auth_pattern.get('evidence_summary', '')
+        if any(x in current.lower() for x in ['cannot determine', 'unable to determine', 'without seeing']):
+            # Append HTTP config analysis
+            if 'without seeing' in current.lower() or 'Cannot determine' in current:
+                self.auth_pattern['evidence_summary'] = f"{current.split('.')[0]}. HTTP configuration: {config_summary}"
+
+        # Update architecture_description
+        current = self.auth_pattern.get('architecture_description', '')
+        if any(x in current.lower() for x in ['cannot be determined', 'unable to determine', 'without seeing']):
+            # Remove vague sentences and add concrete description
+            pattern = r'(Unable to determine|Cannot determine)[^.]+\.'
+            updated = re.sub(pattern, config_summary, current, flags=re.IGNORECASE)
+            updated = re.sub(r',?\s*without seeing[^,.]+', '', updated)
+            self.auth_pattern['architecture_description'] = updated.strip()
+
+        # Update coverage_approach
+        if integration:
+            self.auth_pattern['coverage_approach'] = integration
 
     # REMOVED: _run_ai_analysis() - ai_insights was redundant with main recommendation
     # This method generated architecture_summary, coverage_gaps, recommendations, sound_design, reasoning
@@ -2142,7 +2198,7 @@ Return these EXACT values in JSON:
         """Build comprehensive evidence for recommendation generation"""
         # Extract roles from all endpoints' authorizations
         all_roles = set()
-        frameworks = set()
+        framework_names = set()
 
         for endpoint in self.endpoints:
             for auth in endpoint.authorizations:
@@ -2151,7 +2207,13 @@ Return these EXACT values in JSON:
                 # Extract framework from mechanism name (e.g., "PreAuthorize" -> "spring-security")
                 mechanism = auth.evidence.mechanism_name
                 if 'PreAuthorize' in mechanism or 'Secured' in mechanism or 'RolesAllowed' in mechanism:
-                    frameworks.add('spring-security')
+                    framework_names.add('spring-security')
+
+        # Build framework list with versions
+        frameworks = []
+        for name in framework_names:
+            version = self.framework_versions.get(name) if hasattr(self, 'framework_versions') else None
+            frameworks.append({'name': name, 'version': version})
 
         # Classify roles
         generic_roles = [r for r in all_roles if r.upper() in ['USER', 'ADMIN', 'ROLE_USER', 'ROLE_ADMIN']]
@@ -2159,6 +2221,8 @@ Return these EXACT values in JSON:
 
         roles = {
             'used': list(all_roles),
+            'generic': generic_roles,
+            'domain_specific': domain_specific_roles,
             'generic_count': len(generic_roles),
             'domain_specific_count': len(domain_specific_roles)
         }
@@ -2242,7 +2306,7 @@ Return these EXACT values in JSON:
         evidence = {
             'endpoints': [e.model_dump(exclude_none=True) for e in self.endpoints],
             'roles': roles,
-            'frameworks': list(frameworks),
+            'frameworks': frameworks,
             'auth_pattern': self.auth_pattern,
             'coverage_metrics': coverage_metrics,
             'proposed_access_matrix': proposed_matrix,
@@ -2253,110 +2317,6 @@ Return these EXACT values in JSON:
         }
 
         return evidence
-
-    def _build_security_overview(self, evidence: Dict) -> Dict:
-        """
-        Build security overview highlighting critical configuration findings
-
-        Uses AI to analyze config snippets and identify security concerns
-        in a framework-agnostic way.
-
-        Args:
-            evidence: Evidence dict from _build_evidence()
-
-        Returns:
-            Dict with security overview findings
-        """
-        if not self.ai:
-            # No AI - return minimal overview
-            return {
-                'severity': 'info',
-                'findings': [],
-                'summary': 'Security overview requires AI analysis'
-            }
-
-        # Get config sources to analyze
-        sources = evidence.get('sources', {})
-
-        if not sources:
-            # No sources to analyze
-            return {
-                'severity': 'info',
-                'findings': [],
-                'summary': 'No security configuration sources found'
-            }
-
-        # Build prompt for AI to analyze config snippets
-        sources_for_analysis = []
-        for source_id, source_data in sources.items():
-            sources_for_analysis.append({
-                'id': source_id,
-                'ref': source_data.get('ref', ''),
-                'mechanism': source_data.get('mechanism', ''),
-                'code': source_data.get('code', '')[:500]  # Limit to 500 chars per source
-            })
-
-        prompt = f"""Analyze these security configuration snippets and identify critical findings.
-
-CONFIGURATION SOURCES:
-{json.dumps(sources_for_analysis, indent=2)}
-
-YOUR TASK:
-Identify immediate security concerns in these configurations. Focus on:
-1. Global authorization bypass (e.g., "permits all requests", "no authentication required")
-2. CSRF protection disabled/missing
-3. Insecure defaults
-4. Missing authentication at HTTP/entry layer
-5. Other critical misconfigurations
-
-For EACH critical finding, return:
-- type: snake_case identifier (e.g., "http_security_permits_all", "csrf_disabled")
-- severity: "critical", "warning", or "info"
-- title: Short title (5-8 words)
-- description: 1-2 sentence explanation of the concern and impact
-- source_ref: Reference from the source (file:line)
-
-Return JSON array of findings. If no critical concerns, return empty array.
-
-Example output:
-[
-  {{
-    "type": "http_security_permits_all",
-    "severity": "warning",
-    "title": "HTTP layer permits all requests",
-    "description": "Entry point security configured to allow all requests without authentication. Authorization depends entirely on downstream guards.",
-    "source_ref": "src/main/java/.../SecurityConfig.java:18"
-  }}
-]
-
-Return ONLY valid JSON array, no explanations.
-"""
-
-        try:
-            response = self.ai.call_claude(prompt, max_tokens=1000, temperature=0.3)
-            if response:
-                # Parse JSON from response
-                import re
-                json_match = re.search(r'\[.*\]', response, re.DOTALL)
-                if json_match:
-                    findings = json.loads(json_match.group(0))
-
-                    # Determine overall severity from findings
-                    severity = "info"
-                    if any(f.get('severity') == 'critical' for f in findings):
-                        severity = "critical"
-                    elif any(f.get('severity') == 'warning' for f in findings):
-                        severity = "warning"
-
-                    return {
-                        'severity': severity,
-                        'findings': findings,
-                        'summary': f"Found {len(findings)} security configuration finding{'s' if len(findings) != 1 else ''}"
-                    }
-        except Exception as e:
-            print(f"[{self.get_agent_id().upper()}] ERROR: Security overview AI analysis failed: {e}")
-            print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
-            raise RuntimeError(f"Security overview AI analysis failed: {e}")
 
     def _verify_unprotected_routes(self) -> Dict:
         """
@@ -2493,6 +2453,294 @@ Respond in JSON:
             print(f"[{self.get_agent_id().upper()}] ERROR: Verification AI review failed: {e}")
             print(f"[{self.get_agent_id().upper()}] AI analysis is required for accurate results - cannot continue")
             raise RuntimeError(f"Verification AI review failed: {e}")
+
+    def _generate_defense_description(self, defense_name: str, defense_mechanism: str, evidence_dict: Dict) -> str:
+        """
+        Generate AI description of what this defense does
+
+        Args:
+            defense_name: Name of defense (e.g., "spring-security HTTP Security")
+            defense_mechanism: Mechanism type (e.g., "route_guard", "endpoint_guard")
+            evidence_dict: Evidence showing this defense (sources, authorizations, etc.)
+
+        Returns:
+            2-3 sentence description of what this defense does
+        """
+        if not self.ai:
+            return f"A {defense_mechanism} defense mechanism"
+
+        # Build context from evidence
+        evidence_summary = []
+        if 'sources' in evidence_dict and evidence_dict['sources']:
+            evidence_summary.append(f"{len(evidence_dict['sources'])} configuration source(s)")
+        if 'authorizations' in evidence_dict and evidence_dict['authorizations']:
+            evidence_summary.append(f"{len(evidence_dict['authorizations'])} authorization definition(s)")
+
+        prompt = f"""Describe this defense mechanism in 2-3 sentences.
+
+DEFENSE: {defense_name}
+MECHANISM TYPE: {defense_mechanism}
+EVIDENCE: {', '.join(evidence_summary) if evidence_summary else 'See defense details'}
+
+Write a brief, factual description of:
+1. What this defense does (what it controls/protects)
+2. Where it's applied (HTTP layer, method level, etc.)
+3. How it enforces authorization (configuration, annotations, etc.)
+
+Keep it factual and concise (2-3 sentences). No evaluation or recommendations.
+Return ONLY the description text, no preamble."""
+
+        try:
+            response = self.ai.call_claude(prompt, max_tokens=200, temperature=0.3)
+            if response:
+                return response.strip()
+        except Exception as e:
+            if self.debug:
+                print(f"[{self.get_agent_id().upper()}] Failed to generate defense description: {e}")
+
+        return f"A {defense_mechanism} defense mechanism"
+
+    def _build_defense_sections(self, evidence: Dict) -> List[Dict]:
+        """
+        Build separate defense sections for each detected defense mechanism
+
+        Returns list of DefenseSection objects showing FACTUAL information only
+        """
+        defenses = []
+        frameworks = evidence.get('frameworks', [])
+        fw_names = [f['name'] for f in frameworks] if frameworks and isinstance(frameworks[0], dict) else frameworks
+        fw_name = ', '.join(fw_names) if fw_names else 'unknown'
+
+        # Get roles from evidence (authorization-specific)
+        roles = evidence.get('roles', {})
+
+        # Identify which enforcement points exist
+        has_route_guard = any(
+            auth.enforcement_point == 'route_guard'
+            for endpoint in self.endpoints
+            for auth in endpoint.authorizations
+        )
+        has_endpoint_guard = any(
+            auth.enforcement_point in ['endpoint_guard', 'controller_guard']
+            for endpoint in self.endpoints
+            for auth in endpoint.authorizations
+        )
+
+        # Defense 1: HTTP Security (route_guard)
+        if has_route_guard:
+            route_sources = {
+                k: v for k, v in evidence.get('sources', {}).items()
+                if 'HttpSecurity' in v.get('mechanism', '') or 'configure' in v.get('mechanism', '')
+            }
+
+            # Generate AI description
+            route_evidence_dict = {'sources': route_sources}
+            route_description = self._generate_defense_description(
+                f"{fw_name} HTTP Security",
+                "route_guard",
+                route_evidence_dict
+            )
+
+            # Build matrix showing just this defense for each endpoint
+            route_matrix_endpoints = []
+            for endpoint in self.endpoints:
+                route_auths = [a for a in endpoint.authorizations if a.enforcement_point == 'route_guard']
+                if route_auths:
+                    auth = route_auths[0]  # Take first
+                    route_matrix_endpoints.append({
+                        'id': endpoint.id,
+                        'method': endpoint.method,
+                        'path': endpoint.path,
+                        'handler': endpoint.handler,
+                        'authorization': {
+                            'type': auth.authorization.type if hasattr(auth.authorization, 'type') else str(auth.authorization),
+                            'roles': auth.authorization.roles_any_of if hasattr(auth.authorization, 'roles_any_of') else None,
+                            'description': auth.description
+                        }
+                    })
+
+            # Calculate two dimensions for HTTP Security
+            policy_coverage_count = len([e for e in self.endpoints if any(
+                a.enforcement_point == 'route_guard' for a in e.authorizations
+            )])
+            restrictiveness_count = len([e for e in self.endpoints if any(
+                a.enforcement_point == 'route_guard' and a.authorization.type != 'PUBLIC'
+                for a in e.authorizations
+            )])
+
+            defenses.append({
+                'defense_metadata': {
+                    'defense_id': 'spring_security_http',
+                    'defense_name': f"{fw_name} HTTP Security",
+                    'defense_type': 'standard',
+                    'defense_mechanism': 'route_guard',
+                    'defense_patterns': [],
+                    'description': route_description
+                },
+                'evidence': {
+                    'sources': route_sources
+                },
+                'metrics': [
+                    {
+                        'metric_type': 'http_security',
+                        'dimension': 'policy_coverage',
+                        'exposures': len(self.endpoints),
+                        'protected': policy_coverage_count,
+                        'unprotected': len(self.endpoints) - policy_coverage_count,
+                        'coverage': (policy_coverage_count / len(self.endpoints) * 100) if self.endpoints else 0,
+                        'explanation': f'HTTP Security makes authorization decisions for {policy_coverage_count}/{len(self.endpoints)} endpoints'
+                    },
+                    {
+                        'metric_type': 'http_security',
+                        'dimension': 'restrictiveness',
+                        'exposures': len(self.endpoints),
+                        'protected': restrictiveness_count,
+                        'unprotected': len(self.endpoints) - restrictiveness_count,
+                        'coverage': (restrictiveness_count / len(self.endpoints) * 100) if self.endpoints else 0,
+                        'explanation': f'{restrictiveness_count}/{len(self.endpoints)} endpoints restricted by HTTP Security (permitAll excluded)'
+                    }
+                ],
+                'defense_matrix': {
+                    'endpoints': route_matrix_endpoints,
+                    'summary': {
+                        'total_endpoints': len(route_matrix_endpoints),
+                        'defense_name': 'route_guard',
+                        'policy_coverage': (policy_coverage_count / len(self.endpoints) * 100) if self.endpoints else 0,
+                        'restrictiveness': (restrictiveness_count / len(self.endpoints) * 100) if self.endpoints else 0
+                    }
+                }
+            })
+
+        # Defense 2: Method/Endpoint Security (endpoint_guard)
+        if has_endpoint_guard:
+            endpoint_authorizations = {}
+            for auth_id, auth in evidence.get('authorizations', {}).items():
+                if auth.get('enforcement_point') in ['endpoint_guard', 'controller_guard']:
+                    endpoint_authorizations[auth_id] = auth
+
+            # Generate AI description
+            endpoint_evidence_dict = {'authorizations': endpoint_authorizations}
+            endpoint_description = self._generate_defense_description(
+                f"{fw_name} RBAC",
+                "endpoint_guard",
+                endpoint_evidence_dict
+            )
+
+            # Build matrix showing just this defense for each endpoint
+            endpoint_matrix_endpoints = []
+            for endpoint in self.endpoints:
+                endpoint_auths = [a for a in endpoint.authorizations if a.enforcement_point in ['endpoint_guard', 'controller_guard']]
+                if endpoint_auths:
+                    auth = endpoint_auths[0]  # Take first
+                    endpoint_matrix_endpoints.append({
+                        'id': endpoint.id,
+                        'method': endpoint.method,
+                        'path': endpoint.path,
+                        'handler': endpoint.handler,
+                        'authorization': {
+                            'type': auth.authorization.type if hasattr(auth.authorization, 'type') else str(auth.authorization),
+                            'roles': auth.authorization.roles_any_of if hasattr(auth.authorization, 'roles_any_of') else None,
+                            'description': auth.description
+                        }
+                    })
+                else:
+                    # Show endpoints with NO protection from this defense
+                    endpoint_matrix_endpoints.append({
+                        'id': endpoint.id,
+                        'method': endpoint.method,
+                        'path': endpoint.path,
+                        'handler': endpoint.handler,
+                        'authorization': None
+                    })
+
+            protected_count = len([e for e in self.endpoints if any(
+                a.enforcement_point in ['endpoint_guard', 'controller_guard'] for a in e.authorizations
+            )])
+
+            defenses.append({
+                'defense_metadata': {
+                    'defense_id': 'spring_security_rbac',
+                    'defense_name': f"{fw_name} RBAC",
+                    'defense_type': 'standard',
+                    'defense_mechanism': 'endpoint_guard',
+                    'defense_patterns': [],
+                    'description': endpoint_description
+                },
+                'evidence': {
+                    'authorizations': endpoint_authorizations,
+                    'roles': roles  # Authorization-specific data
+                },
+                'metrics': [
+                    {
+                        'metric_type': 'endpoint_guard',
+                        'dimension': 'restrictiveness',
+                        'exposures': len(self.endpoints),
+                        'protected': protected_count,
+                        'unprotected': len(self.endpoints) - protected_count,
+                        'coverage': (protected_count / len(self.endpoints) * 100) if self.endpoints else 0,
+                        'explanation': f'{protected_count}/{len(self.endpoints)} endpoints have method/controller-level authorization'
+                    }
+                ],
+                'defense_matrix': {
+                    'endpoints': endpoint_matrix_endpoints,
+                    'summary': {
+                        'total_endpoints': len(endpoint_matrix_endpoints),
+                        'defense_name': 'endpoint_guard'
+                    }
+                }
+            })
+
+        return defenses
+
+    def _build_defense_matrix(self, evidence: Dict) -> Dict:
+        """
+        Build matrix showing how ALL defenses combine for each endpoint
+
+        Returns DefenseMatrix showing factual mapping
+        """
+        matrix_endpoints = []
+
+        for endpoint in self.endpoints:
+            # Group authorizations by enforcement point
+            defenses_for_endpoint = {}
+
+            for auth in endpoint.authorizations:
+                enforcement_point = auth.enforcement_point
+                if enforcement_point not in defenses_for_endpoint:
+                    defenses_for_endpoint[enforcement_point] = []
+
+                defenses_for_endpoint[enforcement_point].append({
+                    'type': auth.authorization.type if hasattr(auth.authorization, 'type') else str(auth.authorization),
+                    'roles': auth.authorization.roles_any_of if hasattr(auth.authorization, 'roles_any_of') else None,
+                    'description': auth.description
+                })
+
+            matrix_endpoints.append({
+                'id': endpoint.id,
+                'method': endpoint.method,
+                'path': endpoint.path,
+                'handler': endpoint.handler,
+                'defenses': defenses_for_endpoint,
+                'effective_authorization': {
+                    'type': endpoint.effective_authorization.type if endpoint.effective_authorization else 'unknown',
+                    'roles': endpoint.effective_authorization.roles_any_of if (
+                        endpoint.effective_authorization and hasattr(endpoint.effective_authorization, 'roles_any_of')
+                    ) else None
+                }
+            })
+
+        return {
+            'endpoints': matrix_endpoints,
+            'summary': {
+                'total_endpoints': len(matrix_endpoints),
+                'defenses_found': list(set(
+                    ep
+                    for endpoint in self.endpoints
+                    for auth in endpoint.authorizations
+                    for ep in [auth.enforcement_point]
+                ))
+            }
+        }
 
     def _generate_recommendation(self, evidence: Dict) -> Dict:
         """
@@ -2632,80 +2880,67 @@ ROLE NAME CONSISTENCY (CRITICAL - APPLIES TO ALL FRAMEWORKS):
    - Example: "Use 'ADMIN' (not 'admin' or 'Administrator')"
 """
 
-    def _build_spring_security_guidance(self) -> str:
+    def _build_framework_context(self) -> str:
         """
-        Build version-specific Spring Security guidance section
+        Build framework context with version-specific API guidance.
 
-        Provides correct configuration patterns based on detected Spring Boot/Security versions
+        Detects deprecated patterns like WebSecurityConfigurerAdapter and provides
+        correct modern alternatives.
         """
-        spring_boot = self.spring_versions.get('spring_boot')
-        spring_security = self.spring_versions.get('spring_security')
+        if not self.framework_versions:
+            return "DETECTED FRAMEWORKS: None detected - provide generic authorization guidance"
 
-        # Determine configuration style based on version
-        if spring_boot and spring_boot.startswith('3'):
-            config_style = "Boot 3.x"
-            config_guidance = """
-   - Continue using your existing configuration style
-   - If adding method security for the first time: @EnableMethodSecurity(prePostEnabled = true)
-   - If adding HTTP security for the first time: SecurityFilterChain bean (WebSecurityConfigurerAdapter removed in Boot 3)
-   - Example SecurityFilterChain pattern:
-     @Bean
-     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-         http.authorizeHttpRequests(authz -> authz
-             .requestMatchers("/health", "/actuator/**").permitAll()
-             .anyRequest().authenticated()
-         );
-         return http.build();
-     }"""
-        elif spring_boot and spring_boot.startswith('2.7'):
-            config_style = "Boot 2.7.x"
-            config_guidance = """
-   - Continue using your existing configuration style
-   - If adding method security: @EnableMethodSecurity (modern) or @EnableGlobalMethodSecurity (legacy, still works)
-   - If adding HTTP security: SecurityFilterChain bean (modern) or WebSecurityConfigurerAdapter (legacy, still works)
-   - Modern style is more future-proof for Boot 3 migration"""
-        elif spring_boot and spring_boot.startswith('2'):
-            config_style = f"Boot {spring_boot}"
-            config_guidance = """
-   - Continue using your existing configuration style
-   - If adding method security: @EnableGlobalMethodSecurity(prePostEnabled = true)
-   - If adding HTTP security: extend WebSecurityConfigurerAdapter"""
-        else:
-            config_style = "Version not detected"
-            config_guidance = """
-   - Continue with your existing configuration style
-   - If method security not enabled, enable it using your framework's standard mechanism"""
+        frameworks_list = [f"{name}: {version}" for name, version in self.framework_versions.items()]
 
-        return f"""
-SPRING SECURITY BEST PRACTICES (CRITICAL - FOLLOW EXACTLY):
-Detected Versions: Spring Boot {spring_boot or 'unknown'}, Spring Security {spring_security or 'unknown'}
-Configuration Style: {config_style}
+        # Detect Spring Security version for specific guidance
+        spring_sec_version = self.framework_versions.get('spring-security')
+        version_guidance = ""
 
-1. Public Endpoints (CRITICAL - DO NOT use PUBLIC role):
-   - Use permitAll() in HttpSecurity configuration for truly public endpoints
-   - Example: http.authorizeHttpRequests().requestMatchers("/health", "/actuator/**").permitAll()
-   - DO NOT create a "PUBLIC" role - this creates confusion about authentication state
-   - DO NOT use @PreAuthorize("permitAll()") on methods - permitAll() is HTTP security, not method security
-   - Leave public endpoints UNANNOTATED at method level (protected by HTTP security allowlist)
+        if spring_sec_version:
+            major_version = int(spring_sec_version.split('.')[0]) if spring_sec_version else 0
 
-2. Method Security Annotations (for protected endpoints):
-   - Use @PreAuthorize("hasRole('ADMIN')") for role checks (this agent focuses on ROLES only)
-   - Use @PreAuthorize("isAuthenticated()") for any authenticated user (no specific role)
-   - For JSR-250 style: @RolesAllowed({{"ADMIN", "USER"}}) if enabled
-   - Note: Fine-grained permissions/authorities are handled by a separate agent
+            if major_version >= 6:
+                version_guidance = f"""
+SPRING SECURITY {spring_sec_version} - MODERN API (SecurityFilterChain):
+- DO NOT recommend WebSecurityConfigurerAdapter (deprecated in 5.7, removed in 6.0)
+- DO recommend @Bean SecurityFilterChain pattern:
+  ```java
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {{
+      http
+          .authorizeHttpRequests(authorize -> authorize
+              .requestMatchers("/public/**").permitAll()
+              .anyRequest().authenticated()
+          );
+      return http.build();
+  }}
+  ```
+- Use .authorizeHttpRequests() NOT .authorizeRequests() (deprecated)
+- Use requestMatchers() NOT antMatchers() (deprecated)
+"""
+            elif major_version == 5:
+                # Check for 5.7+ (when WebSecurityConfigurerAdapter was deprecated)
+                minor = int(spring_sec_version.split('.')[1]) if '.' in spring_sec_version else 0
+                if minor >= 7:
+                    version_guidance = f"""
+SPRING SECURITY {spring_sec_version} - TRANSITIONAL (WebSecurityConfigurerAdapter deprecated):
+- WebSecurityConfigurerAdapter is deprecated - recommend migrating to @Bean SecurityFilterChain
+- If using WebSecurityConfigurerAdapter, note it's deprecated and suggest migration path
+- Prefer modern SecurityFilterChain pattern (show example)
+"""
+                else:
+                    version_guidance = f"""
+SPRING SECURITY {spring_sec_version} - LEGACY API (WebSecurityConfigurerAdapter):
+- Can recommend either WebSecurityConfigurerAdapter OR SecurityFilterChain
+- Note that SecurityFilterChain is the modern approach (future-proof)
+"""
 
-3. Configuration:{config_guidance}
+        return f"""DETECTED FRAMEWORKS AND VERSIONS:
+{chr(10).join(f"- {fw}" for fw in frameworks_list)}
 
-4. Scope Limitations (IMPORTANT):
-   - Controller/endpoint authorization ONLY protects HTTP access via Spring MVC request handling
-   - Does NOT automatically protect: @Scheduled methods, @EventListener, message listeners, WebSocket endpoints, internal service-to-service calls
-   - Phrase protection as "prevents unauthorized HTTP access" not "prevents all unauthorized access"
-   - If non-HTTP entry points exist, they need separate authorization mechanisms
+{version_guidance}
 
-5. Default-Deny Stance:
-   - Configure .anyRequest().authenticated() as the default
-   - Explicitly allowlist public endpoints with .requestMatchers(...).permitAll()
-   - This ensures new endpoints are secure by default"""
+CRITICAL: Your output must be FRAMEWORK-SPECIFIC. Use the EXACT frameworks, versions, and APIs detected above."""
 
     def _format_verification_summary(self, verification: Dict) -> str:
         """Format AI verification summary"""
@@ -2847,8 +3082,8 @@ Step 5: BRIEFLY ACKNOWLEDGE existing tests:
         # Get generic role consistency guidance (applies to all frameworks)
         role_consistency_guidance = self._build_role_consistency_guidance()
 
-        # Get Spring Security guidance (only relevant if Spring detected)
-        spring_guidance = self._build_spring_security_guidance()
+        # Get framework context (all detected frameworks and versions for AI)
+        framework_context = self._build_framework_context()
 
         # Build proposed access control matrix
         proposed_matrix = self._build_proposed_access_matrix(evidence)
@@ -2859,14 +3094,15 @@ Step 5: BRIEFLY ACKNOWLEDGE existing tests:
         # Build special guidance for unknown pattern case
         unknown_pattern_guidance = ""
         if pattern_detection_failed:
-            frameworks = set(context.get('frameworks', []))
-            if frameworks:
+            framework_list = context.get('frameworks', [])
+            framework_names = [f['name'] for f in framework_list] if framework_list and isinstance(framework_list[0], dict) else framework_list
+            if framework_names:
                 unknown_pattern_guidance = f"""
 ⚠️ CRITICAL: Architecture pattern could not be determined automatically.
 Pattern detection failed with: {auth_pattern.get('evidence_summary', 'unknown error')}
 
 RECOMMENDED APPROACH - Framework-Specific Implementation:
-Since we detected {', '.join(frameworks)}, recommend implementing the STANDARD authorization approach for this framework:
+Since we detected {', '.join(framework_names)}, recommend implementing the STANDARD authorization approach for this framework:
 1. Identify the framework's recommended authorization mechanism (annotations, middleware, decorators, etc.)
 2. Show how to apply it at the HTTP entry points (controllers/routes)
 3. Provide specific examples using the detected framework's actual API
@@ -2895,6 +3131,10 @@ Recommend implementing basic authorization at all HTTP entry points:
 5. Emphasize: Start simple, then refine based on business requirements
 """
 
+        # Extract framework names for display
+        framework_list = context.get('frameworks', [])
+        framework_display = ', '.join([f['name'] for f in framework_list] if framework_list and isinstance(framework_list[0], dict) else framework_list)
+
         return f"""You are a security architect analyzing authorization in an application.
 
 CRITICAL: Your output must be FRAMEWORK-SPECIFIC. Use the EXACT frameworks, versions, and APIs detected in this application. DO NOT write generic advice or use placeholders.
@@ -2903,7 +3143,7 @@ APPLICATION CONTEXT:
 - Total endpoints: {context.get('total_endpoints', 0)}
 - Protected: {context['protected']} ({context['coverage']:.1f}%)
 - Unprotected: {context['unprotected']}
-- Frameworks detected: {', '.join(set(context['frameworks']))}
+- Frameworks detected: {framework_display}
 
 CRITICAL - OUTPUT MUST BE FRAMEWORK-SPECIFIC:
 Your recommendation MUST use the EXACT detected frameworks and versions. DO NOT write generic advice.
@@ -2913,9 +3153,56 @@ Your recommendation MUST use the EXACT detected frameworks and versions. DO NOT 
 - If multiple frameworks detected, integrate guidance for all of them
 - Example: Instead of "configure authorization in your framework", write "use @PreAuthorize in Spring Security 6.x"
 
+DENY-BY-DEFAULT SECURITY PRINCIPLE (MANDATORY):
+Your recommendation MUST advocate for deny-by-default authorization:
+- **Default action should be DENY (403/401)** - block all requests unless explicitly allowed
+- Public endpoints should be explicitly allowlisted in HTTP security configuration
+- Step 0 MUST establish deny-by-default at the HTTP/entry layer
+- CRITICAL: If current HTTP config uses permitAll() for everything, flag this as a severe anti-pattern
+- Example (Spring Security): .anyRequest().authenticated() or .anyRequest().denyAll() with explicit permitAll() for specific public paths only
+
 {role_consistency_guidance}
 
-{spring_guidance}
+CRITICAL - METRICS INTERPRETATION:
+You will see TWO types of metrics:
+
+1. HTTP SECURITY METRICS (two dimensions):
+   - policy_coverage: Does HTTP Security make a decision? (permitAll = YES, this counts as "covered")
+   - restrictiveness: Does it restrict access? (permitAll = NO, this does NOT count)
+   - Example: HTTP Security with permitAll() for all routes:
+     * policy_coverage = 100% (makes decision for every route)
+     * restrictiveness = 0% (doesn't restrict anything - public access)
+
+2. EFFECTIVE AUTHORIZATION METRICS:
+   - Combines all layers (HTTP + endpoint + controller)
+   - Shows actual access outcome per endpoint
+   - public: Endpoints with effective public access
+   - rbac: Endpoints requiring specific roles
+   - authenticated: Endpoints requiring authentication only
+   - restrictive_coverage: (rbac + authenticated) / total × 100%
+
+YOUR RECOMMENDATION MUST:
+- Cite the CORRECT metrics in narrative
+- If HTTP policy_coverage = 100% but restrictiveness = 0%, explain this is WRONG (all public)
+- Use effective_authorization.restrictive_coverage as the PRIMARY security metric
+- Example: "HTTP Security has 100% policy coverage but 0% restrictiveness (permitAll for everything).
+  Effective restrictive coverage is only 29.4% (5/17 endpoints require authentication/roles)."
+
+CRITICAL - NARRATIVE MUST MATCH DATA:
+Your recommendation text MUST accurately reflect the proposed_access_matrix data.
+
+WRONG: "POST /owners/{{ownerId}}/pets/{{petId}}/edit lacks RBAC"
+CORRECT: "POST /owners/{{ownerId}}/pets/{{petId}}/edit currently has RBAC (OWNER role)"
+
+Before making claims about specific endpoints:
+1. Check the proposed_access_matrix.endpoint_classifications
+2. Find the endpoint in the list
+3. Use its actual current_auth and suggested_auth values
+4. If you modify the AI suggestion, explain WHY
+
+If the matrix says an endpoint HAS RBAC, your prose cannot say it LACKS RBAC.
+
+{framework_context}
 
 {unknown_pattern_guidance}
 
@@ -3034,23 +3321,26 @@ Provide your recommendation in this exact JSON format:
   "title": "One-line recommendation title",
   "summary": "Brief 1-2 sentence summary acknowledging the current architecture pattern and what needs to be done",
   "design_recommendation": "Strategic guidance (400-600 words). {"MUST start by acknowledging that architecture pattern could not be determined, then follow the RECOMMENDED APPROACH guidance to suggest either framework-specific OR entry-point authorization." if pattern_detection_failed else f"MUST start by explicitly discussing the {pattern_type} authorization architecture found at {primary_layer}. Is it sound? Is {primary_layer} the right place for auth checks?"} Then discuss existing roles. Explain access control matrix. Discuss which locations need authorization. Use \\n for line breaks.",
-  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST be FRAMEWORK-SPECIFIC using exact detected frameworks and versions. MUST include:\\n- Step 0: Establish default-deny at HTTP layer - show ACTUAL framework configuration code (not generic)\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n- Step 2: Add public endpoints to allowlist - show ACTUAL framework config syntax for detected version\\n- Step 3: Add role check annotations to protected endpoints - use ACTUAL framework annotations from detected version\\n- Step 4: For 3-5 example endpoints from the matrix, show EXACT code with ACTUAL role names and framework syntax\\n- Step 5: Authorization testing - FOLLOW THE TEST GUIDANCE ABOVE based on what tests currently exist\\n- All code examples MUST use framework-specific syntax, NOT placeholders or generic instructions\\nUse \\n for line breaks.",
+  "implementation_recommendation": "Concrete technical steps (400-600 words). MUST be FRAMEWORK-SPECIFIC using exact detected frameworks and versions. MUST include:\\n\\n- **Step 0: ESTABLISH DENY-BY-DEFAULT AT HTTP LAYER** (CRITICAL FIRST STEP)\\n  - Default should be DENY/403 for all requests\\n  - Public endpoints explicitly allowlisted\\n  - Show ACTUAL framework configuration code (not generic)\\n  - Example structure: Configure HTTP security to deny by default, then permit specific public paths\\n  - If current config uses permitAll() globally, explicitly call this out as WRONG and show the correct deny-by-default pattern\\n\\n- Step 1: Review and implement the PROPOSED ACCESS CONTROL MATRIX classifications (agree with suggested classifications or provide adjusted ones)\\n\\n- Step 2: Add public endpoints to allowlist in HTTP security config - show ACTUAL framework config syntax for detected version\\n\\n- Step 3: Add role check annotations to protected endpoints - use ACTUAL framework annotations from detected version\\n\\n- Step 4: For 3-5 example endpoints from the matrix, show EXACT code with ACTUAL role names and framework syntax\\n\\n- Step 5: Authorization testing - FOLLOW THE TEST GUIDANCE ABOVE based on what tests currently exist\\n\\n- All code examples MUST use framework-specific syntax, NOT placeholders or generic instructions\\nUse \\n for line breaks.",
   "rationale": "Why this approach (400-600 words). Explain why {primary_layer} authorization is appropriate (or not) for this application. IMPORTANT: Scope claims to HTTP access only - acknowledge that controller auth does NOT protect @Scheduled, @EventListener, message listeners, or internal service calls. Compare against other architectural patterns (controller-level, service-level, API gateways, custom schemes). Discuss trade-offs. Explain urgency based on {context['coverage']:.1f}% coverage. Use \\n for line breaks."
 }}
 
 CRITICAL REQUIREMENTS:
 - First paragraph of design_recommendation MUST discuss the {pattern_type} authorization architecture pattern at {primary_layer}
 - Explicitly state whether auth at {primary_layer} is appropriate for this application
+- **DENY-BY-DEFAULT MUST BE DISCUSSED** - Explicitly address whether current HTTP config follows deny-by-default (default deny with explicit allowlist) or permit-by-default (default permit with checks elsewhere)
+- If HTTP config uses permitAll() globally, call this out as a critical security anti-pattern that violates deny-by-default principle
 - Reference and review the PROPOSED ACCESS CONTROL MATRIX - either agree with it or adjust specific classifications with rationale
-- DO NOT recommend creating a PUBLIC role - use permitAll() in HTTP security config instead
+- DO NOT recommend creating a PUBLIC role - use permitAll() in HTTP security config for specific public paths only
 - DO NOT recommend @PreAuthorize("permitAll()") - that's wrong, use HTTP security config
 - Scope protection claims to "prevents unauthorized HTTP access" not "prevents all access"
 - Each section must be 400-600 words (not 200-300)
 - Include actual code examples with real role names from the application: {', '.join(context['roles_used'][:10])}
-- CRITICAL: All code examples MUST use framework-specific syntax from detected frameworks ({', '.join(set(context['frameworks']))})
+- CRITICAL: All code examples MUST use framework-specific syntax from detected frameworks ({framework_display})
 - CRITICAL: All configuration examples MUST reference the exact detected versions (see Spring Security guidance above)
 - NO GENERIC PLACEHOLDERS: Use actual framework API calls, annotations, methods - not "configure in your framework"
 - Provide concrete, actionable guidance referencing the matrix classifications
+- Step 0 (deny-by-default) MUST be the first and most prominent implementation step
 - Step 5 MUST follow the test guidance above - tailor to what tests already exist (none/some/comprehensive)
 - Discuss whether the proposed role structure is appropriate or should be adjusted
 

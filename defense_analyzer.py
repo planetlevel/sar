@@ -65,9 +65,53 @@ class DefenseAnalyzer:
             print("  - For Bedrock: Configure AWS credentials")
             print("  - For Anthropic API: Set ANTHROPIC_API_KEY environment variable")
 
+        # Run deptrast to get architecture/dependency information
+        self.architecture_report = self._run_deptrast()
+
         # Agent registry
         self.agents = []
         self._register_agents()
+
+    def _run_deptrast(self) -> Dict[str, Any]:
+        """
+        Run deptrast to analyze project dependencies and architecture.
+
+        Returns architecture report with libraries and framework versions.
+        """
+        try:
+            from sar.deptrast_tool import DeptrastTool
+
+            print("[Analyzer] Running deptrast for dependency analysis...")
+
+            # Initialize DeptrastTool
+            tool = DeptrastTool(debug=self.debug)
+
+            # Analyze project to get SBOM
+            result = tool.analyze_project(self.project_dir, output_format='sbom')
+
+            if result['success']:
+                # Transform SBOM components to architecture report format
+                libraries = []
+                for component in result.get('dependencies', []):
+                    libraries.append({
+                        'name': component.get('name', ''),
+                        'version': component.get('version', '')
+                    })
+
+                if self.debug:
+                    print(f"[Analyzer] ✓ Deptrast found {len(libraries)} libraries")
+
+                return {'libraries': libraries}
+            else:
+                if self.debug:
+                    error = result.get('stderr', result.get('error', 'Unknown error'))
+                    print(f"[Analyzer] Warning: deptrast failed: {error}")
+                return {}
+
+        except Exception as e:
+            if self.debug:
+                print(f"[Analyzer] Warning: deptrast error: {e}")
+            return {}
 
     def _register_agents(self):
         """Register all available agents"""
@@ -85,6 +129,7 @@ class DefenseAnalyzer:
                     cpg_tool=self.cpg_tool,
                     project_dir=self.project_dir,
                     ai_client=self.ai,
+                    architecture_report=self.architecture_report,
                     debug=self.debug
                 )
                 self.agents.append(agent)
@@ -176,7 +221,7 @@ class DefenseAnalyzer:
     def generate_cyclonedx_report(self, results: Dict, project_name: str = None,
                                   project_version: str = None) -> Dict:
         """
-        Generate CycloneDX-style defense report
+        Generate CycloneDX-style defense report using Pydantic models
 
         Args:
             results: Results from run_all_agents()
@@ -184,59 +229,75 @@ class DefenseAnalyzer:
             project_version: Optional project version
 
         Returns:
-            CycloneDX-style report dict
+            Validated CycloneDX-style report dict
         """
-        # Extract recommendations from results
+        from sar.defense_report_schema import (
+            DefenseReport, Metadata, Tool, Component, Property,
+            AgentRecommendation, Summary
+        )
+
+        # Extract and validate recommendations from results
         recommendations = []
         for agent_id, agent_result in results['results_by_agent'].items():
             if agent_result.get('ran'):
-                recommendations.append(agent_result)
+                # Validate agent result against schema
+                recommendations.append(AgentRecommendation(**agent_result))
 
-        # Calculate overall coverage
+        # Calculate overall coverage from agent defenses
+        # Use RESTRICTIVENESS dimension - measures actual security, not just policy presence
         total_coverage = 0
         coverage_count = 0
+
         for rec in recommendations:
-            metrics = rec.get('metrics', {})
-            if 'coverage' in metrics:
-                total_coverage += metrics['coverage']
-                coverage_count += 1
+            if rec.defenses:
+                for defense in rec.defenses:
+                    if defense.metrics:
+                        # Find the restrictiveness metric - this measures actual security
+                        restrictiveness_metric = next(
+                            (m for m in defense.metrics if m.dimension == 'restrictiveness'),
+                            None
+                        )
+                        if restrictiveness_metric:
+                            total_coverage += restrictiveness_metric.coverage
+                            coverage_count += 1
 
         overall_coverage = round(total_coverage / coverage_count, 1) if coverage_count > 0 else 0
 
-        # Build report
-        report = {
-            'bomFormat': 'CompassDefenseReport',
-            'specVersion': '1.0',
-            'version': 1,
-            'serialNumber': f'urn:uuid:{uuid.uuid4()}',
-            'metadata': {
-                'timestamp': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-                'tools': [
-                    {
-                        'vendor': 'Contrast Security',
-                        'name': 'Compass Defense Analyzer',
-                        'version': '1.0.0'
-                    }
+        # Build validated report using Pydantic models
+        report = DefenseReport(
+            bomFormat='CompassDefenseReport',
+            specVersion='1.0',
+            version=1,
+            serialNumber=f'urn:uuid:{uuid.uuid4()}',
+            metadata=Metadata(
+                timestamp=datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+                tools=[
+                    Tool(
+                        vendor='Contrast Security',
+                        name='Compass Defense Analyzer',
+                        version='1.0.0'
+                    )
                 ],
-                'component': {
-                    'type': 'application',
-                    'name': project_name or 'Unknown Project',
-                    'version': project_version or '1.0.0',
-                    'properties': [
-                        {'name': 'project_directory', 'value': self.project_dir},
+                component=Component(
+                    type='application',
+                    name=project_name or 'Unknown Project',
+                    version=project_version or '1.0.0',
+                    properties=[
+                        Property(name='project_directory', value=self.project_dir)
                     ]
-                }
-            },
-            'recommendations': recommendations,
-            'summary': {
-                'agents_ran': results['agents_ran'],
-                'agents_skipped': results['agents_skipped'],
-                'total_recommendations': len(recommendations),
-                'overall_coverage': overall_coverage
-            }
-        }
+                )
+            ),
+            recommendations=recommendations,
+            summary=Summary(
+                agents_ran=results['agents_ran'],
+                agents_skipped=results['agents_skipped'],
+                total_recommendations=len(recommendations),
+                overall_coverage=overall_coverage
+            )
+        )
 
-        return report
+        # Return as dict for JSON serialization
+        return report.model_dump(exclude_none=True)
 
 
 if __name__ == '__main__':

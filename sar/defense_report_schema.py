@@ -46,6 +46,12 @@ class Metadata(BaseModel):
 # Defense-Specific Models
 # ============================================================================
 
+class Framework(BaseModel):
+    """Framework with version information"""
+    name: str
+    version: Optional[str] = None
+
+
 class Behavior(BaseModel):
     """A specific instance of a defense mechanism"""
     framework: str
@@ -134,19 +140,15 @@ class AuthPattern(BaseModel):
     architecture_description: str
 
 
-class ArchitectureEvaluation(BaseModel):
-    """Architecture quality evaluation"""
-    consistency: Dict[str, Any]
-    centralization: Dict[str, Any]
-    boundaries: Dict[str, Any]
-    maintainability: Dict[str, Any]
-
-
 class CoverageMetrics(BaseModel):
-    """Coverage metrics"""
+    """Coverage metrics with two dimensions:
+    - policy_coverage: does this defense make a decision? (permitAll = yes)
+    - restrictiveness: does it restrict access? (permitAll = no)
+    """
     metric_type: str
+    dimension: Optional[Literal["policy_coverage", "restrictiveness"]] = None
     exposures: int
-    protected: int
+    protected: int  # For policy_coverage: has decision | For restrictiveness: requires auth/denies
     unprotected: int
     coverage: float
     explanation: str
@@ -191,25 +193,24 @@ class VerificationReport(BaseModel):
 
 class Evidence(BaseModel):
     """Evidence supporting the recommendation"""
+    # Core evidence fields
     mechanisms: Optional[List[Mechanism]] = None
     defense_usage_matrix: Optional[DefenseUsageMatrix] = None
     roles: Optional[Roles] = None
     auth_pattern: Optional[AuthPattern] = None
-    evaluation: Optional[ArchitectureEvaluation] = None  # DEPRECATED: Replaced by AI-based architecture evaluation in recommendation
     coverage_metrics: Optional[CoverageMetrics] = None
     proposed_access_matrix: Optional[ProposedAccessMatrix] = None
     verification: Optional[VerificationReport] = None
 
-    # Allow extra fields for agent-specific evidence
+    # Agent-specific evidence fields
+    endpoints: Optional[List[Dict[str, Any]]] = None  # List of discovered endpoints with authorization details
+    sources: Optional[Dict[str, Dict[str, Any]]] = None  # Configuration source code snippets
+    frameworks: Optional[List[Framework]] = None  # List of detected frameworks with versions
+    authorizations: Optional[Dict[str, Dict[str, Any]]] = None  # Dictionary of authorization definitions by ID
+    test_discovery: Optional[Dict[str, Any]] = None  # Test file discovery results
+
+    # Allow extra fields for future agent-specific evidence
     model_config = ConfigDict(extra="allow")
-
-
-class Metrics(BaseModel):
-    """Standardized metrics"""
-    exposures: int
-    protected: int
-    unprotected: int
-    coverage: float
 
 
 class Recommendation(BaseModel):
@@ -223,10 +224,26 @@ class Recommendation(BaseModel):
 
 class DefenseMetadata(BaseModel):
     """Defense mechanism metadata"""
-    defense_name: str
+    defense_id: str  # Machine ID: "spring_security_http"
+    defense_mechanism: str  # Technical mechanism: "route_guard"
+    defense_name: str  # Human label: "Spring Security HTTP Security"
     defense_type: str
-    defense_mechanism: str
     defense_patterns: List[Union[str, Dict[str, Any]]]
+    description: Optional[str] = None  # AI-generated description of what this defense does
+
+
+class DefenseSection(BaseModel):
+    """FACTUAL description of a single defense mechanism (no evaluation/judgement)"""
+    defense_metadata: DefenseMetadata
+    evidence: Optional[Evidence] = None  # Code snippets, configs showing this defense
+    metrics: Optional[List[CoverageMetrics]] = None  # Coverage metrics with policy_coverage and restrictiveness dimensions
+    defense_matrix: Optional['DefenseMatrix'] = None  # How this defense applies to each endpoint
+
+
+class DefenseMatrix(BaseModel):
+    """Matrix showing how all defenses apply to each endpoint"""
+    endpoints: List[Dict[str, Any]]  # Each endpoint with all its defense layers
+    summary: Optional[Dict[str, Any]] = None  # Overall matrix summary
 
 
 class AgentRecommendation(BaseModel):
@@ -235,9 +252,18 @@ class AgentRecommendation(BaseModel):
     agent_name: str
     ran: bool
     reason: Optional[str] = None  # If not run
-    defense_metadata: Optional[DefenseMetadata] = None
-    evidence: Optional[Evidence] = None
-    metrics: Optional[Metrics] = None
+
+    # === FACTUAL SECTIONS (descriptive, no evaluation) ===
+
+    # Individual defense sections (each with its own defense matrix)
+    defenses: Optional[List[DefenseSection]] = None
+
+    # Shared data across all defenses
+    frameworks: Optional[List[Framework]] = None
+
+    # === EVALUATION SECTION (prescriptive, spans defenses) ===
+
+    # Overall recommendation (may reference multiple defenses)
     recommendation: Optional[Recommendation] = None
 
 

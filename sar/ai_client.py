@@ -57,10 +57,10 @@ def print_ai_usage_summary(tool_name: str = "Compass"):
 class AIClient:
     """Unified Claude API client supporting Bedrock and Anthropic"""
 
-    # Claude 3.5 Sonnet v2 pricing (per million tokens)
+    # Claude Sonnet 4 pricing (per million tokens)
     PRICING = {
-        'input': 3.00,   # $3.00 per 1M input tokens
-        'output': 15.00  # $15.00 per 1M output tokens
+        'input': 3.00,    # $3.00 per 1M input tokens
+        'output': 15.00   # $15.00 per 1M output tokens
     }
 
     def __init__(self, use_bedrock: bool = True, debug: bool = False):
@@ -187,7 +187,7 @@ class AIClient:
 
         # Call Bedrock with cross-region inference profile
         response = self.bedrock_client.invoke_model(
-            modelId="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            modelId="us.anthropic.claude-sonnet-4-20250514-v1:0",
             body=body
         )
 
@@ -208,7 +208,7 @@ class AIClient:
     def _call_anthropic(self, prompt: str, max_tokens: int, temperature: float) -> str:
         """Call Anthropic API directly"""
         response = self.anthropic_client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             max_tokens=max_tokens,
             temperature=temperature,
             messages=[{

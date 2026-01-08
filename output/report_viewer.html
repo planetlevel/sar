@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Defense Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.7;
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* File selector */
+        .file-selector {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .file-selector label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .file-selector input[type="file"] {
+            display: inline-block;
+            padding: 12px 24px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-selector input[type="file"]:hover {
+            border-color: #6366f1;
+            background: #f5f3ff;
+        }
+
+        #report-content {
+            display: none;
+        }
+
+        /* Header */
+        .report-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .report-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .report-header .subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .report-header .date {
+            opacity: 0.75;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        /* Summary cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .summary-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .summary-card .value.critical { color: #dc2626; }
+        .summary-card .value.warning { color: #f59e0b; }
+        .summary-card .value.good { color: #10b981; }
+
+        .summary-card .label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* Section */
+        .section {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 24px 0 12px 0;
+        }
+
+        .section p {
+            margin-bottom: 16px;
+            color: #4b5563;
+        }
+
+        /* Defense item */
+        .defense-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .defense-item .defense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .defense-item .defense-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .defense-item .defense-coverage {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .defense-item .defense-desc {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .defense-item .defense-explanation {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Code snippet */
+        .code-snippet {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .code-snippet .file-ref {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Recommendation */
+        .recommendation-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-summary {
+            font-size: 1.05rem;
+            color: #4b5563;
+            padding: 16px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid #6366f1;
+        }
+
+        .recommendation-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #374151;
+            margin: 24px 0 12px 0;
+        }
+
+        .recommendation-content h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4b5563;
+            margin: 20px 0 10px 0;
+        }
+
+        .recommendation-content p {
+            margin-bottom: 12px;
+        }
+
+        .recommendation-content ul, .recommendation-content ol {
+            margin: 12px 0 12px 24px;
+        }
+
+        .recommendation-content li {
+            margin: 6px 0;
+        }
+
+        .recommendation-content pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        .recommendation-content code {
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .recommendation-content p code {
+            background: #f3f4f6;
+            color: #dc2626;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        /* Matrix table */
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin: 16px 0;
+        }
+
+        .matrix-table th {
+            background: #f9fafb;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .matrix-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+
+        .matrix-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .matrix-table code {
+            font-size: 0.85em;
+            color: #6366f1;
+        }
+
+        .auth-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .auth-badge.public { background: #fef3c7; color: #92400e; }
+        .auth-badge.rbac { background: #d1fae5; color: #065f46; }
+        .auth-badge.authenticated { background: #dbeafe; color: #1e40af; }
+        .auth-badge.none { background: #fee2e2; color: #991b1b; }
+
+        /* Collapsible */
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+            user-select: none;
+        }
+
+        .collapsible-header:hover {
+            color: #6366f1;
+        }
+
+        .collapsible-header .toggle {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding-top: 16px;
+        }
+
+        .collapsible-content.open {
+            display: block;
+        }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            padding: 30px;
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="file-selector">
+            <label for="file-input">Load Security Report</label>
+            <input type="file" id="file-input" accept=".json" />
+        </div>
+
+        <div id="report-content"></div>
+    </div>
+
+    <script>
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const report = JSON.parse(event.target.result);
+                        renderReport(report);
+                    } catch (error) {
+                        alert('Error parsing JSON: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function renderReport(report) {
+            const container = document.getElementById('report-content');
+            container.style.display = 'block';
+
+            let html = '';
+
+            // Header
+            html += `
+                <div class="report-header">
+                    <h1>Security Defense Report</h1>
+                    <div class="subtitle">${report.metadata.component.name}</div>
+                    <div class="date">Generated ${new Date(report.metadata.timestamp).toLocaleDateString('en-US', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                    })}</div>
+                </div>
+            `;
+
+            // Summary cards
+            const coverage = report.summary.overall_coverage;
+            const coverageClass = coverage < 30 ? 'critical' : coverage < 70 ? 'warning' : 'good';
+
+            html += `
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="value ${coverageClass}">${coverage.toFixed(0)}%</div>
+                        <div class="label">Security Coverage</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${report.summary.agents_ran}</div>
+                        <div class="label">Areas Analyzed</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="value">${report.summary.total_recommendations}</div>
+                        <div class="label">Recommendations</div>
+                    </div>
+                </div>
+            `;
+
+            // Process each recommendation
+            report.recommendations.forEach(rec => {
+                if (!rec.ran) return;
+
+                // Defenses section
+                if (rec.defenses && rec.defenses.length > 0) {
+                    html += '<div class="section">';
+                    html += '<h2>Current Security Defenses</h2>';
+
+                    rec.defenses.forEach(defense => {
+                        const restrictiveness = defense.metrics?.find(m => m.dimension === 'restrictiveness');
+                        const coverage = restrictiveness ? restrictiveness.coverage : 0;
+                        const coverageClass = coverage < 30 ? 'critical' : coverage < 70 ? 'warning' : 'good';
+
+                        html += `<div class="defense-item">`;
+                        html += `<div class="defense-header">
+                            <span class="defense-name">${defense.defense_metadata.defense_name}</span>
+                            <span class="defense-coverage ${coverageClass}">${coverage.toFixed(0)}%</span>
+                        </div>`;
+
+                        if (defense.defense_metadata.description) {
+                            html += `<p class="defense-desc">${defense.defense_metadata.description}</p>`;
+                        }
+
+                        if (restrictiveness?.explanation) {
+                            html += `<p class="defense-explanation">${restrictiveness.explanation}</p>`;
+                        }
+
+                        // Show code snippet if available
+                        if (defense.evidence?.sources) {
+                            Object.values(defense.evidence.sources).slice(0, 1).forEach(src => {
+                                if (src.code) {
+                                    html += `<div class="code-snippet">`;
+                                    html += `<span class="file-ref">${src.ref || ''}</span>`;
+                                    html += escapeHtml(src.code);
+                                    html += `</div>`;
+                                }
+                            });
+                        }
+
+                        html += `</div>`;
+                    });
+
+                    html += '</div>';
+                }
+
+                // Recommendation section
+                if (rec.recommendation) {
+                    let actualRec = rec.recommendation;
+
+                    // Handle raw JSON case
+                    if (actualRec.design_recommendation?.trim().startsWith('```json')) {
+                        try {
+                            const match = actualRec.design_recommendation.match(/```json\s*([\s\S]*?)```/);
+                            if (match) actualRec = JSON.parse(match[1]);
+                        } catch (e) {}
+                    }
+
+                    html += '<div class="section">';
+                    html += '<h2>Recommendations</h2>';
+
+                    if (actualRec.title) {
+                        html += `<p class="recommendation-title">${escapeHtml(actualRec.title)}</p>`;
+                    }
+
+                    if (actualRec.summary) {
+                        html += `<div class="recommendation-summary">${escapeHtml(actualRec.summary)}</div>`;
+                    }
+
+                    html += '<div class="recommendation-content">';
+
+                    if (actualRec.design_recommendation) {
+                        html += '<h3>Strategic Assessment</h3>';
+                        html += formatMarkdown(actualRec.design_recommendation);
+                    }
+
+                    if (actualRec.implementation_recommendation) {
+                        html += '<h3>Implementation Steps</h3>';
+                        html += formatMarkdown(actualRec.implementation_recommendation);
+                    }
+
+                    if (actualRec.rationale) {
+                        html += `
+                            <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                <h3 style="margin:0">Why This Matters</h3>
+                                <span class="toggle">▼ Show</span>
+                            </div>
+                            <div class="collapsible-content">
+                                ${formatMarkdown(actualRec.rationale)}
+                            </div>
+                        `;
+                    }
+
+                    html += '</div></div>';
+                }
+
+                // Endpoint matrix (collapsible)
+                const allEndpoints = [];
+                rec.defenses?.forEach(d => {
+                    d.defense_matrix?.endpoints?.forEach(ep => {
+                        if (!allEndpoints.find(e => e.path === ep.path && e.method === ep.method)) {
+                            allEndpoints.push(ep);
+                        }
+                    });
+                });
+
+                if (allEndpoints.length > 0) {
+                    html += '<div class="section">';
+                    html += `
+                        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                            <h2 style="margin:0;padding:0;border:0">Endpoint Details (${allEndpoints.length} endpoints)</h2>
+                            <span class="toggle">▼ Show</span>
+                        </div>
+                        <div class="collapsible-content">
+                            <table class="matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th>Method</th>
+                                        <th>Path</th>
+                                        <th>Authorization</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    allEndpoints.forEach(ep => {
+                        const authType = ep.authorization?.type || 'None';
+                        const badgeClass = authType === 'PUBLIC' ? 'public' :
+                                          authType === 'RBAC' ? 'rbac' :
+                                          authType === 'AUTHENTICATED' ? 'authenticated' : 'none';
+                        const roles = ep.authorization?.roles ? ` (${ep.authorization.roles.join(', ')})` : '';
+
+                        html += `
+                            <tr>
+                                <td><strong>${ep.method}</strong></td>
+                                <td><code>${ep.path}</code></td>
+                                <td><span class="auth-badge ${badgeClass}">${authType}</span>${roles}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += '</tbody></table></div></div>';
+                }
+            });
+
+            // Footer
+            html += `
+                <div class="report-footer">
+                    Generated by Compass Defense Analyzer<br>
+                    ${report.bomFormat} v${report.specVersion}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function formatMarkdown(text) {
+            if (!text) return '';
+
+            // Split by code blocks
+            const parts = text.split(/(```\w*\n[\s\S]*?```)/g);
+            let html = '';
+
+            parts.forEach(part => {
+                if (part.startsWith('```')) {
+                    const match = part.match(/```(\w*)\n([\s\S]*?)```/);
+                    if (match) {
+                        html += `<pre><code>${escapeHtml(match[2])}</code></pre>`;
+                    }
+                } else if (part.trim()) {
+                    let processed = escapeHtml(part);
+
+                    // Bold
+                    processed = processed.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+                    // Headers
+                    processed = processed.replace(/^#{3,}\s+(.+)$/gm, '<h5>$1</h5>');
+                    processed = processed.replace(/^#{2}\s+(.+)$/gm, '<h4>$1</h4>');
+                    processed = processed.replace(/^#\s+(.+)$/gm, '<h4>$1</h4>');
+
+                    // Bullet lists
+                    processed = processed.replace(/^[-*]\s+(.+)$/gm, '• $1<br>');
+
+                    // Numbered lists
+                    processed = processed.replace(/^(\d+)\.\s+(.+)$/gm, '<strong>$1.</strong> $2<br>');
+
+                    // Inline code
+                    processed = processed.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+                    // Paragraphs
+                    processed = processed.replace(/\n\n+/g, '</p><p>');
+                    processed = processed.replace(/\n/g, '<br>');
+
+                    html += `<p>${processed}</p>`;
+                }
+            });
+
+            return html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleCollapsible(header) {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.toggle');
+
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                toggle.textContent = '▼ Show';
+            } else {
+                content.classList.add('open');
+                toggle.textContent = '▲ Hide';
+            }
+        }
+    </script>
+</body>
+</html>
