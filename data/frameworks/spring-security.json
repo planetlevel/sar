@@ -29,11 +29,11 @@
       ],
       "pom.xml": [
         {
-          "artifact": "spring-boot-starter-security",
+          "artifact": "spring-security-core",
           "library": "Spring Security"
         },
         {
-          "artifact": "spring-security-core",
+          "artifact": "spring-boot-starter-security",
           "library": "Spring Security"
         }
       ]

@@ -91,11 +91,24 @@ class DefenseAnalyzer:
 
             if result['success']:
                 # Transform SBOM components to architecture report format
+                # Filter out resolution losers and build full artifact names
                 libraries = []
                 for component in result.get('dependencies', []):
+                    tags = component.get('tags', [])
+                    # Skip resolution losers (defeated versions in Maven conflict resolution)
+                    if 'resolution-loser' in tags:
+                        continue
+
+                    group = component.get('group', '')
+                    name = component.get('name', '')
+                    version = component.get('version', '')
+
+                    # Build full artifact name (e.g., "org.springframework.security:spring-security-core")
+                    full_name = f"{group}:{name}" if group else name
+
                     libraries.append({
-                        'name': component.get('name', ''),
-                        'version': component.get('version', '')
+                        'name': full_name,
+                        'version': version
                     })
 
                 if self.debug:
